@@ -14,7 +14,7 @@ parallel
 1. clone
 
 ```shell
-[~]>$ git clone git@github.com:MortezaBashsiz/CFScanner.git
+[~]>$ git clone https://github.com/MortezaBashsiz/CFScanner.git
 ```
 
 2. Change direcotry
