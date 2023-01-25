@@ -41,7 +41,7 @@ function fncCheckSubnet {
 			if [[ "$timeMil" ]]
 			then
 				echo "OK $ip"
-				echo "$ip" >> "$resultFile"
+				echo "$timeMil $ip" >> "$resultFile"
 			fi
 		else
 			echo "FAILED $ip"
