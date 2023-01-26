@@ -26,7 +26,7 @@ if [[ "$(uname)" == "Linux" ]]; then
     command -v parallel >/dev/null 2>&1 || { echo >&2 "I require 'parallel' but it's not installed. Please install it and try again."; exit 1; }
     command -v nmap >/dev/null 2>&1 || { echo >&2 "I require 'nmap' but it's not installed. Please install it and try again."; exit 1; }
     command -v bc >/dev/null 2>&1 || { echo >&2 "I require 'bc' but it's not installed. Please install it and try again."; exit 1; }
-	command -v timeout >/dev/null 2>&1 || { echo >&2 "I require 'timeout' but it's not installed. Please install it and try again."; exit 1; }
+		command -v timeout >/dev/null 2>&1 || { echo >&2 "I require 'timeout' but it's not installed. Please install it and try again."; exit 1; }
 
 elif [[ "$(uname)" == "Darwin" ]];then
     command -v parallel >/dev/null 2>&1 || { echo >&2 "I require 'parallel' but it's not installed. Please install it and try again."; exit 1; }
@@ -56,34 +56,35 @@ function fncCheckSubnet {
 	local ipList resultFile timeoutCommand
 	ipList="$1"
 	resultFile="$2"
-# set proper command for linux
-if command -v timeout >/dev/null 2>&1; then
-    timeoutCommand="timeout"
-else
-    # set proper command for mac
-if command -v gtimeout >/dev/null 2>&1; then
-    timeoutCommand="gtimeout"
-else
-    echo >&2 "I require 'timeout' command but it's not installed. Please install 'timeout' or an alternative command like 'gtimeout' and try again."
-    exit 1
-fi
-fi
-
-
-for ip in ${ipList}
-	do
-		if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;         # replaced bash with sh to support more systems
+	# set proper command for linux
+	if command -v timeout >/dev/null 2>&1; 
+	then
+	    timeoutCommand="timeout"
+	else
+		# set proper command for mac
+		if command -v gtimeout >/dev/null 2>&1; 
 		then
-			timeMil=$($timeoutCommand 2 curl -s -w '%{time_total}\n' --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net/data.100K --output /dev/null | xargs -I {} echo "{} * 1000 /1" | bc )
-			if [[ "$timeMil" ]] 
-			then
-				echo "OK $ip ResponseTime $timeMil" 
-				echo "$timeMil $ip" >> "$resultFile"
-			fi
+		    timeoutCommand="gtimeout"
 		else
-			echo "FAILED $ip"
+		    echo >&2 "I require 'timeout' command but it's not installed. Please install 'timeout' or an alternative command like 'gtimeout' and try again."
+		    exit 1
 		fi
-done
+	fi
+
+	for ip in ${ipList}
+		do
+			if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;         # replaced bash with sh to support more systems
+			then
+				timeMil=$($timeoutCommand 2 curl -s -w '%{time_total}\n' --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net/data.100K --output /dev/null | xargs -I {} echo "{} * 1000 /1" | bc )
+				if [[ "$timeMil" ]] 
+				then
+					echo "OK $ip ResponseTime $timeMil" 
+					echo "$timeMil $ip" >> "$resultFile"
+				fi
+			else
+				echo "FAILED $ip"
+			fi
+	done
 }
 # End of Function fncCheckSubnet
 export -f fncCheckSubnet
@@ -97,4 +98,4 @@ do
 done
 
 
-sort -n -k1 -t, $resultFile -o $resultFile
+sort -n -k1 -t, "$resultFile" -o "$resultFile"
