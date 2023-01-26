@@ -75,7 +75,8 @@ function fncCheckSubnet {
 		do
 			if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;         # replaced bash with sh to support more systems
 			then
-				timeMil=$($timeoutCommand 2 curl -s -w '%{time_total}\n' --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net/data.100K --output /dev/null | xargs -I {} echo "{} * 1000 /1" | bc )
+				timeMil=$($timeoutCommand 2 curl -s -w "TIME: %{time_total}\n" --tlsv1.2 -servername scan.sudoer.net -H 'Host: scan.sudoer.net' --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
+				#timeMil=$($timeoutCommand 2 curl -s -w '%{time_total}\n' --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net/data.100K --output /dev/null | xargs -I {} echo "{} * 1000 /1" | bc )
 				if [[ "$timeMil" ]] 
 				then
 					echo "OK $ip ResponseTime $timeMil" 
