@@ -53,7 +53,7 @@ fi
 # Function fncCheckSubnet
 # Check Subnet
 function fncCheckSubnet {
-	local ipList resultFile timeoutCommand
+	local ipList resultFile timeoutCommand domainFronting
 	ipList="$1"
 	resultFile="$2"
 	# set proper command for linux
@@ -73,15 +73,21 @@ function fncCheckSubnet {
 
 	for ip in ${ipList}
 		do
-			if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;         # replaced bash with sh to support more systems
+			
+			domainFronting=$($timeoutCommand 2 curl -s -w "%{http_code}\n" --tlsv1.2 -servername scan.sudoer.net -H "Host: scan.sudoer.net" --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net -o /dev/null | grep '200')
+			if [[ "$domainFronting" == "200" ]]
 			then
-				timeMil=$($timeoutCommand 2 curl -s -w "TIME: %{time_total}\n" --tlsv1.2 -servername scan.sudoer.net -H 'Host: scan.sudoer.net' --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
-				#timeMil=$($timeoutCommand 2 curl -s -w '%{time_total}\n' --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net/data.100K --output /dev/null | xargs -I {} echo "{} * 1000 /1" | bc )
-				if [[ "$timeMil" ]] 
+				if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 				then
-					echo "OK $ip ResponseTime $timeMil" 
-					echo "$timeMil $ip" >> "$resultFile"
-				fi
+					timeMil=$($timeoutCommand 2 curl -s -w "TIME: %{time_total}\n" --tlsv1.2 -servername scan.sudoer.net -H 'Host: scan.sudoer.net' --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
+					if [[ "$timeMil" ]] 
+					then
+						echo "OK $ip ResponseTime $timeMil" 
+						echo "$timeMil $ip" >> "$resultFile"
+					else
+						echo "FAILED $ip"
+					fi
+			fi
 			else
 				echo "FAILED $ip"
 			fi
