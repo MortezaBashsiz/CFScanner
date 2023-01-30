@@ -70,14 +70,12 @@ function fncCheckSubnet {
 		    exit 1
 		fi
 	fi
-
 	for ip in ${ipList}
 		do
-			
-			domainFronting=$($timeoutCommand 2 curl -s -w "%{http_code}\n" --tlsv1.2 -servername scan.sudoer.net -H "Host: scan.sudoer.net" --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net -o /dev/null | grep '200')
-			if [[ "$domainFronting" == "200" ]]
+			if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 			then
-				if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
+				domainFronting=$($timeoutCommand 2 curl -s -w "%{http_code}\n" --tlsv1.2 -servername scan.sudoer.net -H "Host: scan.sudoer.net" --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net -o /dev/null | grep '200')
+				if [[ "$domainFronting" == "200" ]]
 				then
 					timeMil=$($timeoutCommand 2 curl -s -w "TIME: %{time_total}\n" --tlsv1.2 -servername scan.sudoer.net -H 'Host: scan.sudoer.net' --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
 					if [[ "$timeMil" ]] 
@@ -87,7 +85,9 @@ function fncCheckSubnet {
 					else
 						echo "FAILED $ip"
 					fi
-			fi
+				else
+					echo "FAILED $ip"
+				fi
 			else
 				echo "FAILED $ip"
 			fi
