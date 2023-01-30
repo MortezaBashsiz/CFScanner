@@ -74,7 +74,7 @@ function fncCheckSubnet {
 		do
 			if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 			then
-				domainFronting=$($timeoutCommand 2 curl -s -w "%{http_code}\n" --tlsv1.2 -servername scan.sudoer.net -H "Host: scan.sudoer.net" --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net -o /dev/null | grep '200')
+				domainFronting=$($timeoutCommand 2 curl -s -w "%{http_code}\n" --tlsv1.2 -servername fronting.sudoer.net -H "Host: fronting.sudoer.net" --resolve fronting.sudoer.net:443:"$ip" https://fronting.sudoer.net -o /dev/null | grep '200')
 				if [[ "$domainFronting" == "200" ]]
 				then
 					timeMil=$($timeoutCommand 2 curl -s -w "TIME: %{time_total}\n" --tlsv1.2 -servername scan.sudoer.net -H 'Host: scan.sudoer.net' --resolve scan.sudoer.net:443:"$ip" https://scan.sudoer.net | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
