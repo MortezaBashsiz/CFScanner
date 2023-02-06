@@ -4,6 +4,7 @@ This script scans all 1.5 Million cloudflare IP addresses and generate a result 
 ## Requirements
 You have to install following packages
 ```
+bc
 curl
 nmap
 parallel
