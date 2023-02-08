@@ -1,4 +1,4 @@
-# Cloud Flare Scanner
+# CloudFlare Scanner
 This script scans all 1.5 Million cloudflare IP addresses and generate a result file contains the IPs which are work with CDN
 
 ## Requirements
