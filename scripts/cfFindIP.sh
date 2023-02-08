@@ -176,7 +176,7 @@ do
 		done
 	else
 		echo "could not get url curl -s https://asnlookup.com/asn/$asn/"
-		exit 0
+		exit 1
 	fi
 done
 
