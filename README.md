@@ -34,7 +34,7 @@ parallel
 You must specify the parallel process count. In this example I execute it in 16 simultanious processes
 
 ```shell
-[~/CFScanner/scripts]>$ bash cfFindIP.sh 16 ./config.real
+[~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real
 ```
 
 5. Result
