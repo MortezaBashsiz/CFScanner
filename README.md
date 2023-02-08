@@ -10,7 +10,6 @@ nmap
 parallel
 ```
 
-
 ## How to run
 1. clone
 
@@ -38,7 +37,7 @@ You must specify the parallel process count. In this example I execute it in 16 
 [~/CFScanner/scripts]>$ bash cfFindIP.sh 16 ./config.real
 ```
 
-4. Result
+5. Result
 It will generate a file by datetime in result direcotry
 
 ```shell
@@ -46,3 +45,6 @@ It will generate a file by datetime in result direcotry
 20230120-203358-result.cf
 [~/CFScanner]>$
 ```
+
+## Video guide
+A video guide usage can be found in [youtube](https://youtu.be/xzuMnxEw97U "youtube").
