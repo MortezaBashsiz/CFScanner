@@ -10,7 +10,6 @@ nmap
 parallel
 ```
 
-
 ## How to run
 1. clone
 
@@ -23,15 +22,22 @@ parallel
 ```shell
 [~]>$ cd CFScanner/scripts
 ```
-3. Execute it
+
+3. Get config.real
+
+```shell
+[~/CFScanner/scripts]>$ curl -s http://bot.sudoer.net/config.real -o ./config.real
+```
+
+4. Execute it
 
 You must specify the parallel process count. In this example I execute it in 16 simultanious processes
 
 ```shell
-[~/CFScanner/scripts]>$ bash cfFindIP.sh 16 
+[~/CFScanner/scripts]>$ bash cfFindIP.sh 16 ./config.real
 ```
 
-4. Result
+5. Result
 It will generate a file by datetime in result direcotry
 
 ```shell
@@ -39,3 +45,6 @@ It will generate a file by datetime in result direcotry
 20230120-203358-result.cf
 [~/CFScanner]>$
 ```
+
+## Video guide
+A video guide usage can be found in [youtube](https://youtu.be/xzuMnxEw97U "youtube").
