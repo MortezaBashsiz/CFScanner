@@ -162,10 +162,14 @@ do
 	cloudFlareIpList=$(curl -s https://asnlookup.com/asn/"$asn"/ | grep "^<li><a href=\"/cidr/.*0/" | awk -F "cidr/" '{print $2}' | awk -F "\">" '{print $1}' | grep -E -v     "^8\.|^1\.")
 	for subNet in ${cloudFlareIpList}
 	do
-		killall v2ray > /dev/null 2>&1
-		ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
-		parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPath" ::: "$configServerName"
-		killall v2ray > /dev/null 2>&1
+		firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
+		if [[ "${cloudFlareOkList[*]}" =~ $firstOctet ]]
+		then
+			killall v2ray > /dev/null 2>&1
+			ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
+			parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPath" ::: "$configServerName"
+			killall v2ray > /dev/null 2>&1
+		fi
 	done
 done
 
