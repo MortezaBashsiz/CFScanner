@@ -36,7 +36,9 @@ fi
 
 threads="$1"
 config="$2"
-cloudFlareIpList=$(curl -s -XGET https://www.cloudflare.com/ips-v4)
+
+cloudFlareASNList=( AS209242 )
+cloudFlareOkList=(31 45 66 80 89 103 104 108 141 147 154 159 168 170 185 188 191 192 193 194 195 199 203 205 212)
 now=$(date +"%Y%m%d-%H%M%S")
 scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 resultDir="$scriptDir/../result"
@@ -155,12 +157,16 @@ export -f fncCheckSubnet
 
 echo "" > "$resultFile"
 
-for subNet in ${cloudFlareIpList}
+for asn in "${cloudFlareASNList[@]}"
 do
-	killall v2ray
-	ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
-	parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPath" ::: "$configServerName"
-	killall v2ray
+	cloudFlareIpList=$(curl -s https://asnlookup.com/asn/"$asn"/ | grep "^<li><a href=\"/cidr/.*0/" | awk -F "cidr/" '{print $2}' | awk -F "\">" '{print $1}' | grep -E -v     "^8\.|^1\.")
+	for subNet in ${cloudFlareIpList}
+	do
+		killall v2ray > /dev/null 2>&1
+		ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
+		parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPath" ::: "$configServerName"
+		killall v2ray > /dev/null 2>&1
+	done
 done
 
 sort -n -k1 -t, "$resultFile" -o "$resultFile"

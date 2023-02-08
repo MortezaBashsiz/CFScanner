@@ -23,12 +23,19 @@ parallel
 ```shell
 [~]>$ cd CFScanner/scripts
 ```
-3. Execute it
+
+3. Get config.real
+
+```shell
+[~/CFScanner/scripts]>$ curl -s http://bot.sudoer.net/config.real -o ./config.real
+```
+
+4. Execute it
 
 You must specify the parallel process count. In this example I execute it in 16 simultanious processes
 
 ```shell
-[~/CFScanner/scripts]>$ bash cfFindIP.sh 16 
+[~/CFScanner/scripts]>$ bash cfFindIP.sh 16 ./config.real
 ```
 
 4. Result
