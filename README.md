@@ -17,10 +17,12 @@ parallel
 [~]>$ git clone https://github.com/MortezaBashsiz/CFScanner.git
 ```
 
-2. Change direcotry
+2. Change direcotry and make them executable
 
 ```shell
 [~]>$ cd CFScanner/scripts
+[~/CFScanner/scripts]> chmod +x v2ray
+[~/CFScanner/scripts]> chmod +x v2ctl
 ```
 
 3. Get config.real
