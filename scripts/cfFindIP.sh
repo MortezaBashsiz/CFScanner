@@ -137,7 +137,7 @@ function fncCheckSubnet {
 					then
 						kill -9 "$pid" > /dev/null 2>&1
 					fi
-					if [[ "$timeMil" ]] 
+					if [[ "$timeMil" ]] && [[ "$timeMil" != 0 ]]
 					then
 						echo "OK $ip ResponseTime $timeMil" 
 						echo "$timeMil $ip" >> "$resultFile"
