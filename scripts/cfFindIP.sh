@@ -159,18 +159,25 @@ echo "" > "$resultFile"
 
 for asn in "${cloudFlareASNList[@]}"
 do
-	cloudFlareIpList=$(curl -s https://asnlookup.com/asn/"$asn"/ | grep "^<li><a href=\"/cidr/.*0/" | awk -F "cidr/" '{print $2}' | awk -F "\">" '{print $1}' | grep -E -v     "^8\.|^1\.")
-	for subNet in ${cloudFlareIpList}
-	do
-		firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
-		if [[ "${cloudFlareOkList[*]}" =~ $firstOctet ]]
-		then
-			killall v2ray > /dev/null 2>&1
-			ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
-			parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPath" ::: "$configServerName"
-			killall v2ray > /dev/null 2>&1
-		fi
-	done
+	urlResult=$(curl -I -L -s https://asnlookup.com/asn/"$asn" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
+	if [[ "$urlResult" == "200" ]]
+	then
+		cloudFlareIpList=$(curl -s https://asnlookup.com/asn/"$asn"/ | grep "^<li><a href=\"/cidr/.*0/" | awk -F "cidr/" '{print $2}' | awk -F "\">" '{print $1}' | grep -E -v     "^8\.|^1\.")
+		for subNet in ${cloudFlareIpList}
+		do
+			firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
+			if [[ "${cloudFlareOkList[*]}" =~ $firstOctet ]]
+			then
+				killall v2ray > /dev/null 2>&1
+				ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
+				parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPath" ::: "$configServerName"
+				killall v2ray > /dev/null 2>&1
+			fi
+		done
+	else
+		echo "could not get url curl -s https://asnlookup.com/asn/$asn/"
+		exit 0
+	fi
 done
 
 sort -n -k1 -t, "$resultFile" -o "$resultFile"
