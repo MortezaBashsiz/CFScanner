@@ -54,6 +54,11 @@ configPort="NULL"
 configPath="NULL"
 configServerName="NULL"
 
+bar_char_done="#"
+bar_char_todo="-"
+bar_percentage_scale=2
+progressBar=""
+
 # Check if config file exists
 if [[ -f "$config" ]]
 then
@@ -81,19 +86,41 @@ if [ ! -d "$configDir" ]; then
     mkdir -p "$configDir"
 fi
 
+# Progress bar maker function
+# Base on https://www.baeldung.com/linux/command-line-progress-bar
+function show_progress {
+  current="$1"
+  total="$2"
+
+  bar_size=$(tput cols)
+
+  # calculate the progress in percentage 
+  percent=$(bc <<< "scale=$bar_percentage_scale; 100 * $current / $total" )
+  # The number of done and todo characters
+  done=$(bc <<< "scale=0; $bar_size * $percent / 100" )
+  todo=$(bc <<< "scale=0; $bar_size - $done - 60" ) # 60 cols for description characters
+
+  # build the done and todo sub-bars
+  done_sub_bar=$(printf "%${done}s" | tr " " "${bar_char_done}")
+  todo_sub_bar=$(printf "%${todo}s" | tr " " "${bar_char_todo}")
+
+  # output the bar
+  progressBar="Progress : [${done_sub_bar}${todo_sub_bar}] ${percent}% of total IPs.      " # Some end space for pretty formatting
+}
+
 # Function fncCheckSubnet
 # Check Subnet
 function fncCheckSubnet {
 	local ipList scriptDir resultFile timeoutCommand domainFronting
 	ipList="$1"
-	resultFile="$2"
-	scriptDir="$3"
-	configId="$4"
-	configHost="$5"
-	configPort="$6"
-	configPath="$7"
-	configServerName="$8"
-	osVersion="$9"
+	resultFile="$3"
+	scriptDir="$4"
+	configId="$5"
+	configHost="$6"
+	configPort="$7"
+	configPath="$8"
+	configServerName="$9"
+	osVersion="$10"
 	v2rayCommand="v2ray"
 	configDir="$scriptDir/../config"
 	# set proper command for linux
@@ -159,16 +186,9 @@ function fncCheckSubnet {
 					fi
 					if [[ "$timeMil" ]] && [[ "$timeMil" != 0 ]]
 					then
-						echo "OK $ip ResponseTime $timeMil" 
 						echo "$timeMil $ip" >> "$resultFile"
-					else
-						echo "FAILED $ip"
 					fi
-				else
-					echo "FAILED $ip"
 				fi
-			else
-				echo "FAILED $ip"
 			fi
 	done
 }
@@ -188,16 +208,20 @@ do
 		echo "will use local file"
 		cloudFlareIpList=$(cat "$scriptDir"/cf.local.iplist)
 	fi
+  ipListLength=$(echo "$cloudFlareIpList" | wc -l)
+  passedIpsCount=0
 	for subNet in ${cloudFlareIpList}
 	do
+    show_progress $passedIpsCount $ipListLength
 		firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
 		if [[ "${cloudFlareOkList[*]}" =~ $firstOctet ]]
 		then
 			killall v2ray > /dev/null 2>&1
 			ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
-			parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
+      parallel --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
 			killall v2ray > /dev/null 2>&1
 		fi
+    let passedIpsCount++
 	done
 done
 
