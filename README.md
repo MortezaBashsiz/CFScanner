@@ -21,8 +21,7 @@ parallel
 
 ```shell
 [~]>$ cd CFScanner/scripts
-[~/CFScanner/scripts]> chmod +x v2ray
-[~/CFScanner/scripts]> chmod +x v2ctl
+[~/CFScanner/scripts]> chmod +x v2ctl v2ctl-mac v2ray v2ray-mac
 ```
 
 3. Get config.real
