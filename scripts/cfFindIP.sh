@@ -120,7 +120,7 @@ function fncCheckSubnet {
 	configPort="$7"
 	configPath="$8"
 	configServerName="$9"
-	osVersion="$10"
+	osVersion="${10}"
 	v2rayCommand="v2ray"
 	configDir="$scriptDir/../config"
 	# set proper command for linux
