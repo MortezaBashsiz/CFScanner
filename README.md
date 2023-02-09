@@ -37,6 +37,7 @@ In config file the variables are
 ```shell
 id: UUID for user
 Host: Host address which ic behind Cloudflare
+Port: Port which you are using behind Cloudflare on your origin server
 path: websocket endpoint like api20
 serverName: SNI
 ```
