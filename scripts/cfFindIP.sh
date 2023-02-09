@@ -50,6 +50,7 @@ configDir="$scriptDir/../config"
 
 configId="NULL"
 configHost="NULL"
+configPort="NULL"
 configPath="NULL"
 configServerName="NULL"
 
@@ -59,6 +60,7 @@ then
 	echo "reading config ..."
 	configId=$(grep "^id" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
 	configHost=$(grep "^Host" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
+	configPort=$(grep "^Port" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
 	configPath=$(grep "^path" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
 	configServerName=$(grep "^serverName" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
 	if ! [[ "$configId" ]] || ! [[ $configHost ]] || ! [[ $configPath ]] || ! [[ $configServerName ]]
@@ -88,9 +90,10 @@ function fncCheckSubnet {
 	scriptDir="$3"
 	configId="$4"
 	configHost="$5"
-	configPath="$6"
-	configServerName="$7"
-	osVersion="$8"
+	configPort="$6"
+	configPath="$7"
+	configServerName="$8"
+	osVersion="$9"
 	v2rayCommand="v2ray"
 	configDir="$scriptDir/../config"
 	# set proper command for linux
@@ -136,6 +139,7 @@ function fncCheckSubnet {
 					sed -i "s/PORTPORT/3$port/g" "$ipConfigFile"
 					sed -i "s/IDID/$configId/g" "$ipConfigFile"
 					sed -i "s/HOSTHOST/$configHost/g" "$ipConfigFile"
+					sed -i "s/CFPORTCFPORT/$configPort/g" "$ipConfigFile"
 					sed -i "s/ENDPOINTENDPOINT/$configPath/g" "$ipConfigFile"
 					sed -i "s/RANDOMHOST/$configServerName/g" "$ipConfigFile"
 					# shellcheck disable=SC2009
@@ -191,7 +195,7 @@ do
 		then
 			killall v2ray > /dev/null 2>&1
 			ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
-			parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
+			parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
 			killall v2ray > /dev/null 2>&1
 		fi
 	done
