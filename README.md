@@ -31,6 +31,14 @@ parallel
 [~/CFScanner/scripts]>$ curl -s http://bot.sudoer.net/config.real -o ./config.real
 ```
 
+In config file the variables are
+```shell
+id: UUID for user
+Host: Host address which ic behind Cloudflare
+path: websocket endpoint like api20
+serverName: SNI
+```
+
 4. Execute it
 
 You must specify the parallel process count. In this example I execute it in 16 simultanious processes
