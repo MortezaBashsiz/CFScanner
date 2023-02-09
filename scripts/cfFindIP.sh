@@ -19,15 +19,18 @@
 
 set -o nounset                                  # Treat unset variables as an error
 
+osVersion="Linux"
 # Check if 'parallel', 'timeout', 'nmap' and 'bc' packages are installed
 # If they are not,exit the script
 if [[ "$(uname)" == "Linux" ]]; then
+		osVersion="Linux"
     command -v parallel >/dev/null 2>&1 || { echo >&2 "I require 'parallel' but it's not installed. Please install it and try again."; exit 1; }
     command -v nmap >/dev/null 2>&1 || { echo >&2 "I require 'nmap' but it's not installed. Please install it and try again."; exit 1; }
     command -v bc >/dev/null 2>&1 || { echo >&2 "I require 'bc' but it's not installed. Please install it and try again."; exit 1; }
 		command -v timeout >/dev/null 2>&1 || { echo >&2 "I require 'timeout' but it's not installed. Please install it and try again."; exit 1; }
 
 elif [[ "$(uname)" == "Darwin" ]];then
+		osVersion="Mac"
     command -v parallel >/dev/null 2>&1 || { echo >&2 "I require 'parallel' but it's not installed. Please install it and try again."; exit 1; }
     command -v nmap >/dev/null 2>&1 || { echo >&2 "I require 'nmap' but it's not installed. Please install it and try again."; exit 1; }
     command -v bc >/dev/null 2>&1 || { echo >&2 "I require 'bc' but it's not installed. Please install it and try again."; exit 1; }
@@ -87,6 +90,8 @@ function fncCheckSubnet {
 	configHost="$5"
 	configPath="$6"
 	configServerName="$7"
+	osVersion="$8"
+	v2rayCommand="v2ray"
 	configDir="$scriptDir/../config"
 	# set proper command for linux
 	if command -v timeout >/dev/null 2>&1; 
@@ -101,6 +106,17 @@ function fncCheckSubnet {
 		    echo >&2 "I require 'timeout' command but it's not installed. Please install 'timeout' or an alternative command like 'gtimeout' and try again."
 		    exit 1
 		fi
+	fi
+	# set proper command for v2ray
+	if [[ "$osVersion" == "Linux" ]]
+	then
+		v2rayCommand="v2ray"
+	elif [[ "$osVersion" == "Mac"  ]]
+	then
+		v2rayCommand="v2ray-mac"
+	else
+		echo "OS not supported only Linux or Mac"
+		exit 1
 	fi
 	for ip in ${ipList}
 		do
@@ -128,7 +144,7 @@ function fncCheckSubnet {
 					then
 						kill -9 "$pid"
 					fi
-					nohup "$scriptDir"/v2ray -c "$ipConfigFile" > /dev/null &
+					nohup "$scriptDir"/"$v2rayCommand" -c "$ipConfigFile" > /dev/null &
 					sleep 2
 					timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" https://scan.sudoer.net | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
 					# shellcheck disable=SC2009
@@ -175,7 +191,7 @@ do
 		then
 			killall v2ray > /dev/null 2>&1
 			ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
-			parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPath" ::: "$configServerName"
+			parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
 			killall v2ray > /dev/null 2>&1
 		fi
 	done
