@@ -92,7 +92,7 @@ function showProgress {
   current="$1"
   total="$2"
 
-  barSize="$(($(tput cols)-60))" # 65 cols for description characters
+  barSize="$(($(tput cols)-70))" # 70 cols for description characters
 
   # calculate the progress in percentage 
   percent=$(bc <<< "scale=$barPercentageScale; 100 * $current / $total" )
@@ -104,7 +104,7 @@ function showProgress {
   todoSubBar=$(printf "%${todo}s" | tr " " "${barCharTodo}")
 
   # output the bar
-  progressBar="Progress : [${doneSubBar}${todoSubBar}] ${percent}% of total IPs.         " # Some end space for pretty formatting
+  progressBar="| Progress bar of main IPs: [${doneSubBar}${todoSubBar}] ${percent}%                           " # Some end space for pretty formatting
 }
 # End of Function showProgress
 # Function fncCheckSubnet
