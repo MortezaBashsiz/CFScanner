@@ -54,10 +54,14 @@ configPort="NULL"
 configPath="NULL"
 configServerName="NULL"
 
-barCharDone="#"
-barCharTodo="-"
+barCharDone="="
+barCharTodo=" "
+barSplitter='>'
 barPercentageScale=2
 progressBar=""
+
+# save position of cursor
+tput sc
 
 # Check if config file exists
 if [[ -f "$config" ]]
@@ -93,6 +97,7 @@ function showProgress {
   total="$2"
 
   barSize="$(($(tput cols)-70))" # 70 cols for description characters
+  spaces=20
 
   # calculate the progress in percentage 
   percent=$(bc <<< "scale=$barPercentageScale; 100 * $current / $total" )
@@ -101,10 +106,11 @@ function showProgress {
   todo=$(bc <<< "scale=0; $barSize - $done")
   # build the done and todo sub-bars
   doneSubBar=$(printf "%${done}s" | tr " " "${barCharDone}")
-  todoSubBar=$(printf "%${todo}s" | tr " " "${barCharTodo}")
+  todoSubBar=$(printf "%${todo}s" | tr " " "${barCharTodo} - 1") # 1 for barSplitter
+  spacesSubBar=$(printf "%${todo}s" | tr " " " ")
 
   # output the bar
-  progressBar="| Progress bar of main IPs: [${doneSubBar}${todoSubBar}] ${percent}%                           " # Some end space for pretty formatting
+  progressBar="| Progress bar of main IPs: [${doneSubBar}${barSplitter}${todoSubBar}] ${percent}%${spacesSubBar}" # Some end space for pretty formatting
 }
 # End of Function showProgress
 # Function fncCheckSubnet
@@ -217,6 +223,7 @@ do
 		then
 			killall v2ray > /dev/null 2>&1
 			ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
+      tput rc; tput cuu1; tput ed # rewrites Parallel's bar
       parallel --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
 			killall v2ray > /dev/null 2>&1
 		fi
