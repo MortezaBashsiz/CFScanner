@@ -87,9 +87,9 @@ if [ ! -d "$configDir" ]; then
     mkdir -p "$configDir"
 fi
 
-# Function showProgress
+# Function fncShowProgress
 # Progress bar maker function (based on https://www.baeldung.com/linux/command-line-progress-bar)
-function showProgress {
+function fncShowProgress {
   current="$1"
   total="$2"
 
@@ -221,7 +221,7 @@ do
   passedIpsCount=0
 	for subNet in ${cloudFlareIpList}
 	do
-    showProgress $passedIpsCount $ipListLength
+    fncShowProgress $passedIpsCount $ipListLength
 		firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
 		if [[ "${cloudFlareOkList[*]}" =~ $firstOctet ]]
 		then
