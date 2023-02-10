@@ -150,7 +150,7 @@ function fncCheckSubnet {
 					fi
 					nohup "$scriptDir"/"$v2rayCommand" -c "$ipConfigFile" > /dev/null &
 					sleep 2
-					timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" https://scan.sudoer.net | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
+					timeMil=$($timeoutCommand 2 curl -I -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" http://www.gstatic.com/generate_204 | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
 					# shellcheck disable=SC2009
 					pid=$(ps aux | grep config.json."$ip" | grep -v grep | awk '{ print $2 }')
 					if [[ "$pid" ]]
