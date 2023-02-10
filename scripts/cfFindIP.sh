@@ -60,9 +60,6 @@ barSplitter='>'
 barPercentageScale=2
 progressBar=""
 
-# save position of cursor
-tput sc
-
 # Check if config file exists
 if [[ -f "$config" ]]
 then
@@ -191,9 +188,16 @@ function fncCheckSubnet {
 					fi
 					if [[ "$timeMil" ]] && [[ "$timeMil" != 0 ]]
 					then
+						echo "OK $ip ResponseTime $timeMil" 
 						echo "$timeMil $ip" >> "$resultFile"
+					else
+						echo "FAILED $ip"
 					fi
+				else
+					echo "FAILED $ip"
 				fi
+			else
+				echo "FAILED $ip"
 			fi
 	done
 }
@@ -223,8 +227,8 @@ do
 		then
 			killall v2ray > /dev/null 2>&1
 			ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
-      tput rc; tput cuu1; tput ed # rewrites Parallel's bar
-      parallel --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
+      tput cuu1; tput ed # rewrites Parallel's bar
+      parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
 			killall v2ray > /dev/null 2>&1
 		fi
     let passedIpsCount++
