@@ -86,8 +86,8 @@ if [ ! -d "$configDir" ]; then
     mkdir -p "$configDir"
 fi
 
-# Progress bar maker function
-# Base on https://www.baeldung.com/linux/command-line-progress-bar
+# Function showProgress
+# Progress bar maker function (based on https://www.baeldung.com/linux/command-line-progress-bar)
 function showProgress {
   current="$1"
   total="$2"
@@ -106,7 +106,7 @@ function showProgress {
   # output the bar
   progressBar="Progress : [${doneSubBar}${todoSubBar}] ${percent}% of total IPs.         " # Some end space for pretty formatting
 }
-
+# End of Function showProgress
 # Function fncCheckSubnet
 # Check Subnet
 function fncCheckSubnet {
