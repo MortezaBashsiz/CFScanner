@@ -54,6 +54,13 @@ configPort="NULL"
 configPath="NULL"
 configServerName="NULL"
 
+export GREEN='\033[0;32m'
+export BLUE='\033[0;34m'
+export RED='\033[0;31m'
+export ORANGE='\033[0;33m'
+export YELLOW='\033[1;33m'
+export NC='\033[0m'
+
 # Check if config file exists
 if [[ -f "$config" ]]
 then
@@ -159,16 +166,16 @@ function fncCheckSubnet {
 					fi
 					if [[ "$timeMil" ]] && [[ "$timeMil" != 0 ]]
 					then
-						echo "OK $ip ResponseTime $timeMil" 
+						echo -e "${GREEN}OK${NC} $ip ${BLUE}ResponseTime $timeMil${NC}" 
 						echo "$timeMil $ip" >> "$resultFile"
 					else
-						echo "FAILED $ip"
+						echo -e "${YELLOW}FAILED${NC} $ip"
 					fi
 				else
-					echo "FAILED $ip"
+					echo -e "${YELLOW}FAILED${NC} $ip"
 				fi
 			else
-				echo "FAILED $ip"
+				echo -e "${YELLOW}FAILED${NC} $ip"
 			fi
 	done
 }
