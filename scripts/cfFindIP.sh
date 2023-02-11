@@ -59,6 +59,7 @@ barCharTodo=" "
 barSplitter='>'
 barPercentageScale=2
 progressBar=""
+
 export GREEN='\033[0;32m'
 export BLUE='\033[0;34m'
 export RED='\033[0;31m'
@@ -73,7 +74,7 @@ then
 	configId=$(grep "^id" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
 	configHost=$(grep "^Host" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
 	configPort=$(grep "^Port" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
-	configPath=$(grep "^path" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
+	configPath=$(grep "^path" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g" | sed 's/\//\\\//g')	
 	configServerName=$(grep "^serverName" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
 	if ! [[ "$configId" ]] || ! [[ $configHost ]] || ! [[ $configPath ]] || ! [[ $configServerName ]]
 	then
@@ -100,7 +101,6 @@ function fncShowProgress {
   total="$2"
 
   barSize="$(($(tput cols)-70))" # 70 cols for description characters
-  spaces=20
 
   # calculate the progress in percentage 
   percent=$(bc <<< "scale=$barPercentageScale; 100 * $current / $total" )
@@ -116,18 +116,19 @@ function fncShowProgress {
   progressBar="| Progress bar of main IPs: [${doneSubBar}${barSplitter}${todoSubBar}] ${percent}%${spacesSubBar}" # Some end space for pretty formatting
 }
 # End of Function showProgress
+
 # Function fncCheckSubnet
 # Check Subnet
 function fncCheckSubnet {
 	local ipList scriptDir resultFile timeoutCommand domainFronting
-	ipList="$1"
-	resultFile="$3"
-	scriptDir="$4"
-	configId="$5"
-	configHost="$6"
-	configPort="$7"
-	configPath="$8"
-	configServerName="$9"
+	ipList="${1}"
+	resultFile="${3}"
+	scriptDir="${4}"
+	configId="${5}"
+	configHost="${6}"
+	configPort="${7}"
+	configPath="${8}"
+	configServerName="${9}"
 	osVersion="${10}"
 	v2rayCommand="v2ray"
 	configDir="$scriptDir/../config"
@@ -227,7 +228,7 @@ do
   passedIpsCount=0
 	for subNet in ${cloudFlareIpList}
 	do
-    fncShowProgress $passedIpsCount $ipListLength
+    fncShowProgress "$passedIpsCount" "$ipListLength"
 		firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
 		if [[ "${cloudFlareOkList[*]}" =~ $firstOctet ]]
 		then
@@ -237,7 +238,7 @@ do
       parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
 			killall v2ray > /dev/null 2>&1
 		fi
-    let passedIpsCount++
+    passedIpsCount=$(( passedIpsCount+1 ))
 	done
 done
 
