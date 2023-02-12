@@ -14,7 +14,7 @@
 #        AUTHOR: Morteza Bashsiz (mb), morteza.bashsiz@gmail.com
 #  ORGANIZATION: Linux
 #       CREATED: 01/24/2023 07:36:57 PM
-#      REVISION:  1 by Nomad
+#      REVISION:  thehxdev, Ali-Frh, nomadzzz, armgham 
 #===============================================================================
 
 set -o nounset                                  # Treat unset variables as an error
@@ -36,6 +36,8 @@ elif [[ "$(uname)" == "Darwin" ]];then
     command -v bc >/dev/null 2>&1 || { echo >&2 "I require 'bc' but it's not installed. Please install it and try again."; exit 1; }
     command -v gtimeout >/dev/null 2>&1 || { echo >&2 "I require 'gtimeout' but it's not installed. Please install it and try again."; exit 1; }
 fi
+
+parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
 threads="$1"
 config="$2"
@@ -235,7 +237,13 @@ do
 			killall v2ray > /dev/null 2>&1
 			ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
       tput cuu1; tput ed # rewrites Parallel's bar
-      parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
+      if [[ $parallelVersion -gt "20220515" ]];
+      then
+        parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
+      else
+        echo -e "${RED}$progressBar${NC}"
+        parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
+      fi
 			killall v2ray > /dev/null 2>&1
 		fi
     passedIpsCount=$(( passedIpsCount+1 ))
