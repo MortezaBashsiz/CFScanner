@@ -14,7 +14,7 @@
 #        AUTHOR: Morteza Bashsiz (mb), morteza.bashsiz@gmail.com
 #  ORGANIZATION: Linux
 #       CREATED: 01/24/2023 07:36:57 PM
-#      REVISION:  1 by Nomad
+#      REVISION:  thehxdev, Ali-Frh, nomadzzz, armgham 
 #===============================================================================
 
 set -o nounset                                  # Treat unset variables as an error
@@ -237,7 +237,7 @@ do
 			killall v2ray > /dev/null 2>&1
 			ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
       tput cuu1; tput ed # rewrites Parallel's bar
-      if [[ $parallelVersion > "20220515" ]];
+      if [[ $parallelVersion -gt "20220515" ]];
       then
         parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
       else
