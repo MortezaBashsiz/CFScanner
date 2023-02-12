@@ -60,4 +60,4 @@ It will generate a file by datetime in result direcotry
 ```
 
 ## Video guide
-A video guide usage can be found in [youtube](https://youtu.be/xzuMnxEw97U "youtube").
+A video guide usage can be found in [youtube](https://youtu.be/BKLRAHolhvM "youtube").
