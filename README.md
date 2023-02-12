@@ -10,7 +10,7 @@ git
 bc
 curl
 nmap
-parallel
+parallel (version >= 20220514)
 ```
 
 ## How to run
