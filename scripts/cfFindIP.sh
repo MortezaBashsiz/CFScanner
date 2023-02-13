@@ -76,7 +76,7 @@ config="$2"
 speed="$3"
 
 speedList=(25 50 100 150 200 250 500)
-declare -A downloadFileArr
+declare -a downloadFileArr
 downloadFileArr["25"]="data.50k"
 downloadFileArr["50"]="data.100k"
 downloadFileArr["100"]="data.200k"
