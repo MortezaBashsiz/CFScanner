@@ -47,6 +47,7 @@ serverName: SNI
 At following command pay attention to the numbers **threads** and **speed**
 
 threads: This is an integer number which defines the parallel threads count
+
 speed: This is the filter which you can define to list the IPs based on download speed. the values must be one of [25 50 100 150 200 250 500] and all values are in KBPS (Kilo Bytes Per Second). For example if you set it to 50 it means that you will only list the IPs which have download speed more than 50 KB/S.
 
 ```shell
