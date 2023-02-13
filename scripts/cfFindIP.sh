@@ -102,7 +102,7 @@ then
 	configPort=$(grep "^Port" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
 	configPath=$(grep "^path" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g" | sed 's/\//\\\//g')	
 	configServerName=$(grep "^serverName" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
-	if ! [[ "$configId" ]] || ! [[ $configHost ]] || ! [[ $configPath ]] || ! [[ $configServerName ]]
+	if ! [[ "$configId" ]] || ! [[ $configHost ]] || ! [[ $configPort ]] || ! [[ $configPath ]] || ! [[ $configServerName ]]
 	then
 		echo "config is not correct"
 		exit 1
