@@ -168,18 +168,53 @@ function fncCheckSubnet {
 				then
 					ipConfigFile="$configDir/config.json.$ip"
 					cp "$scriptDir"/config.json.temp "$ipConfigFile"
-					sed -i "s/IP.IP.IP.IP/$ip/g" "$ipConfigFile"
+					if [[ "$osVersion" == "Mac" ]]
+					then
+						sed -i "" "s/IP.IP.IP.IP/$ip/g" "$ipConfigFile"
+					else
+						sed -i "s/IP.IP.IP.IP/$ip/g" "$ipConfigFile"
+					fi
 					ipO1=$(echo "$ip" | awk -F '.' '{print $1}')
 					ipO2=$(echo "$ip" | awk -F '.' '{print $2}')
 					ipO3=$(echo "$ip" | awk -F '.' '{print $3}')
 					ipO4=$(echo "$ip" | awk -F '.' '{print $4}')
 					port=$((ipO1 + ipO2 + ipO3 + ipO4))
-					sed -i "s/PORTPORT/3$port/g" "$ipConfigFile"
-					sed -i "s/IDID/$configId/g" "$ipConfigFile"
-					sed -i "s/HOSTHOST/$configHost/g" "$ipConfigFile"
-					sed -i "s/CFPORTCFPORT/$configPort/g" "$ipConfigFile"
-					sed -i "s/ENDPOINTENDPOINT/$configPath/g" "$ipConfigFile"
-					sed -i "s/RANDOMHOST/$configServerName/g" "$ipConfigFile"
+					if [[ "$osVersion" == "Mac" ]]
+					then
+						sed -i "" "s/PORTPORT/3$port/g" "$ipConfigFile"
+					else
+						sed -i "s/PORTPORT/3$port/g" "$ipConfigFile"
+					fi
+					if [[ "$osVersion" == "Mac" ]]
+					then
+						sed -i "" "s/IDID/$configId/g" "$ipConfigFile"
+					else
+						sed -i "s/IDID/$configId/g" "$ipConfigFile"
+					fi
+					if [[ "$osVersion" == "Mac" ]]
+					then
+						sed -i "" "s/HOSTHOST/$configHost/g" "$ipConfigFile"
+					else
+						sed -i "s/HOSTHOST/$configHost/g" "$ipConfigFile"
+					fi
+					if [[ "$osVersion" == "Mac" ]]
+					then
+						sed -i "" "s/CFPORTCFPORT/$configPort/g" "$ipConfigFile"
+					else
+						sed -i "s/CFPORTCFPORT/$configPort/g" "$ipConfigFile"
+					fi
+					if [[ "$osVersion" == "Mac" ]]
+					then
+						sed -i "" "s/ENDPOINTENDPOINT/$configPath/g" "$ipConfigFile"
+					else
+						sed -i "s/ENDPOINTENDPOINT/$configPath/g" "$ipConfigFile"
+					fi
+					if [[ "$osVersion" == "Mac" ]]
+					then
+						sed -i "" "s/RANDOMHOST/$configServerName/g" "$ipConfigFile"
+					else
+						sed -i "s/RANDOMHOST/$configServerName/g" "$ipConfigFile"
+					fi
 					# shellcheck disable=SC2009
 					pid=$(ps aux | grep config.json."$ip" | grep -v grep | awk '{ print $2 }')
 					if [[ "$pid" ]]
