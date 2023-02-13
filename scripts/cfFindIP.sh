@@ -14,14 +14,14 @@
 #        AUTHOR: Morteza Bashsiz (mb), morteza.bashsiz@gmail.com
 #  ORGANIZATION: Linux
 #       CREATED: 01/24/2023 07:36:57 PM
-#      REVISION:  1 by Nomad
+#      REVISION:  thehxdev, Ali-Frh, nomadzzz, armgham 
 #===============================================================================
 
 set -o nounset                                  # Treat unset variables as an error
 
-osVersion="Linux"
 # Check if 'parallel', 'timeout', 'nmap' and 'bc' packages are installed
 # If they are not,exit the script
+osVersion="Linux"
 if [[ "$(uname)" == "Linux" ]]; then
 		osVersion="Linux"
     command -v parallel >/dev/null 2>&1 || { echo >&2 "I require 'parallel' but it's not installed. Please install it and try again."; exit 1; }
@@ -37,8 +37,8 @@ elif [[ "$(uname)" == "Darwin" ]];then
     command -v gtimeout >/dev/null 2>&1 || { echo >&2 "I require 'gtimeout' but it's not installed. Please install it and try again."; exit 1; }
 fi
 
-threads="$1"
-config="$2"
+parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
+
 
 cloudFlareASNList=( AS209242 )
 cloudFlareOkList=(31 45 66 80 89 103 104 108 141 147 154 159 168 170 185 188 191 192 193 194 195 199 203 205 212)
@@ -67,6 +67,32 @@ export ORANGE='\033[0;33m'
 export YELLOW='\033[1;33m'
 export NC='\033[0m'
 
+frontDomain="fronting.sudoer.net"
+scanDomain="scan.sudoer.net"
+downloadFile="data.100k"
+
+threads="$1"
+config="$2"
+speed="$3"
+
+speedList=(25 50 100 150 200 250 500)
+declare -a downloadFileArr
+downloadFileArr["25"]="data.50k"
+downloadFileArr["50"]="data.100k"
+downloadFileArr["100"]="data.200k"
+downloadFileArr["150"]="data.300k"
+downloadFileArr["200"]="data.400k"
+downloadFileArr["250"]="data.500k"
+downloadFileArr["500"]="data.1000k"
+
+if [[ "${speedList[*]}" =~ $speed ]]
+then
+	downloadFile="${downloadFileArr[${speed}]}"
+else
+	echo "Speed $speed is not valid, choose be one of (25 50 100 150 200 250 500)"
+	exit 0
+fi
+
 # Check if config file exists
 if [[ -f "$config" ]]
 then
@@ -76,7 +102,7 @@ then
 	configPort=$(grep "^Port" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
 	configPath=$(grep "^path" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g" | sed 's/\//\\\//g')	
 	configServerName=$(grep "^serverName" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
-	if ! [[ "$configId" ]] || ! [[ $configHost ]] || ! [[ $configPath ]] || ! [[ $configServerName ]]
+	if ! [[ "$configId" ]] || ! [[ $configHost ]] || ! [[ $configPort ]] || ! [[ $configPath ]] || ! [[ $configServerName ]]
 	then
 		echo "config is not correct"
 		exit 1
@@ -129,7 +155,10 @@ function fncCheckSubnet {
 	configPort="${7}"
 	configPath="${8}"
 	configServerName="${9}"
-	osVersion="${10}"
+	frontDomain="${10}"
+	scanDomain="${11}"
+	downloadFile="${12}"
+	osVersion="${13}"
 	v2rayCommand="v2ray"
 	configDir="$scriptDir/../config"
 	# set proper command for linux
@@ -161,23 +190,35 @@ function fncCheckSubnet {
 		do
 			if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 			then
-				domainFronting=$($timeoutCommand 2 curl -s -w "%{http_code}\n" --tlsv1.2 -servername fronting.sudoer.net -H "Host: fronting.sudoer.net" --resolve fronting.sudoer.net:443:"$ip" https://fronting.sudoer.net -o /dev/null | grep '200')
+				domainFronting=$($timeoutCommand 2 curl -s -w "%{http_code}\n" --tlsv1.2 -servername "$frontDomain" -H "Host: $frontDomain" --resolve "$frontDomain":443:"$ip" https://"$frontDomain" -o /dev/null | grep '200')
 				if [[ "$domainFronting" == "200" ]]
 				then
 					ipConfigFile="$configDir/config.json.$ip"
 					cp "$scriptDir"/config.json.temp "$ipConfigFile"
-					sed -i "s/IP.IP.IP.IP/$ip/g" "$ipConfigFile"
 					ipO1=$(echo "$ip" | awk -F '.' '{print $1}')
 					ipO2=$(echo "$ip" | awk -F '.' '{print $2}')
 					ipO3=$(echo "$ip" | awk -F '.' '{print $3}')
 					ipO4=$(echo "$ip" | awk -F '.' '{print $4}')
 					port=$((ipO1 + ipO2 + ipO3 + ipO4))
-					sed -i "s/PORTPORT/3$port/g" "$ipConfigFile"
-					sed -i "s/IDID/$configId/g" "$ipConfigFile"
-					sed -i "s/HOSTHOST/$configHost/g" "$ipConfigFile"
-					sed -i "s/CFPORTCFPORT/$configPort/g" "$ipConfigFile"
-					sed -i "s/ENDPOINTENDPOINT/$configPath/g" "$ipConfigFile"
-					sed -i "s/RANDOMHOST/$configServerName/g" "$ipConfigFile"
+					if [[ "$osVersion" == "Mac" ]]
+					then
+						sed -i "" "s/IP.IP.IP.IP/$ip/g" "$ipConfigFile"
+						sed -i "" "s/PORTPORT/3$port/g" "$ipConfigFile"
+						sed -i "" "s/IDID/$configId/g" "$ipConfigFile"
+						sed -i "" "s/HOSTHOST/$configHost/g" "$ipConfigFile"
+						sed -i "" "s/CFPORTCFPORT/$configPort/g" "$ipConfigFile"
+						sed -i "" "s/ENDPOINTENDPOINT/$configPath/g" "$ipConfigFile"
+						sed -i "" "s/RANDOMHOST/$configServerName/g" "$ipConfigFile"
+					elif [[ "$osVersion" == "Linux" ]]
+					then
+						sed -i "s/IP.IP.IP.IP/$ip/g" "$ipConfigFile"
+						sed -i "s/PORTPORT/3$port/g" "$ipConfigFile"
+						sed -i "s/IDID/$configId/g" "$ipConfigFile"
+						sed -i "s/HOSTHOST/$configHost/g" "$ipConfigFile"
+						sed -i "s/CFPORTCFPORT/$configPort/g" "$ipConfigFile"
+						sed -i "s/ENDPOINTENDPOINT/$configPath/g" "$ipConfigFile"
+						sed -i "s/RANDOMHOST/$configServerName/g" "$ipConfigFile"
+					fi
 					# shellcheck disable=SC2009
 					pid=$(ps aux | grep config.json."$ip" | grep -v grep | awk '{ print $2 }')
 					if [[ "$pid" ]]
@@ -186,7 +227,7 @@ function fncCheckSubnet {
 					fi
 					nohup "$scriptDir"/"$v2rayCommand" -c "$ipConfigFile" > /dev/null &
 					sleep 2
-					timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" https://scan.sudoer.net | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
+					timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" https://"$scanDomain"/"$downloadFile" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
 					# shellcheck disable=SC2009
 					pid=$(ps aux | grep config.json."$ip" | grep -v grep | awk '{ print $2 }')
 					if [[ "$pid" ]]
@@ -235,7 +276,13 @@ do
 			killall v2ray > /dev/null 2>&1
 			ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
       tput cuu1; tput ed # rewrites Parallel's bar
-      parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$osVersion"
+      if [[ $parallelVersion -gt "20220515" ]];
+      then
+        parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion"
+      else
+        echo -e "${RED}$progressBar${NC}"
+        parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion"
+      fi
 			killall v2ray > /dev/null 2>&1
 		fi
     passedIpsCount=$(( passedIpsCount+1 ))
