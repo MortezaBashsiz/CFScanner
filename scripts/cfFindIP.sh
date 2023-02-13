@@ -76,7 +76,7 @@ config="$2"
 speed="$3"
 
 speedList=(25 50 100 150 200 250 500)
-declare -A downloadFileArr
+declare -a downloadFileArr
 downloadFileArr["25"]="data.50k"
 downloadFileArr["50"]="data.100k"
 downloadFileArr["100"]="data.200k"
@@ -195,18 +195,30 @@ function fncCheckSubnet {
 				then
 					ipConfigFile="$configDir/config.json.$ip"
 					cp "$scriptDir"/config.json.temp "$ipConfigFile"
-					sed -i "s/IP.IP.IP.IP/$ip/g" "$ipConfigFile"
 					ipO1=$(echo "$ip" | awk -F '.' '{print $1}')
 					ipO2=$(echo "$ip" | awk -F '.' '{print $2}')
 					ipO3=$(echo "$ip" | awk -F '.' '{print $3}')
 					ipO4=$(echo "$ip" | awk -F '.' '{print $4}')
 					port=$((ipO1 + ipO2 + ipO3 + ipO4))
-					sed -i "s/PORTPORT/3$port/g" "$ipConfigFile"
-					sed -i "s/IDID/$configId/g" "$ipConfigFile"
-					sed -i "s/HOSTHOST/$configHost/g" "$ipConfigFile"
-					sed -i "s/CFPORTCFPORT/$configPort/g" "$ipConfigFile"
-					sed -i "s/ENDPOINTENDPOINT/$configPath/g" "$ipConfigFile"
-					sed -i "s/RANDOMHOST/$configServerName/g" "$ipConfigFile"
+					if [[ "$osVersion" == "Mac" ]]
+					then
+						sed -i "" "s/IP.IP.IP.IP/$ip/g" "$ipConfigFile"
+						sed -i "" "s/PORTPORT/3$port/g" "$ipConfigFile"
+						sed -i "" "s/IDID/$configId/g" "$ipConfigFile"
+						sed -i "" "s/HOSTHOST/$configHost/g" "$ipConfigFile"
+						sed -i "" "s/CFPORTCFPORT/$configPort/g" "$ipConfigFile"
+						sed -i "" "s/ENDPOINTENDPOINT/$configPath/g" "$ipConfigFile"
+						sed -i "" "s/RANDOMHOST/$configServerName/g" "$ipConfigFile"
+					elif [[ "$osVersion" == "Linux" ]]
+					then
+						sed -i "s/IP.IP.IP.IP/$ip/g" "$ipConfigFile"
+						sed -i "s/PORTPORT/3$port/g" "$ipConfigFile"
+						sed -i "s/IDID/$configId/g" "$ipConfigFile"
+						sed -i "s/HOSTHOST/$configHost/g" "$ipConfigFile"
+						sed -i "s/CFPORTCFPORT/$configPort/g" "$ipConfigFile"
+						sed -i "s/ENDPOINTENDPOINT/$configPath/g" "$ipConfigFile"
+						sed -i "s/RANDOMHOST/$configServerName/g" "$ipConfigFile"
+					fi
 					# shellcheck disable=SC2009
 					pid=$(ps aux | grep config.json."$ip" | grep -v grep | awk '{ print $2 }')
 					if [[ "$pid" ]]
