@@ -209,7 +209,7 @@ function fncCheckSubnet {
 						sed -i "" "s/CFPORTCFPORT/$configPort/g" "$ipConfigFile"
 						sed -i "" "s/ENDPOINTENDPOINT/$configPath/g" "$ipConfigFile"
 						sed -i "" "s/RANDOMHOST/$configServerName/g" "$ipConfigFile"
-					else if [[ "$osVersion" == "Linux" ]]
+					elif [[ "$osVersion" == "Linux" ]]
 					then
 						sed -i "s/IP.IP.IP.IP/$ip/g" "$ipConfigFile"
 						sed -i "s/PORTPORT/3$port/g" "$ipConfigFile"
