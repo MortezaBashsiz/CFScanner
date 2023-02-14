@@ -7,6 +7,7 @@ This script uses v2ray+vmess+websocket+tls by default and if you want to use it 
 You have to install following packages
 ```
 git
+tput
 bc
 curl
 nmap
