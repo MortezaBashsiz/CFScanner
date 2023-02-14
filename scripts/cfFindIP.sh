@@ -59,11 +59,10 @@ function fncCheckSubnet {
 	configPath="${8}"
 	configServerName="${9}"
 	frontDomain="${10}"
-	fakeDomain="${11}"
-	scanDomain="${12}"
-	downloadFile="${13}"
-	osVersion="${14}"
-	v2rayCommand="${15}"
+	scanDomain="${11}"
+	downloadFile="${12}"
+	osVersion="${13}"
+	v2rayCommand="${14}"
 	configDir="$scriptDir/../config"
 	# set proper command for linux
 	if command -v timeout >/dev/null 2>&1; 
@@ -83,7 +82,7 @@ function fncCheckSubnet {
 		do
 			if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 			then
-				domainFronting=$($timeoutCommand 1 curl -k -s -w "%{http_code}\n" --tlsv1.2 -servername "$fakeDomain" -H "Host: $frontDomain" --resolve "$fakeDomain":443:"$ip" https://"$frontDomain" -o /dev/null | grep '200')
+				domainFronting=$($timeoutCommand 1 curl -k -s -w "%{http_code}\n" --tlsv1.2 -H "Host: $frontDomain" --resolve "$frontDomain":443:"$ip" https://"$frontDomain" -o /dev/null | grep '200')
 				if [[ "$domainFronting" == "200" ]]
 				then
 					ipConfigFile="$configDir/config.json.$ip"
@@ -230,7 +229,7 @@ function fncCheckSpeed {
 # Function fncMainCFFind
 # main Function
 function fncMainCFFind {
-	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain fakeDomain scanDomain speed  downloadFile osVersion parallelVersion subnetsFile cloudFlareASNList cloudFlareOkList
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion subnetsFile cloudFlareASNList cloudFlareOkList
 	threads="${1}"
 	progressBar="${2}"
 	resultFile="${3}"
@@ -241,11 +240,10 @@ function fncMainCFFind {
 	configPath="${8}"
 	configServerName="${9}"
 	frontDomain="${10}"
-	fakeDomain="${11}"
-	scanDomain="${12}"
-	speed="${13}"
-	osVersion="${14}"
-	subnetsFile="${15}"
+	scanDomain="${11}"
+	speed="${12}"
+	osVersion="${13}"
+	subnetsFile="${14}"
 
 	if [[ "$osVersion" == "Linux" ]]
 	then
@@ -297,10 +295,10 @@ function fncMainCFFind {
 		      tput cuu1; tput ed # rewrites Parallel's bar
 		      if [[ $parallelVersion -gt "20220515" ]];
 		      then
-		        parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$fakeDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+		        parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
 		      else
 		        echo -e "${RED}$progressBar${NC}"
-		        parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$fakeDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+		        parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
 		      fi
 					killall v2ray > /dev/null 2>&1
 				fi
@@ -324,10 +322,10 @@ function fncMainCFFind {
 		    tput cuu1; tput ed # rewrites Parallel's bar
 		    if [[ $parallelVersion -gt "20220515" ]];
 		    then
-		      parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$fakeDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+		      parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
 		    else
 		      echo -e "${RED}$progressBar${NC}"
-		      parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$fakeDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+		      parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
 		    fi
 				killall v2ray > /dev/null 2>&1
 			fi
@@ -354,7 +352,6 @@ then
 	fi
 fi
 
-fakeDomain="www.snapp.ir"
 frontDomain="fronting.sudoer.net"
 scanDomain="scan.sudoer.net"
 downloadFile="data.100k"
@@ -386,4 +383,4 @@ echo "" > "$resultFile"
 
 osVersion="$(fncCheckDpnd)"
 fncValidateConfig "$config"
-fncMainCFFind	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$fakeDomain" "$scanDomain" "$speed" "$osVersion" "$subnetsFile"
+fncMainCFFind	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$osVersion" "$subnetsFile"
