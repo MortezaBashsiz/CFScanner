@@ -17,7 +17,7 @@
 #      REVISION:  thehxdev, Ali-Frh, nomadzzz, armgham, beh-rouz 
 #===============================================================================
 
-set -o nounset                                  # Treat unset variables as an error
+#set -o nounset                                  # Treat unset variables as an error
 
 # Function fncShowProgress
 # Progress bar maker function (based on https://www.baeldung.com/linux/command-line-progress-bar)
@@ -299,6 +299,30 @@ function fncMainCFFind {
 		    passedIpsCount=$(( passedIpsCount+1 ))
 			done
 		done
+	else
+		cfSubnetList=$(cat "$subnetsFile")
+		ipListLength=$(echo "$cfSubnetList" | wc -l)
+		passedIpsCount=0
+		for subNet in ${cfSubnetList}
+		do
+		  fncShowProgress "$passedIpsCount" "$ipListLength"
+			firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
+			if [[ "${cloudFlareOkList[*]}" =~ $firstOctet ]]
+			then
+				killall v2ray > /dev/null 2>&1
+				ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
+		    tput cuu1; tput ed # rewrites Parallel's bar
+		    if [[ $parallelVersion -gt "20220515" ]];
+		    then
+		      parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion"
+		    else
+		      echo -e "${RED}$progressBar${NC}"
+		      parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion"
+		    fi
+				killall v2ray > /dev/null 2>&1
+			fi
+		  passedIpsCount=$(( passedIpsCount+1 ))
+		done
 	fi
 	
 	sort -n -k1 -t, "$resultFile" -o "$resultFile"
@@ -310,15 +334,15 @@ config="$2"
 speed="$3"
 subnetsFile="NULL"
 
-#if [[ "$4" ]]
-#then
-#	subnetsFile="$4"
-#	if ! [[ -f "$subnetsFile" ]]
-#	then
-#		echo "file does not exists: $subnetsFile"
-#		exit 1
-#	fi
-#fi
+if [[ "$4" ]]
+then
+	subnetsFile="$4"
+	if ! [[ -f "$subnetsFile" ]]
+	then
+		echo "file does not exists: $subnetsFile"
+		exit 1
+	fi
+fi
 
 frontDomain="fronting.sudoer.net"
 scanDomain="scan.sudoer.net"
