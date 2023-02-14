@@ -201,14 +201,11 @@ function fncValidateConfig {
 # Function fncCreateDir
 # creates needed directory
 function fncCreateDir {
-	local dirPathList
-	dirPathList="${1}"
-	for dir in ${dirPathList[@]}
-	do
-		if [ ! -d "$dir" ]; then
-			mkdir -p "$dir"
-		fi
-	done
+	local dirPath
+	dirPath="${1}"
+	if [ ! -d "$dirPath" ]; then
+		mkdir -p "$dirPath"
+	fi
 }
 # End of Function fncCreateDir
 
@@ -239,7 +236,7 @@ function fncCheckSpeed {
 # Function fncMainCFFind
 # main Function
 function fncMainCFFind {
-	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion subnetsFile cloudFlareASNList cloudFlareOkList
 	threads="${1}"
 	progressBar="${2}"
 	resultFile="${3}"
@@ -253,7 +250,11 @@ function fncMainCFFind {
 	scanDomain="${11}"
 	speed="${12}"
 	osVersion="${13}"
+	subnetsFile="${14}"
 	
+	cloudFlareASNList=( AS209242 )
+	cloudFlareOkList=(31 45 66 80 89 103 104 108 141 147 154 159 168 170 185 188 191 192 193 194 195 199 203 205 212)
+
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
 	downloadFile="$(fncCheckSpeed "$speed")"
@@ -262,41 +263,43 @@ function fncMainCFFind {
 		echo "Speed $speed is not valid, choose be one of (25 50 100 150 200 250 500)"
 		exit 0
 	fi
-	
-	for asn in "${cloudFlareASNList[@]}"
-	do
-		urlResult=$(curl -I -L -s https://asnlookup.com/asn/"$asn" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
-		if [[ "$urlResult" == "200" ]]
-		then
-			cfSubnetList=$(curl -s https://asnlookup.com/asn/"$asn"/ | grep "^<li><a href=\"/cidr/.*0/" | awk -F "cidr/" '{print $2}' | awk -F "\">" '{print $1}' | grep -E -v     "^8\.|^1\.")
-		else
-			echo "could not get url curl -s https://asnlookup.com/asn/$asn/"
-			echo "will use local file"
-			cfSubnetList=$(cat "$scriptDir"/cf.local.iplist)
-		fi
-	  ipListLength=$(echo "$cfSubnetList" | wc -l)
-	  passedIpsCount=0
-		for subNet in ${cfSubnetList}
+	if [[ "$subnetsFile" == "NULL" ]]	
+	then
+		for asn in "${cloudFlareASNList[@]}"
 		do
-	    fncShowProgress "$passedIpsCount" "$ipListLength"
-			firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
-			if [[ "${cloudFlareOkList[*]}" =~ $firstOctet ]]
+			urlResult=$(curl -I -L -s https://asnlookup.com/asn/"$asn" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
+			if [[ "$urlResult" == "200" ]]
 			then
-				killall v2ray > /dev/null 2>&1
-				ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
-	      tput cuu1; tput ed # rewrites Parallel's bar
-	      if [[ $parallelVersion -gt "20220515" ]];
-	      then
-	        parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion"
-	      else
-	        echo -e "${RED}$progressBar${NC}"
-	        parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion"
-	      fi
-				killall v2ray > /dev/null 2>&1
+				cfSubnetList=$(curl -s https://asnlookup.com/asn/"$asn"/ | grep "^<li><a href=\"/cidr/.*0/" | awk -F "cidr/" '{print $2}' | awk -F "\">" '{print $1}' | grep -E -v     "^8\.|^1\.")
+			else
+				echo "could not get url curl -s https://asnlookup.com/asn/$asn/"
+				echo "will use local file"
+				cfSubnetList=$(cat "$scriptDir"/cf.local.iplist)
 			fi
-	    passedIpsCount=$(( passedIpsCount+1 ))
+		  ipListLength=$(echo "$cfSubnetList" | wc -l)
+		  passedIpsCount=0
+			for subNet in ${cfSubnetList}
+			do
+		    fncShowProgress "$passedIpsCount" "$ipListLength"
+				firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
+				if [[ "${cloudFlareOkList[*]}" =~ $firstOctet ]]
+				then
+					killall v2ray > /dev/null 2>&1
+					ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
+		      tput cuu1; tput ed # rewrites Parallel's bar
+		      if [[ $parallelVersion -gt "20220515" ]];
+		      then
+		        parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion"
+		      else
+		        echo -e "${RED}$progressBar${NC}"
+		        parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion"
+		      fi
+					killall v2ray > /dev/null 2>&1
+				fi
+		    passedIpsCount=$(( passedIpsCount+1 ))
+			done
 		done
-	done
+	fi
 	
 	sort -n -k1 -t, "$resultFile" -o "$resultFile"
 }
@@ -305,11 +308,21 @@ function fncMainCFFind {
 threads="$1"
 config="$2"
 speed="$3"
+subnetsFile="NULL"
+
+#if [[ "$4" ]]
+#then
+#	subnetsFile="$4"
+#	if ! [[ -f "$subnetsFile" ]]
+#	then
+#		echo "file does not exists: $subnetsFile"
+#		exit 1
+#	fi
+#fi
+
 frontDomain="fronting.sudoer.net"
 scanDomain="scan.sudoer.net"
 downloadFile="data.100k"
-cloudFlareASNList=( AS209242 )
-cloudFlareOkList=(31 45 66 80 89 103 104 108 141 147 154 159 168 170 185 188 191 192 193 194 195 199 203 205 212)
 
 now=$(date +"%Y%m%d-%H%M%S")
 scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
@@ -336,10 +349,10 @@ export ORANGE='\033[0;33m'
 export YELLOW='\033[1;33m'
 export NC='\033[0m'
 
-directories=("$resultDir" "$configDir")
-fncCreateDir "${directories[*]}"
+fncCreateDir "${resultDir}"
+fncCreateDir "${configDir}"
 echo "" > "$resultFile"
 
 osVersion="$(fncCheckDpnd)"
 fncValidateConfig "$config"
-fncMainCFFind	"$threads"	"$progressBar"	"$resultFile"	"$scriptDir"	"$configId"	"$configHost"	"$configPort"	"$configPath"	"$configServerName"	"$frontDomain"	"$scanDomain"	"$speed" "$osVersion"
+fncMainCFFind	"$threads"	"$progressBar"	"$resultFile"	"$scriptDir"	"$configId"	"$configHost"	"$configPort"	"$configPath"	"$configServerName"	"$frontDomain"	"$scanDomain"	"$speed" "$osVersion" "$subnetsFile"
