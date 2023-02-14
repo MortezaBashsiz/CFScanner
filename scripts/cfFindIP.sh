@@ -22,6 +22,10 @@
 # Function fncShowProgress
 # Progress bar maker function (based on https://www.baeldung.com/linux/command-line-progress-bar)
 function fncShowProgress {
+	barCharDone="="
+	barCharTodo=" "
+	barSplitter='>'
+	barPercentageScale=2
   current="$1"
   total="$2"
 
@@ -112,7 +116,7 @@ function fncCheckSubnet {
 					pid=$(ps aux | grep config.json."$ip" | grep -v grep | awk '{ print $2 }')
 					if [[ "$pid" ]]
 					then
-						kill -9 "$pid"
+						kill -9 "$pid" > /dev/null 2>&1
 					fi
 					nohup "$scriptDir"/"$v2rayCommand" -c "$ipConfigFile" > /dev/null &
 					sleep 2
@@ -284,7 +288,9 @@ function fncMainCFFind {
 			do
 		    fncShowProgress "$passedIpsCount" "$ipListLength"
 				firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
-				if [[ "${cloudFlareOkList[*]}" =~ $firstOctet ]]
+				# shellcheck disable=SC2128
+				exists=$(echo "$cloudFlareOkList" | grep "$firstOctet")
+				if [[ "$exists" ]]
 				then
 					killall v2ray > /dev/null 2>&1
 					ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
@@ -309,7 +315,9 @@ function fncMainCFFind {
 		do
 		  fncShowProgress "$passedIpsCount" "$ipListLength"
 			firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
-			if [[ "${cloudFlareOkList[*]}" =~ $firstOctet ]]
+			# shellcheck disable=SC2128
+			exists=$(echo "$cloudFlareOkList" | grep "$firstOctet")
+			if [[ "$exists" ]]
 			then
 				killall v2ray > /dev/null 2>&1
 				ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
@@ -363,10 +371,6 @@ configPort="NULL"
 configPath="NULL"
 configServerName="NULL"
 
-barCharDone="="
-barCharTodo=" "
-barSplitter='>'
-barPercentageScale=2
 progressBar=""
 
 export GREEN='\033[0;32m'
