@@ -14,20 +14,20 @@ parallel (version > 20220515)
 ```
 
 ## How to run
-1. clone
+### 1. clone
 
 ```shell
 [~]>$ git clone https://github.com/MortezaBashsiz/CFScanner.git
 ```
 
-2. Change direcotry and make them executable
+### 2. Change direcotry and make them executable
 
 ```shell
 [~]>$ cd CFScanner/scripts
 [~/CFScanner/scripts]> chmod +x v2ctl v2ctl-mac v2ray v2ray-mac
 ```
 
-3. Get config.real
+### 3. Get config.real
 
 ```shell
 [~/CFScanner/scripts]>$ curl -s http://bot.sudoer.net/config.real -o ./config.real
@@ -42,9 +42,7 @@ path: websocket endpoint like api20
 serverName: SNI
 ```
 
-4. Execute it
-
-
+### 4. Execute it
 
 At following command pay attention to the numbers **threads** and **speed** **Custom Subnet File**
 
@@ -58,13 +56,13 @@ Custom Subnet File: This is optional argument which is a file address if you wan
 [~/CFScanner/scripts]>$ bash cfFindIP.sh threads ./config.real speed [Custom Subnet File]
 ```
 
-EXAMPLE: without costum subnet
+#### EXAMPLE: without costum subnet
 
 ```shell
 [~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100
 ```
 
-EXAMPLE: with costum subnet
+#### EXAMPLE: with costum subnet
 
 ```shell
 [~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100 ./custom.subnets
@@ -79,7 +77,7 @@ Which the custom.subnets is like as following. you can edit this file and add yo
 [~/CFScanner/scripts]>$
 ```
 
-5. Result
+### 5. Result
 
 It will generate a file by datetime in result direcotry
 
