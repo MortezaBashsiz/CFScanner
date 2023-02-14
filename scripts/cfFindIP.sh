@@ -346,7 +346,7 @@ then
 	fi
 fi
 
-fakeDomain="snapp.ir"
+fakeDomain="www.snapp.ir"
 frontDomain="fronting.sudoer.net"
 scanDomain="scan.sudoer.net"
 downloadFile="data.100k"
