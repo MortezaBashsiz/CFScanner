@@ -70,7 +70,7 @@ EXAMPLE: with costum subnet
 [~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100 ./custom.subnets
 ```
 
-Which the custom.subnets is like as following
+Which the custom.subnets is like as following. you can edit this file and add your subnets in each line.
 
 ```shell
 [~/CFScanner/scripts]>$ cat scripts/custom.subnets 
