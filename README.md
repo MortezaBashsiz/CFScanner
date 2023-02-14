@@ -53,25 +53,25 @@ speed: This is the filter which you can define to list the IPs based on download
 Custom Subnet File: This is optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as argument to the command.
 
 ```shell
-[~/CFScanner/scripts]>$ bash cfFindIP.sh threads ./config.real speed [Custom Subnet File]
+[~/CFScanner/scripts]>$ bash cfFindIP.sh threads ./config.real speed [Custome Subnet File]
 ```
 
-#### EXAMPLE: without costum subnet
+#### EXAMPLE: without costume subnet
 
 ```shell
 [~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100
 ```
 
-#### EXAMPLE: with costum subnet
+#### EXAMPLE: with costume subnet
 
 ```shell
-[~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100 ./custom.subnets
+[~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100 ./custome.subnets
 ```
 
-Which the custom.subnets is like as following. you can edit this file and add your subnets in each line.
+Which the custome.subnets is like as following. you can edit this file and add your subnets in each line.
 
 ```shell
-[~/CFScanner/scripts]>$ cat scripts/custom.subnets 
+[~/CFScanner/scripts]>$ cat custome.subnets 
 5.226.179.0/24
 203.89.5.0/24
 [~/CFScanner/scripts]>$
