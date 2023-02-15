@@ -14,7 +14,7 @@
 #        AUTHOR: Morteza Bashsiz (mb), morteza.bashsiz@gmail.com
 #  ORGANIZATION: Linux
 #       CREATED: 01/24/2023 07:36:57 PM
-#      REVISION:  thehxdev, Ali-Frh, nomadzzz, armgham, beh-rouz 
+#      REVISION: nomadzzz, armgham, beh-rouz 
 #===============================================================================
 
 #set -o nounset                                  # Treat unset variables as an error
@@ -312,21 +312,17 @@ function fncMainCFFind {
 		do
 		  fncShowProgress "$passedIpsCount" "$ipListLength"
 			firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
-			exists=$(echo "${cloudFlareOkList[*]}" | grep " $firstOctet ")
-			if [[ "$exists" ]]
-			then
-				killall v2ray > /dev/null 2>&1
-				ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
-		    tput cuu1; tput ed # rewrites Parallel's bar
-		    if [[ $parallelVersion -gt "20220515" ]];
-		    then
-		      parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
-		    else
-		      echo -e "${RED}$progressBar${NC}"
-		      parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
-		    fi
-				killall v2ray > /dev/null 2>&1
-			fi
+			killall v2ray > /dev/null 2>&1
+			ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
+		  tput cuu1; tput ed # rewrites Parallel's bar
+		  if [[ $parallelVersion -gt "20220515" ]];
+		  then
+		    parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+		  else
+		    echo -e "${RED}$progressBar${NC}"
+		    parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+		  fi
+			killall v2ray > /dev/null 2>&1
 		  passedIpsCount=$(( passedIpsCount+1 ))
 		done
 	fi
