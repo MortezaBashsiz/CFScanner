@@ -63,13 +63,13 @@ Custom Subnet File: This is an optional argument which is a file address if you 
 #### EXAMPLE: with custom subnet
 
 ```shell
-[~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100 ./custome.subnets
+[~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100 ./custom.subnets
 ```
 
-Which the `custome.subnets` is like as follows. You can edit this file and add your subnets in each line.
+Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
 
 ```shell
-[~/CFScanner/scripts]>$ cat custome.subnets 
+[~/CFScanner/scripts]>$ cat custom.subnets 
 5.226.179.0/24
 203.89.5.0/24
 [~/CFScanner/scripts]>$

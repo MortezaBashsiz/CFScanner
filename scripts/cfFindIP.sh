@@ -17,8 +17,6 @@
 #      REVISION: nomadzzz, armgham, beh-rouz 
 #===============================================================================
 
-#set -o nounset                                  # Treat unset variables as an error
-
 # Function fncShowProgress
 # Progress bar maker function (based on https://www.baeldung.com/linux/command-line-progress-bar)
 function fncShowProgress {
@@ -257,7 +255,7 @@ function fncMainCFFind {
 	fi
 	
 	cloudFlareASNList=( AS209242 )
-	cloudFlareOkList=(31 45 66 80 89 103 104 108 141 147 154 159 168 170 185 188 191 192 193 194 195 199 203 205 212)
+	cloudFlareOkList=(31 45 66 80 89 103 104 108 141 147 154 159 168 170 173 185 188 191 192 193 194 195 199 203 205 212)
 
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
