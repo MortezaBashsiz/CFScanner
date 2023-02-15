@@ -6,6 +6,7 @@ This script uses v2ray+vmess+websocket+tls by default and if you want to use it 
 ## Requirements
 You have to install the following packages:
 * [git](https://git-scm.com/)
+* [tput](https://command-not-found.com/tput)
 * [bc](https://www.gnu.org/software/bc/)
 * [curl](https://curl.se/download.html)
 * [nmap](https://nmap.org/book/install.html)
