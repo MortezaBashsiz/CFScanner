@@ -17,6 +17,36 @@
 #      REVISION: nomadzzz, armgham, beh-rouz 
 #===============================================================================
 
+# Function fncLongIntToStr
+# converts IP in long integer format to a string 
+fncLongIntToStr() {
+    local IFS=. num quad ip e
+    num=$1
+    for e in 3 2 1
+    do
+        (( quad = 256 ** e))
+        (( ip[3-e] = num / quad ))
+        (( num = num % quad ))
+    done
+    ip[3]=$num
+    echo "${ip[*]}"
+}
+# End of Function fncLongIntToStr
+
+# Function fncIpToLongInt
+# converts IP to long integer 
+fncIpToLongInt() {
+    local IFS=. ip num e
+    ip=($1)
+    for e in 3 2 1
+    do
+        (( num += ip[3-e] * 256 ** e ))
+    done
+    (( num += ip[3] ))
+    echo $num
+}
+# End of Function fncIpToLongInt
+
 # Function fncShowProgress
 # Progress bar maker function (based on https://www.baeldung.com/linux/command-line-progress-bar)
 function fncShowProgress {
@@ -227,7 +257,7 @@ function fncCheckSpeed {
 # Function fncMainCFFind
 # main Function
 function fncMainCFFind {
-	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion subnetsFile cloudFlareASNList cloudFlareOkList
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion subnetsFile cloudFlareASNList cloudFlareOkList breakedSubnets
 	threads="${1}"
 	progressBar="${2}"
 	resultFile="${3}"
@@ -308,19 +338,36 @@ function fncMainCFFind {
 		passedIpsCount=0
 		for subNet in ${cfSubnetList}
 		do
-		  fncShowProgress "$passedIpsCount" "$ipListLength"
-			firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
-			killall v2ray > /dev/null 2>&1
-			ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
-		  tput cuu1; tput ed # rewrites Parallel's bar
-		  if [[ $parallelVersion -gt "20220515" ]];
-		  then
-		    parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
-		  else
-		    echo -e "${RED}$progressBar${NC}"
-		    parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
-		  fi
-			killall v2ray > /dev/null 2>&1
+			breakedSubnets=
+			maxSubnet=24
+			network=${subNet%/*}
+			netmask=${subNet#*/}
+			if [[ ${netmask} -ge ${maxSubnet} ]]
+			then # network is smaller than max. size. add it to the array
+			  breakedSubnets="${breakedSubnets} ${network}/${netmask}"
+			else # network is too big. split it up into smaller chunks and add them to the array
+			  for i in $(seq 0 $(( $(( 2 ** (${maxSubnet} - ${netmask}) )) - 1 )) )
+			  do # convert network to long integer, add n * ${maxSubnet} and then convert back to string
+			    breakedSubnets="${breakedSubnets} $( fncLongIntToStr $(( $( fncIpToLongInt ${network} ) + $(( 2 ** ( 32 - ${maxSubnet} ) * ${i} )) )) )/${maxSubnet}"
+			  done
+			fi
+			breakedSubnets=$(echo ${breakedSubnets}|tr ' ' '\n')
+			for breakedSubnet in ${breakedSubnets}
+			do
+				fncShowProgress "$passedIpsCount" "$ipListLength"
+				firstOctet=$(echo "$breakedSubnet" | awk -F "." '{ print $1 }')
+				killall v2ray > /dev/null 2>&1
+				ipList=$(nmap -sL -n "$breakedSubnet" | awk '/Nmap scan report/{print $NF}')
+		  	tput cuu1; tput ed # rewrites Parallel's bar
+		  	if [[ $parallelVersion -gt "20220515" ]];
+		  	then
+		  	  parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+		  	else
+		  	  echo -e "${RED}$progressBar${NC}"
+		  	  parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+		  	fi
+				killall v2ray > /dev/null 2>&1
+			done
 		  passedIpsCount=$(( passedIpsCount+1 ))
 		done
 	fi
