@@ -37,6 +37,7 @@ fncLongIntToStr() {
 # converts IP to long integer 
 fncIpToLongInt() {
     local IFS=. ip num e
+		# shellcheck disable=SC2206
     ip=($1)
     for e in 3 2 1
     do
@@ -284,8 +285,8 @@ function fncMainCFFind {
 		exit 1
 	fi
 	
-	cloudFlareASNList=( AS209242 )
-	cloudFlareOkList=(31 45 66 80 89 103 104 108 141 147 154 159 168 170 173 185 188 191 192 193 194 195 199 203 205 212)
+	cloudFlareASNList=( AS13335 AS209242 )
+	cloudFlareOkList=(23 31 45 66 80 89 103 104 108 141 147 154 159 168 170 173 185 188 191 192 193 194 195 199 203 205 212)
 
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
@@ -343,15 +344,15 @@ function fncMainCFFind {
 			network=${subNet%/*}
 			netmask=${subNet#*/}
 			if [[ ${netmask} -ge ${maxSubnet} ]]
-			then # network is smaller than max. size. add it to the array
+			then
 			  breakedSubnets="${breakedSubnets} ${network}/${netmask}"
-			else # network is too big. split it up into smaller chunks and add them to the array
-			  for i in $(seq 0 $(( $(( 2 ** (${maxSubnet} - ${netmask}) )) - 1 )) )
-			  do # convert network to long integer, add n * ${maxSubnet} and then convert back to string
-			    breakedSubnets="${breakedSubnets} $( fncLongIntToStr $(( $( fncIpToLongInt ${network} ) + $(( 2 ** ( 32 - ${maxSubnet} ) * ${i} )) )) )/${maxSubnet}"
+			else
+			  for i in $(seq 0 $(( $(( 2 ** (maxSubnet - netmask) )) - 1 )) )
+			  do
+			    breakedSubnets="${breakedSubnets} $( fncLongIntToStr $(( $( fncIpToLongInt "${network}" ) + $(( 2 ** ( 32 - maxSubnet ) * i )) )) )/${maxSubnet}"
 			  done
 			fi
-			breakedSubnets=$(echo ${breakedSubnets}|tr ' ' '\n')
+			breakedSubnets=$(echo "${breakedSubnets}"|tr ' ' '\n')
 			for breakedSubnet in ${breakedSubnets}
 			do
 				fncShowProgress "$passedIpsCount" "$ipListLength"
