@@ -1,10 +1,10 @@
 # CloudFlare Scanner
-This script scans Millions of cloudflare IP addresses and generate a result file contains the IPs which are work with CDN
+This script scans Millions of Cloudflare IP addresses and generates a result file containing the IPs which are work with CDN.
 
-This script uses v2ray+vmess+websocket+tls by default and if you want to use it behind your Cloudflare proxy then you have to set up a vmess account, otherwise it will use the default config
+This script uses v2ray+vmess+websocket+tls by default and if you want to use it behind your Cloudflare proxy then you have to set up a vmess account, otherwise, it will use the default configuration.
 
 ## Requirements
-You have to install following packages
+You have to install the following packages:
 ```
 git
 tput
@@ -21,7 +21,7 @@ parallel (version > 20220515)
 [~]>$ git clone https://github.com/MortezaBashsiz/CFScanner.git
 ```
 
-### 2. Change direcotry and make them executable
+### 2. Change directory and make them executable
 
 ```shell
 [~]>$ cd CFScanner/scripts
@@ -34,42 +34,42 @@ parallel (version > 20220515)
 [~/CFScanner/scripts]>$ curl -s http://bot.sudoer.net/config.real -o ./config.real
 ```
 
-In config file the variables are
+In the config file the variables are
 ```shell
-id: UUID for user
-Host: Host address which ic behind Cloudflare
-Port: Port which you are using behind Cloudflare on your origin server
-path: websocket endpoint like api20
+id:         User's UUID
+Host:       Host address which is behind Cloudflare
+Port:       Port which you are using behind Cloudflare on your origin server
+path:       Websocket endpoint like api20
 serverName: SNI
 ```
 
 ### 4. Execute it
 
-At following command pay attention to the numbers **threads** and **speed** **Custom Subnet File**
+At following command pay attention to the numbers **threads**, **speed** and **Custom Subnet File**.
 
-threads: This is an integer number which defines the parallel threads count
+Threads: This is an integer number that defines the parallel threads count
 
-speed: This is the filter which you can define to list the IPs based on download speed. the values must be one of [25 50 100 150 200 250 500] and all values are in KBPS (Kilo Bytes Per Second). For example if you set it to 50 it means that you will only list the IPs which have download speed more than 50 KB/S.
+Speed: This is the filter that you can define to list the IPs based on download speed. The values must be one of [25 50 100 150 200 250 500], and all values are in KBPS (Kilo Bytes Per Second). For example, if you set it to 50, it means that you will only list the IPs which have a download speed of more than 50 KB/S.
 
-Custom Subnet File: This is optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as argument to the command.
+Custom Subnet File: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
 
 ```shell
 [~/CFScanner/scripts]>$ bash cfFindIP.sh threads ./config.real speed [Custome Subnet File]
 ```
 
-#### EXAMPLE: without costume subnet
+#### EXAMPLE: without custom subnet
 
 ```shell
 [~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100
 ```
 
-#### EXAMPLE: with costume subnet
+#### EXAMPLE: with custom subnet
 
 ```shell
 [~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100 ./custome.subnets
 ```
 
-Which the custome.subnets is like as following. you can edit this file and add your subnets in each line.
+Which the `custome.subnets` is like as follows. You can edit this file and add your subnets in each line.
 
 ```shell
 [~/CFScanner/scripts]>$ cat custome.subnets 
@@ -80,7 +80,7 @@ Which the custome.subnets is like as following. you can edit this file and add y
 
 ### 5. Result
 
-It will generate a file by datetime in result direcotry
+It will generate a file in datetime format in the result directory.
 
 ```shell
 [~/CFScanner]>$ ls result/
@@ -88,5 +88,5 @@ It will generate a file by datetime in result direcotry
 [~/CFScanner]>$
 ```
 
-## Video guide
-A video guide usage can be found in [youtube](https://youtu.be/BKLRAHolhvM "youtube").
+## Video Guide
+You can find a video guide for this script on [youtube](https://youtu.be/BKLRAHolhvM "youtube").
