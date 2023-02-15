@@ -257,7 +257,7 @@ function fncMainCFFind {
 	fi
 	
 	cloudFlareASNList=( AS209242 )
-	cloudFlareOkList=(31 45 66 80 89 103 104 108 141 147 154 159 168 170 185 188 191 192 193 194 195 199 203 205 212)
+	cloudFlareOkList=("S" 31 45 66 80 89 103 104 108 141 147 154 159 168 170 185 188 191 192 193 194 195 199 203 205 212 "E")
 
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
@@ -286,8 +286,7 @@ function fncMainCFFind {
 			do
 		    fncShowProgress "$passedIpsCount" "$ipListLength"
 				firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
-				# shellcheck disable=SC2128
-				exists=$(echo "$cloudFlareOkList" | grep "$firstOctet")
+				exists=$(echo "${cloudFlareOkList[*]}" | grep " $firstOctet ")
 				if [[ "$exists" ]]
 				then
 					killall v2ray > /dev/null 2>&1
@@ -313,8 +312,7 @@ function fncMainCFFind {
 		do
 		  fncShowProgress "$passedIpsCount" "$ipListLength"
 			firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
-			# shellcheck disable=SC2128
-			exists=$(echo "$cloudFlareOkList" | grep "$firstOctet")
+			exists=$(echo "${cloudFlareOkList[*]}" | grep " $firstOctet ")
 			if [[ "$exists" ]]
 			then
 				killall v2ray > /dev/null 2>&1
