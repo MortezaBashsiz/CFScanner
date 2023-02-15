@@ -17,8 +17,6 @@
 #      REVISION: nomadzzz, armgham, beh-rouz 
 #===============================================================================
 
-#set -o nounset                                  # Treat unset variables as an error
-
 # Function fncShowProgress
 # Progress bar maker function (based on https://www.baeldung.com/linux/command-line-progress-bar)
 function fncShowProgress {
