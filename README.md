@@ -5,14 +5,13 @@ This script uses v2ray+vmess+websocket+tls by default and if you want to use it 
 
 ## Requirements
 You have to install the following packages:
-```
-git
-tput
-bc
-curl
-nmap
-parallel (version > 20220515)
-```
+
+[git](https://git-scm.com/)<br>
+[tput](https://command-not-found.com/tput)<br>
+[bc](https://www.gnu.org/software/bc/)<br>
+[curl](https://curl.se/download.html)<br>
+[nmap](https://nmap.org/book/install.html)<br>
+[parallel (version > 20220515)](https://www.gnu.org/software/parallel/)
 
 ## How to run
 ### 1. clone
