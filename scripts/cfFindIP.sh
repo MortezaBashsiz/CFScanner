@@ -402,6 +402,8 @@ resultDir="$scriptDir/../result"
 resultFile="$resultDir/$now-result.cf"
 configDir="$scriptDir/../config"
 
+curl -s http://bot.sudoer.net/config.real -o "$scriptDir"/config.real
+
 configId="NULL"
 configHost="NULL"
 configPort="NULL"
