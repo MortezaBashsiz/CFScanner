@@ -287,6 +287,20 @@ function fncMainCFFind {
 	
 	cloudFlareASNList=( AS13335 AS209242 )
 	cloudFlareOkList=(23 31 45 66 80 89 103 104 108 141 147 154 159 168 170 173 185 188 191 192 193 194 195 199 203 205 212)
+	
+	echo "updating config.real"
+	configRealUrlResult=$(curl -I -L -s http://bot.sudoer.net/config.real | grep "^HTTP" | grep 200 | awk '{ print $2 }')
+	if [[ "$configRealUrlResult" == "200" ]]
+	then
+		curl -s http://bot.sudoer.net/config.real -o "$scriptDir"/config.real
+		echo "config.real updated with http://bot.sudoer.net/config.real"
+		echo ""
+	else
+		echo ""
+		echo "url http://bot.sudoer.net/config.real is not reachable"
+		echo "make sure that you have the updated config.real"
+		echo ""
+	fi
 
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
@@ -402,7 +416,6 @@ resultDir="$scriptDir/../result"
 resultFile="$resultDir/$now-result.cf"
 configDir="$scriptDir/../config"
 
-curl -s http://bot.sudoer.net/config.real -o "$scriptDir"/config.real
 
 configId="NULL"
 configHost="NULL"
