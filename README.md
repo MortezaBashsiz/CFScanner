@@ -62,6 +62,18 @@ Custom Subnet File: This is an optional argument which is a file address if you 
 [~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100
 ```
 
+or you can run  
+
+```shell
+[~/CFScanner/scripts]>$ bash cfFindIP.sh 
+```
+the above command is equal to 
+
+```shell
+[~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 25
+```
+
+
 #### EXAMPLE: with custom subnet
 
 ```shell
