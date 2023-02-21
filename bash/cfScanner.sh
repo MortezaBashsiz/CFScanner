@@ -1,9 +1,9 @@
 #!/bin/bash  -
 #===============================================================================
 #
-#          FILE: cfFindIP.sh
+#          FILE: cfScanner.sh
 #
-#         USAGE: ./cfFindIP.sh [ThreadCount]
+#         USAGE: ./cfScanner.sh [Argumets]
 #
 #   DESCRIPTION: Scan all 1.5 Mil CloudFlare IP addresses
 #
@@ -126,9 +126,9 @@ function fncShowProgress {
 }
 # End of Function showProgress
 
-# Function fncCheckSubnet
+# Function fncCheckIPList
 # Check Subnet
-function fncCheckSubnet {
+function fncCheckIPList {
 	local ipList scriptDir resultFile timeoutCommand domainFronting
 	ipList="${1}"
 	resultFile="${3}"
@@ -143,6 +143,7 @@ function fncCheckSubnet {
 	downloadFile="${12}"
 	osVersion="${13}"
 	v2rayCommand="${14}"
+	binDir="$scriptDir/../bin"
 	configDir="$scriptDir/../config"
 	# set proper command for linux
 	if command -v timeout >/dev/null 2>&1; 
@@ -197,7 +198,7 @@ function fncCheckSubnet {
 					then
 						kill -9 "$pid" > /dev/null 2>&1
 					fi
-					nohup "$scriptDir"/"$v2rayCommand" -c "$ipConfigFile" > /dev/null &
+					nohup "$binDir"/"$v2rayCommand" -c "$ipConfigFile" > /dev/null &
 					sleep 2
 					timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" https://"$scanDomain"/"$downloadFile" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
 					# shellcheck disable=SC2009
@@ -221,8 +222,8 @@ function fncCheckSubnet {
 			fi
 	done
 }
-# End of Function fncCheckSubnet
-export -f fncCheckSubnet
+# End of Function fncCheckIPList
+export -f fncCheckIPList
 
 # Function fncCheckDpnd
 # Check for dipendencies
@@ -304,9 +305,9 @@ function fncCheckSpeed {
 }
 # End of Function fncCheckSpeed
 
-# Function fncMainCFFind
-# main Function
-function fncMainCFFind {
+# Function fncMainCFFindSubnet
+# main Function for Subnet
+function fncMainCFFindSubnet {
 	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion subnetsFile cloudFlareASNList breakedSubnets network netmask
 	threads="${1}"
 	progressBar="${2}"
@@ -343,6 +344,8 @@ function fncMainCFFind {
 		curl -s http://bot.sudoer.net/config.real -o "$scriptDir"/config.real
 		echo "config.real updated with http://bot.sudoer.net/config.real"
 		echo ""
+		config="$scriptDir/config.real"
+		echo "$config"
 		fncValidateConfig "$config"
 	else
 		echo ""
@@ -405,10 +408,10 @@ function fncMainCFFind {
 	  	tput cuu1; tput ed # rewrites Parallel's bar
 	  	if [[ $parallelVersion -gt "20220515" ]];
 	  	then
-	  	  parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	  	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
 	  	else
 	  	  echo -e "${RED}$progressBar${NC}"
-	  	  parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	  	  parallel -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
 	  	fi
 			killall v2ray > /dev/null 2>&1
 		done
@@ -416,19 +419,91 @@ function fncMainCFFind {
 	done
 	sort -n -k1 -t, "$resultFile" -o "$resultFile"
 }
-# End of Function fncMainCFFind
+# End of Function fncMainCFFindSubnet
 
-threads="$1"
-config="$2"
-speed="$3"
-subnetsFile="NULL"
+# Function fncMainCFFindIP
+# main Function for IP
+function fncMainCFFindIP {
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion IPFile
+	threads="${1}"
+	progressBar="${2}"
+	resultFile="${3}"
+	scriptDir="${4}"
+	configId="${5}"
+	configHost="${6}"
+	configPort="${7}"
+	configPath="${8}"
+	configServerName="${9}"
+	frontDomain="${10}"
+	scanDomain="${11}"
+	speed="${12}"
+	osVersion="${13}"
+	IPFile="${14}"
 
-if [[ "$4" ]]
-then
-	subnetsFile="$4"
-	if ! [[ -f "$subnetsFile" ]]
+	if [[ "$osVersion" == "Linux" ]]
 	then
-		echo "file does not exists: $subnetsFile"
+		v2rayCommand="v2ray"
+	elif [[ "$osVersion" == "Mac"  ]]
+	then
+		v2rayCommand="v2ray-mac"
+	else
+		echo "OS not supported only Linux or Mac"
+		exit 1
+	fi
+	
+	echo "updating config.real"
+	configRealUrlResult=$(curl -I -L -s http://bot.sudoer.net/config.real | grep "^HTTP" | grep 200 | awk '{ print $2 }')
+	if [[ "$configRealUrlResult" == "200" ]]
+	then
+		curl -s http://bot.sudoer.net/config.real -o "$scriptDir"/config.real
+		echo "config.real updated with http://bot.sudoer.net/config.real"
+		echo ""
+		config="$scriptDir/config.real"
+		echo "$config"
+		fncValidateConfig "$config"
+	else
+		echo ""
+		echo "url http://bot.sudoer.net/config.real is not reachable"
+		echo "make sure that you have the updated config.real"
+		echo ""
+	fi
+
+	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
+
+	downloadFile="$(fncCheckSpeed "$speed")"
+	if [[ "$downloadFile" == "NULL" ]]
+	then
+		echo "Speed $speed is not valid, choose be one of (25 50 100 150 200 250 500)"
+		exit 0
+	fi
+	cfIPList=$(cat "$IPFile")
+	killall v2ray > /dev/null 2>&1
+	tput cuu1; tput ed # rewrites Parallel's bar
+	if [[ $parallelVersion -gt "20220515" ]];
+	then
+	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	else
+	  echo -e "${RED}$progressBar${NC}"
+	  parallel -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	fi
+	killall v2ray > /dev/null 2>&1
+	sort -n -k1 -t, "$resultFile" -o "$resultFile"
+}
+# End of Function fncMainCFFindIP
+
+
+mode="$1"
+threads="$2"
+config="$3"
+speed="$4"
+subnetIPFile="NULL"
+
+if [[ "$5" ]]
+then
+	subnetIPFile="$5"
+	if ! [[ -f "$subnetIPFile" ]]
+	then
+		echo "file does not exists: $subnetIPFile"
 		exit 1
 	fi
 fi
@@ -442,7 +517,6 @@ scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 resultDir="$scriptDir/../result"
 resultFile="$resultDir/$now-result.cf"
 configDir="$scriptDir/../config"
-
 
 configId="NULL"
 configHost="NULL"
@@ -464,4 +538,15 @@ fncCreateDir "${configDir}"
 echo "" > "$resultFile"
 
 osVersion="$(fncCheckDpnd)"
-fncMainCFFind	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$osVersion" "$subnetsFile"
+
+if [[ "$mode" == "SUBNET" ]]
+then
+	fncMainCFFindSubnet	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$osVersion" "$subnetIPFile"
+elif [[ "$mode" == "IP" ]]
+then
+	fncMainCFFindIP	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$osVersion" "$subnetIPFile"
+else
+	echo "$mode is not correct choose one SUBNET or IP"
+	exit 1
+fi
+

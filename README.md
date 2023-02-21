@@ -22,14 +22,14 @@ You have to install the following packages:
 ### 2. Change directory and make them executable
 
 ```shell
-[~]>$ cd CFScanner/scripts
-[~/CFScanner/scripts]> chmod +x v2ctl v2ctl-mac v2ray v2ray-mac
+[~]>$ cd CFScanner/bash
+[~/CFScanner/bash]> chmod +x ../bin/*
 ```
 
 ### 3. Get config.real
 
 ```shell
-[~/CFScanner/scripts]>$ curl -s http://bot.sudoer.net/config.real -o ./config.real
+[~/CFScanner/bash]>$ curl -s http://bot.sudoer.net/config.real -o ./config.real
 ```
 
 In the config file the variables are
@@ -52,40 +52,40 @@ Speed: This is the filter that you can define to list the IPs based on download 
 Custom Subnet File: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
 
 ```shell
-[~/CFScanner/scripts]>$ bash cfFindIP.sh threads ./config.real speed [Custome Subnet File]
+[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET threads ./config.real speed [Custome Subnet File]
 ```
 
 #### EXAMPLE: without custom subnet
 
 ```shell
-[~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100
+[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET 8 ./config.real 100
 ```
 
 #### EXAMPLE: with custom subnet
 
 ```shell
-[~/CFScanner/scripts]>$ bash cfFindIP.sh 8 ./config.real 100 ./custom.subnets
+[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET 8 ./config.real 100 ./custom.subnets
 ```
 
 Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
 
 ```shell
-[~/CFScanner/scripts]>$ cat custom.subnets 
+[~/CFScanner/bash]>$ cat custom.subnets 
 5.226.179.0/24
 203.89.5.0/24
-[~/CFScanner/scripts]>$
+[~/CFScanner/bash]>$
 ```
 
 #### EXAMPLE: with custom ip file
 
 ```shell
-[~/CFScanner/scripts]>$ bash cfFindIPFromList.sh 8 ./config.real 100 ./ip.list
+[~/CFScanner/bash]>$ bash cfScanner.sh IP 8 ./config.real 100 ./ip.list
 ```
 
 Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
 
 ```shell
-[~/CFScanner/scripts]>$ cat ip.list
+[~/CFScanner/bash]>$ cat ip.list
 23.227.37.250 
 23.227.37.252 
 23.227.37.253 
@@ -102,12 +102,8 @@ Which the `custom.subnets` is like as follows. You can edit this file and add yo
 23.227.38.4 
 23.227.38.10 
 23.227.38.7 
-[~/CFScanner/scripts]>$
+[~/CFScanner/bash]>$
 ```
-
-
-
-
 
 
 ### 5. Result
