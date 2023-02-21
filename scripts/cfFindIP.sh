@@ -336,20 +336,14 @@ function fncMainCFFind {
 	
 	cloudFlareASNList=( AS13335 AS209242 )
 
-	echo "updating config.real"
-	configRealUrlResult=$(curl -I -L -s http://bot.sudoer.net/config.real | grep "^HTTP" | grep 200 | awk '{ print $2 }')
-	if [[ "$configRealUrlResult" == "200" ]]
-	then
-		curl -s http://bot.sudoer.net/config.real -o "$scriptDir"/config.real
-		echo "config.real updated with http://bot.sudoer.net/config.real"
-		echo ""
-		fncValidateConfig "$config"
-	else
-		echo ""
-		echo "url http://bot.sudoer.net/config.real is not reachable"
-		echo "make sure that you have the updated config.real"
-		echo ""
-	fi
+	  printf "Updating config.real...\n"
+	  if curl -sSfL http://bot.sudoer.net/config.real -o "$scriptDir"/config.real; then
+	    printf "config.real updated with http://bot.sudoer.net/config.real\n\n"
+	    fncValidateConfig "$config"
+	  else
+	    printf "\nurl http://bot.sudoer.net/config.real is not reachable\n"
+	    printf "Make sure that you have the updated config.real\n\n"
+	  fi
 
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
