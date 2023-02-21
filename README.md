@@ -10,7 +10,6 @@ You have to install the following packages:
 [tput](https://command-not-found.com/tput)<br>
 [bc](https://www.gnu.org/software/bc/)<br>
 [curl](https://curl.se/download.html)<br>
-[nmap](https://nmap.org/book/install.html)<br>
 [parallel (version > 20220515)](https://www.gnu.org/software/parallel/)
 
 ## How to run

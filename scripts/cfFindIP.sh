@@ -48,6 +48,50 @@ fncIpToLongInt() {
 }
 # End of Function fncIpToLongInt
 
+
+# Function fncSubnetToIP
+# converts subnet to IP list
+fncSubnetToIP() {
+  local network=("${1//\// }")
+  local iparr=("${network[0]//./ }")
+  local mask=32
+  [[ $((${#network[@]})) -gt 1 ]] && mask=${network[1]}
+  local maskarr
+  if [[ ${mask} = '\.' ]]; then
+    maskarr=("${mask//./ }")
+  else
+    if [[ $((mask)) -lt 8 ]]; then
+      maskarr=($((256-2**(8-mask))) 0 0 0)
+    elif  [[ $((mask)) -lt 16 ]]; then
+      maskarr=(255 $((256-2**(16-mask))) 0 0)
+    elif  [[ $((mask)) -lt 24 ]]; then
+      maskarr=(255 255 $((256-2**(24-mask))) 0)
+    elif [[ $((mask)) -lt 32 ]]; then
+      maskarr=(255 255 255 $((256-2**(32-mask))))
+    elif [[ ${mask} == 32 ]]; then
+      maskarr=(255 255 255 255)
+    fi
+  fi
+  [[ ${maskarr[2]} == 255 ]] && maskarr[1]=255
+  [[ ${maskarr[1]} == 255 ]] && maskarr[0]=255
+
+  local bytes=(0 0 0 0)
+  for i in $(seq 0 $((255-maskarr[0]))); do
+    bytes[0]="$(( i+(iparr[0] & maskarr[0]) ))"
+    for j in $(seq 0 $((255-maskarr[1]))); do
+      bytes[1]="$(( j+(iparr[1] & maskarr[1]) ))"
+      for k in $(seq 0 $((255-maskarr[2]))); do
+        bytes[2]="$(( k+(iparr[2] & maskarr[2]) ))"
+        for l in $(seq 1 $((255-maskarr[3]))); do
+          bytes[3]="$(( l+(iparr[3] & maskarr[3]) ))"
+          printf "%d.%d.%d.%d\n" "${bytes[@]}"
+        done
+      done
+    done
+  done
+}
+# End of Function fncSubnetToIP
+
 # Function fncShowProgress
 # Progress bar maker function (based on https://www.baeldung.com/linux/command-line-progress-bar)
 function fncShowProgress {
@@ -180,14 +224,12 @@ function fncCheckDpnd {
 	if [[ "$(uname)" == "Linux" ]]; then
 			osVersion="Linux"
 	    command -v parallel >/dev/null 2>&1 || { echo >&2 "I require 'parallel' but it's not installed. Please install it and try again."; exit 1; }
-	    command -v nmap >/dev/null 2>&1 || { echo >&2 "I require 'nmap' but it's not installed. Please install it and try again."; exit 1; }
 	    command -v bc >/dev/null 2>&1 || { echo >&2 "I require 'bc' but it's not installed. Please install it and try again."; exit 1; }
 			command -v timeout >/dev/null 2>&1 || { echo >&2 "I require 'timeout' but it's not installed. Please install it and try again."; exit 1; }
 	
 	elif [[ "$(uname)" == "Darwin" ]];then
 			osVersion="Mac"
 	    command -v parallel >/dev/null 2>&1 || { echo >&2 "I require 'parallel' but it's not installed. Please install it and try again."; exit 1; }
-	    command -v nmap >/dev/null 2>&1 || { echo >&2 "I require 'nmap' but it's not installed. Please install it and try again."; exit 1; }
 	    command -v bc >/dev/null 2>&1 || { echo >&2 "I require 'bc' but it's not installed. Please install it and try again."; exit 1; }
 	    command -v gtimeout >/dev/null 2>&1 || { echo >&2 "I require 'gtimeout' but it's not installed. Please install it and try again."; exit 1; }
 	fi
@@ -258,7 +300,7 @@ function fncCheckSpeed {
 # Function fncMainCFFind
 # main Function
 function fncMainCFFind {
-	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion subnetsFile cloudFlareASNList cloudFlareOkList breakedSubnets
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion subnetsFile cloudFlareASNList cloudFlareOkList breakedSubnets network netmask
 	threads="${1}"
 	progressBar="${2}"
 	resultFile="${3}"
@@ -333,7 +375,7 @@ function fncMainCFFind {
 				if [[ "$exists" ]]
 				then
 					killall v2ray > /dev/null 2>&1
-					ipList=$(nmap -sL -n "$subNet" | awk '/Nmap scan report/{print $NF}')
+					ipList=$(fncSubnetToIP "$subNet")
 		      tput cuu1; tput ed # rewrites Parallel's bar
 		      if [[ $parallelVersion -gt "20220515" ]];
 		      then
