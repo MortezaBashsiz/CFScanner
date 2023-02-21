@@ -23,7 +23,7 @@ You have to install the following packages:
 
 ```shell
 [~]>$ cd CFScanner/bash
-[~/CFScanner/bash]> chmod +x v2ctl v2ctl-mac v2ray v2ray-mac
+[~/CFScanner/bash]> chmod +x ../bin/*
 ```
 
 ### 3. Get config.real
