@@ -391,9 +391,9 @@ function fncMainCFFind {
 }
 # End of Function fncMainCFFind
 
-threads="$1"
-config="$2"
-speed="$3"
+threads="${1:-8}"
+config="${2:-./config.real}"
+speed="${3:-25}"
 subnetsFile="NULL"
 
 if [[ "$4" ]]
