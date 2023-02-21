@@ -343,6 +343,7 @@ function fncMainCFFind {
 		curl -s http://bot.sudoer.net/config.real -o "$scriptDir"/config.real
 		echo "config.real updated with http://bot.sudoer.net/config.real"
 		echo ""
+		fncValidateConfig "$config"
 	else
 		echo ""
 		echo "url http://bot.sudoer.net/config.real is not reachable"
@@ -463,5 +464,4 @@ fncCreateDir "${configDir}"
 echo "" > "$resultFile"
 
 osVersion="$(fncCheckDpnd)"
-fncValidateConfig "$config"
 fncMainCFFind	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$osVersion" "$subnetsFile"
