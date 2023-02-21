@@ -76,6 +76,40 @@ Which the `custom.subnets` is like as follows. You can edit this file and add yo
 [~/CFScanner/scripts]>$
 ```
 
+#### EXAMPLE: with custom ip file
+
+```shell
+[~/CFScanner/scripts]>$ bash cfFindIPFromList.sh 8 ./config.real 100 ./ip.list
+```
+
+Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
+
+```shell
+[~/CFScanner/scripts]>$ cat ip.list
+23.227.37.250 
+23.227.37.252 
+23.227.37.253 
+23.227.37.254 
+23.227.37.255 
+23.227.38.1 
+23.227.38.8 
+23.227.38.2 
+23.227.38.3 
+23.227.38.6 
+23.227.38.14 
+23.227.38.11 
+23.227.38.9 
+23.227.38.4 
+23.227.38.10 
+23.227.38.7 
+[~/CFScanner/scripts]>$
+```
+
+
+
+
+
+
 ### 5. Result
 
 It will generate a file in datetime format in the result directory.
