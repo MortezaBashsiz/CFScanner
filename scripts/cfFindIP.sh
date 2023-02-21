@@ -52,14 +52,18 @@ fncIpToLongInt() {
 # Function fncSubnetToIP
 # converts subnet to IP list
 fncSubnetToIP() {
-  local network=("${1//\// }")
-  local iparr=("${network[0]//./ }")
+	# shellcheck disable=SC2206
+  local network=(${1//\// })
+	# shellcheck disable=SC2206
+  local iparr=(${network[0]//./ })
   local mask=32
   [[ $((${#network[@]})) -gt 1 ]] && mask=${network[1]}
+
   local maskarr
-  if [[ ${mask} = '\.' ]]; then
-    maskarr=("${mask//./ }")
-  else
+	# shellcheck disable=SC2206
+  if [[ ${mask} = '\.' ]]; then  # already mask format like 255.255.255.0
+    maskarr=(${mask//./ })
+  else                           # assume CIDR like /24, convert to mask
     if [[ $((mask)) -lt 8 ]]; then
       maskarr=($((256-2**(8-mask))) 0 0 0)
     elif  [[ $((mask)) -lt 16 ]]; then
@@ -72,9 +76,12 @@ fncSubnetToIP() {
       maskarr=(255 255 255 255)
     fi
   fi
+
+  # correct wrong subnet masks (e.g. 240.192.255.0 to 255.255.255.0)
   [[ ${maskarr[2]} == 255 ]] && maskarr[1]=255
   [[ ${maskarr[1]} == 255 ]] && maskarr[0]=255
 
+  # generate list of ip addresses
   local bytes=(0 0 0 0)
   for i in $(seq 0 $((255-maskarr[0]))); do
     bytes[0]="$(( i+(iparr[0] & maskarr[0]) ))"
@@ -300,7 +307,7 @@ function fncCheckSpeed {
 # Function fncMainCFFind
 # main Function
 function fncMainCFFind {
-	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion subnetsFile cloudFlareASNList cloudFlareOkList breakedSubnets network netmask
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion subnetsFile cloudFlareASNList breakedSubnets network netmask
 	threads="${1}"
 	progressBar="${2}"
 	resultFile="${3}"
@@ -328,8 +335,7 @@ function fncMainCFFind {
 	fi
 	
 	cloudFlareASNList=( AS13335 AS209242 )
-	cloudFlareOkList=(23 31 45 66 80 89 103 104 108 141 147 154 159 168 170 173 185 188 191 192 193 194 195 199 203 205 212)
-	
+
 	echo "updating config.real"
 	configRealUrlResult=$(curl -I -L -s http://bot.sudoer.net/config.real | grep "^HTTP" | grep 200 | awk '{ print $2 }')
 	if [[ "$configRealUrlResult" == "200" ]]
@@ -352,6 +358,7 @@ function fncMainCFFind {
 		echo "Speed $speed is not valid, choose be one of (25 50 100 150 200 250 500)"
 		exit 0
 	fi
+	echo "" > "$scriptDir/subnets.list"
 	if [[ "$subnetsFile" == "NULL" ]]	
 	then
 		for asn in "${cloudFlareASNList[@]}"
@@ -360,75 +367,52 @@ function fncMainCFFind {
 			if [[ "$urlResult" == "200" ]]
 			then
 				cfSubnetList=$(curl -s https://asnlookup.com/asn/"$asn"/ | grep "^<li><a href=\"/cidr/.*0/" | awk -F "cidr/" '{print $2}' | awk -F "\">" '{print $1}' | grep -E -v     "^8\.|^1\.")
+				echo "$cfSubnetList" >> "$scriptDir/subnets.list"
 			else
 				echo "could not get url curl -s https://asnlookup.com/asn/$asn/"
 				echo "will use local file"
-				cfSubnetList=$(cat "$scriptDir"/cf.local.iplist)
+				cat "$scriptDir/cf.local.iplist" > "$scriptDir/subnets.list"
 			fi
-		  ipListLength=$(echo "$cfSubnetList" | wc -l)
-		  passedIpsCount=0
-			for subNet in ${cfSubnetList}
-			do
-		    fncShowProgress "$passedIpsCount" "$ipListLength"
-				firstOctet=$(echo "$subNet" | awk -F "." '{ print $1 }')
-				exists=$(echo "${cloudFlareOkList[*]}" | grep -w "$firstOctet")
-				if [[ "$exists" ]]
-				then
-					killall v2ray > /dev/null 2>&1
-					ipList=$(fncSubnetToIP "$subNet")
-		      tput cuu1; tput ed # rewrites Parallel's bar
-		      if [[ $parallelVersion -gt "20220515" ]];
-		      then
-		        parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
-		      else
-		        echo -e "${RED}$progressBar${NC}"
-		        parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
-		      fi
-					killall v2ray > /dev/null 2>&1
-				fi
-		    passedIpsCount=$(( passedIpsCount+1 ))
-			done
 		done
+		cfSubnetList=$(cat "$scriptDir/subnets.list")
 	else
 		cfSubnetList=$(cat "$subnetsFile")
-		ipListLength=$(echo "$cfSubnetList" | wc -l)
-		passedIpsCount=0
-		for subNet in ${cfSubnetList}
-		do
-			breakedSubnets=
-			maxSubnet=24
-			network=${subNet%/*}
-			netmask=${subNet#*/}
-			if [[ ${netmask} -ge ${maxSubnet} ]]
-			then
-			  breakedSubnets="${breakedSubnets} ${network}/${netmask}"
-			else
-			  for i in $(seq 0 $(( $(( 2 ** (maxSubnet - netmask) )) - 1 )) )
-			  do
-			    breakedSubnets="${breakedSubnets} $( fncLongIntToStr $(( $( fncIpToLongInt "${network}" ) + $(( 2 ** ( 32 - maxSubnet ) * i )) )) )/${maxSubnet}"
-			  done
-			fi
-			breakedSubnets=$(echo "${breakedSubnets}"|tr ' ' '\n')
-			for breakedSubnet in ${breakedSubnets}
-			do
-				fncShowProgress "$passedIpsCount" "$ipListLength"
-				firstOctet=$(echo "$breakedSubnet" | awk -F "." '{ print $1 }')
-				killall v2ray > /dev/null 2>&1
-				ipList=$(nmap -sL -n "$breakedSubnet" | awk '/Nmap scan report/{print $NF}')
-		  	tput cuu1; tput ed # rewrites Parallel's bar
-		  	if [[ $parallelVersion -gt "20220515" ]];
-		  	then
-		  	  parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
-		  	else
-		  	  echo -e "${RED}$progressBar${NC}"
-		  	  parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
-		  	fi
-				killall v2ray > /dev/null 2>&1
-			done
-		  passedIpsCount=$(( passedIpsCount+1 ))
-		done
 	fi
-	
+	ipListLength=$(echo "$cfSubnetList" | wc -l)
+	passedIpsCount=0
+	for subNet in ${cfSubnetList}
+	do
+		breakedSubnets=
+		maxSubnet=24
+		network=${subNet%/*}
+		netmask=${subNet#*/}
+		if [[ ${netmask} -ge ${maxSubnet} ]]
+		then
+		  breakedSubnets="${breakedSubnets} ${network}/${netmask}"
+		else
+		  for i in $(seq 0 $(( $(( 2 ** (maxSubnet - netmask) )) - 1 )) )
+		  do
+		    breakedSubnets="${breakedSubnets} $( fncLongIntToStr $(( $( fncIpToLongInt "${network}" ) + $(( 2 ** ( 32 - maxSubnet ) * i )) )) )/${maxSubnet}"
+		  done
+		fi
+		breakedSubnets=$(echo "${breakedSubnets}"|tr ' ' '\n')
+		for breakedSubnet in ${breakedSubnets}
+		do
+			fncShowProgress "$passedIpsCount" "$ipListLength"
+			killall v2ray > /dev/null 2>&1
+			ipList=$(fncSubnetToIP "$breakedSubnet")
+	  	tput cuu1; tput ed # rewrites Parallel's bar
+	  	if [[ $parallelVersion -gt "20220515" ]];
+	  	then
+	  	  parallel --ll --bar -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	  	else
+	  	  echo -e "${RED}$progressBar${NC}"
+	  	  parallel -j "$threads" fncCheckSubnet ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	  	fi
+			killall v2ray > /dev/null 2>&1
+		done
+	  passedIpsCount=$(( passedIpsCount+1 ))
+	done
 	sort -n -k1 -t, "$resultFile" -o "$resultFile"
 }
 # End of Function fncMainCFFind
