@@ -141,8 +141,9 @@ function fncCheckIPList {
 	frontDomain="${10}"
 	scanDomain="${11}"
 	downloadFile="${12}"
-	osVersion="${13}"
-	v2rayCommand="${14}"
+	uploadFile="${13}"
+	osVersion="${14}"
+	v2rayCommand="${15}"
 	binDir="$scriptDir/../bin"
 	configDir="$scriptDir/../config"
 	# set proper command for linux
@@ -200,7 +201,7 @@ function fncCheckIPList {
 					fi
 					nohup "$binDir"/"$v2rayCommand" -c "$ipConfigFile" > /dev/null &
 					sleep 2
-					timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" https://"$scanDomain"/"$downloadFile" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
+					timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" https://"$scanDomain"/"$downloadFile" "$uploadFile" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
 					# shellcheck disable=SC2009
 					pid=$(ps aux | grep config.json."$ip" | grep -v grep | awk '{ print $2 }')
 					if [[ "$pid" ]]
@@ -282,33 +283,51 @@ function fncCreateDir {
 # End of Function fncCreateDir
 
 # Function fncCheckSpeed
-# validates speed return proper downloadFile
+# validates speed return proper downloadFile and uploadFile
+
 function fncCheckSpeed {
-	local downloadFile speedList speed
-	speed="${1}"
-	downloadFile="NULL"
-	speedList=(25 50 100 150 200 250 500)
-	declare -a downloadFileArr
-	downloadFileArr["25"]="data.50k"
-	downloadFileArr["50"]="data.100k"
-	downloadFileArr["100"]="data.200k"
-	downloadFileArr["150"]="data.300k"
-	downloadFileArr["200"]="data.400k"
-	downloadFileArr["250"]="data.500k"
-	downloadFileArr["500"]="data.1000k"
-	
-	if [[ "${speedList[*]}" =~ $speed ]]
-	then
-		downloadFile="${downloadFileArr[${speed}]}"
-	fi
-	echo "$downloadFile"
+    local downloadFile uploadFile speedList speed uploadSpeed
+    speed="${1}"
+    uploadSpeed="${2}"
+    downloadFile="NULL"
+    uploadFile="NULL"
+    speedList=(25 50 100 150 200 250 500)
+    declare -A downloadFileArr
+    declare -A uploadFileArr
+
+    downloadFileArr["25"]="data.50k"
+    downloadFileArr["50"]="data.100k"
+    downloadFileArr["100"]="data.200k"
+    downloadFileArr["150"]="data.300k"
+    downloadFileArr["200"]="data.400k"
+    downloadFileArr["250"]="data.500k"
+    downloadFileArr["500"]="data.1000k"
+
+    uploadFileArr["25"]="upload.50k"
+    uploadFileArr["50"]="upload.100k"
+    uploadFileArr["100"]="upload.200k"
+    uploadFileArr["150"]="upload.300k"
+    uploadFileArr["200"]="upload.400k"
+    uploadFileArr["250"]="upload.500k"
+    uploadFileArr["500"]="upload.1000k"
+
+    if [[ "${speedList[*]}" =~ $speed ]]; then
+        downloadFile="${downloadFileArr[${speed}]}"
+    fi
+
+    if [[ "${speedList[*]}" =~ $uploadSpeed ]]; then
+        uploadFile="${uploadFileArr[${uploadSpeed}]}"
+    fi
+
+    echo "${downloadFile} ${uploadFile}"
 }
+
 # End of Function fncCheckSpeed
 
 # Function fncMainCFFindSubnet
 # main Function for Subnet
 function fncMainCFFindSubnet {
-	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion subnetsFile cloudFlareASNList breakedSubnets network netmask
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed uploadSpeed downloadFile uploadFile osVersion parallelVersion subnetsFile cloudFlareASNList breakedSubnets network netmask
 	threads="${1}"
 	progressBar="${2}"
 	resultFile="${3}"
@@ -321,8 +340,9 @@ function fncMainCFFindSubnet {
 	frontDomain="${10}"
 	scanDomain="${11}"
 	speed="${12}"
-	osVersion="${13}"
-	subnetsFile="${14}"
+	uploadSpeed="${13}"
+	osVersion="${14}"
+	subnetsFile="${15}"
 
 	if [[ "$osVersion" == "Linux" ]]
 	then
@@ -355,6 +375,12 @@ function fncMainCFFindSubnet {
 	if [[ "$downloadFile" == "NULL" ]]
 	then
 		echo "Speed $speed is not valid, choose be one of (25 50 100 150 200 250 500)"
+		exit 0
+	fi
+	uploadFile="$(fncCheckSpeed "$uploadSpeed" "upload")"
+	if [[ "$uploadFile" == "NULL" ]]
+	then
+		echo "Speed $uploadSpeed is not valid, choose be one of (25 50 100 150 200 250 500)"
 		exit 0
 	fi
 	echo "" > "$scriptDir/subnets.list"
@@ -403,10 +429,10 @@ function fncMainCFFindSubnet {
 	  	tput cuu1; tput ed # rewrites Parallel's bar
 	  	if [[ $parallelVersion -gt "20220515" ]];
 	  	then
-	  	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	  	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile"  ::: "$uploadFile"::: "$osVersion" ::: "$v2rayCommand"
 	  	else
 	  	  echo -e "${RED}$progressBar${NC}"
-	  	  parallel -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	  	  parallel -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$uploadFile" ::: $osVersion" ::: "$v2rayCommand"
 	  	fi
 			killall v2ray > /dev/null 2>&1
 			passedIpsCount=$(( passedIpsCount+1 ))
@@ -419,7 +445,7 @@ function fncMainCFFindSubnet {
 # Function fncMainCFFindIP
 # main Function for IP
 function fncMainCFFindIP {
-	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed  downloadFile osVersion parallelVersion IPFile
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName frontDomain scanDomain speed uploadSpeed downloadFile uploadFile osVersion parallelVersion IPFile
 	threads="${1}"
 	progressBar="${2}"
 	resultFile="${3}"
@@ -432,8 +458,9 @@ function fncMainCFFindIP {
 	frontDomain="${10}"
 	scanDomain="${11}"
 	speed="${12}"
-	osVersion="${13}"
-	IPFile="${14}"
+	uploadSpeed="${13}"
+	osVersion="${14}"
+	IPFile="${15}"
 
 	if [[ "$osVersion" == "Linux" ]]
 	then
@@ -471,15 +498,21 @@ function fncMainCFFindIP {
 		echo "Speed $speed is not valid, choose be one of (25 50 100 150 200 250 500)"
 		exit 0
 	fi
+	uploadFile="$(fncCheckSpeed "$uploadSpeed")"
+	if [[ "$uploadFile" == "NULL" ]]
+	then
+		echo "Speed $uploadSpeed is not valid, choose be one of (25 50 100 150 200 250 500)"
+		exit 0
+	fi
 	cfIPList=$(cat "$IPFile")
 	killall v2ray > /dev/null 2>&1
 	tput cuu1; tput ed # rewrites Parallel's bar
 	if [[ $parallelVersion -gt "20220515" ]];
 	then
-	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: $uploadFile ::: "$osVersion" ::: "$v2rayCommand"
 	else
 	  echo -e "${RED}$progressBar${NC}"
-	  parallel -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	  parallel -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$uploadFile" :::: "$osVersion" ::: "$v2rayCommand"
 	fi
 	killall v2ray > /dev/null 2>&1
 	sort -n -k1 -t, "$resultFile" -o "$resultFile"
@@ -491,6 +524,7 @@ mode="$1"
 threads="$2"
 config="$3"
 speed="$4"
+uploadSpeed="$5"
 subnetIPFile="NULL"
 
 if [[ "$5" ]]
@@ -506,6 +540,7 @@ fi
 frontDomain="fronting.sudoer.net"
 scanDomain="scan.sudoer.net"
 downloadFile="data.100k"
+uploadFile="data.100k"
 
 now=$(date +"%Y%m%d-%H%M%S")
 scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
@@ -536,10 +571,10 @@ osVersion="$(fncCheckDpnd)"
 
 if [[ "$mode" == "SUBNET" ]]
 then
-	fncMainCFFindSubnet	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$osVersion" "$subnetIPFile"
+	fncMainCFFindSubnet	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$uploadSpeed" "$osVersion" "$subnetIPFile"
 elif [[ "$mode" == "IP" ]]
 then
-	fncMainCFFindIP	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$osVersion" "$subnetIPFile"
+	fncMainCFFindIP	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$uploadSpeed" "$osVersion" "$subnetIPFile"
 else
 	echo "$mode is not correct choose one SUBNET or IP"
 	exit 1
