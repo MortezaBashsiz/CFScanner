@@ -14,7 +14,7 @@
 #        AUTHOR: Morteza Bashsiz (mb), morteza.bashsiz@gmail.com
 #  ORGANIZATION: Linux
 #       CREATED: 01/24/2023 07:36:57 PM
-#      REVISION: nomadzzz, armgham, beh-rouz 
+#      REVISION: nomadzzz, armgham, beh-rouz, amini8  
 #===============================================================================
 
 # Function fncLongIntToStr
@@ -336,23 +336,18 @@ function fncMainCFFindSubnet {
 	fi
 	
 	cloudFlareASNList=( AS13335 AS209242 )
-
-	echo "updating config.real"
-	configRealUrlResult=$(curl -I -L -s http://bot.sudoer.net/config.real | grep "^HTTP" | grep 200 | awk '{ print $2 }')
-	if [[ "$configRealUrlResult" == "200" ]]
-	then
-		curl -s http://bot.sudoer.net/config.real -o "$scriptDir"/config.real
-		echo "config.real updated with http://bot.sudoer.net/config.real"
-		echo ""
-		config="$scriptDir/config.real"
-		echo "$config"
-		fncValidateConfig "$config"
-	else
-		echo ""
-		echo "url http://bot.sudoer.net/config.real is not reachable"
-		echo "make sure that you have the updated config.real"
-		echo ""
-	fi
+	
+	  echo "Updating config.real..."
+	  if curl -sSfL http://bot.sudoer.net/config.real -o "$scriptDir"/config.real; then
+	    echo "config.real updated with http://bot.sudoer.net/config.real"
+			echo ""
+	    config="$scriptDir/config.real"
+	    fncValidateConfig "$config"
+	  else
+	    echo "url http://bot.sudoer.net/config.real is not reachable"
+	    echo "Make sure that you have the updated config.real"
+			echo ""
+	  fi
 
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
