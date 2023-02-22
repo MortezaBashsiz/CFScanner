@@ -409,8 +409,8 @@ function fncMainCFFindSubnet {
 	  	  parallel -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
 	  	fi
 			killall v2ray > /dev/null 2>&1
+			passedIpsCount=$(( passedIpsCount+1 ))
 		done
-	  passedIpsCount=$(( passedIpsCount+1 ))
 	done
 	sort -n -k1 -t, "$resultFile" -o "$resultFile"
 }
