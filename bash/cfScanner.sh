@@ -14,7 +14,7 @@
 #        AUTHOR: Morteza Bashsiz (mb), morteza.bashsiz@gmail.com
 #  ORGANIZATION: Linux
 #       CREATED: 01/24/2023 07:36:57 PM
-#      REVISION: nomadzzz, armgham, beh-rouz 
+#      REVISION: nomadzzz, armgham, beh-rouz, amini8  
 #===============================================================================
 
 # Function fncLongIntToStr
@@ -337,15 +337,15 @@ function fncMainCFFindSubnet {
 	
 	cloudFlareASNList=( AS13335 AS209242 )
 	
-	  echo "Updating config.real...\n"
+	  echo "Updating config.real..."
 	  if curl -sSfL http://bot.sudoer.net/config.real -o "$scriptDir"/config.real; then
-	    echo "config.real updated with http://bot.sudoer.net/config.real\n\n"
+	    echo "config.real updated with http://bot.sudoer.net/config.real"
 	    config="$scriptDir/config.real"
 		echo "$config"
 	    fncValidateConfig "$config"
 	  else
-	    echo "\nurl http://bot.sudoer.net/config.real is not reachable\n"
-	    echo "Make sure that you have the updated config.real\n\n"
+	    echo "url http://bot.sudoer.net/config.real is not reachable"
+	    echo "Make sure that you have the updated config.real"
 	  fi
 
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
