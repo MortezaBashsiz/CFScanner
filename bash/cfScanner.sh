@@ -337,15 +337,15 @@ function fncMainCFFindSubnet {
 	
 	cloudFlareASNList=( AS13335 AS209242 )
 	
-	  printf "Updating config.real...\n"
+	  echo "Updating config.real...\n"
 	  if curl -sSfL http://bot.sudoer.net/config.real -o "$scriptDir"/config.real; then
-	    printf "config.real updated with http://bot.sudoer.net/config.real\n\n"
+	    echo "config.real updated with http://bot.sudoer.net/config.real\n\n"
 	    config="$scriptDir/config.real"
 		echo "$config"
 	    fncValidateConfig "$config"
 	  else
-	    printf "\nurl http://bot.sudoer.net/config.real is not reachable\n"
-	    printf "Make sure that you have the updated config.real\n\n"
+	    echo "\nurl http://bot.sudoer.net/config.real is not reachable\n"
+	    echo "Make sure that you have the updated config.real\n\n"
 	  fi
 
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
