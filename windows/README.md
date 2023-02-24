@@ -4,8 +4,6 @@
 ## About
 This tool help you to scan all IP ranges of Cloudflare to find clean and working ones.
 
-Inspired by [Morteza CFScanner](https://github.com/MortezaBashsiz/CFScanner)
-
 ## Features
 * Scan all Cloudflare IP ranges and find fastest IP addresses.
 * Save scan results and ability to scan in previous results.
@@ -35,7 +33,7 @@ https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-6.0
 ```
 
 ## How to use
-Just download latest release from `release` section and extract zip file to disk, then run `WinCFScan.exe`.
+Just download latest release from [Releases](https://github.com/MortezaBashsiz/CFScanner/releases) section and extract zip file to disk, then run `WinCFScan.exe`.
 
 ## Other notes
 * In `Scan Results` tab you can right click on an IP and **Copy** IP address and also you can click on `Test this IP address` menu to test just one IP address.
@@ -48,8 +46,8 @@ Just download latest release from `release` section and extract zip file to disk
 ## Build and compile
 Only advanced users:
 
-If you want to build and compile it yourself then download source code to your pc and open `WinCFScan.sln` file in `Visual Studio 2022`.
-Then you can build it from Build menu. After that you **must** copy content of `assets` folder into executable folder which usually is something like `bin/Debug/net6.0-windows`.
+If you want to build and compile it yourself then download source code to your pc and then open `WinCFScan.sln` file in `Visual Studio 2022`.
+Then you can build it from the Build menu. After that you **must** copy content of `assets` folder into executable folder which usually is something like `bin/Debug/net6.0-windows`.
 
 # Disclaimer
 This app is provided as is, and we make no warranties or guarantees about its performance or suitability for your specific needs. Use at your own risk.
