@@ -197,3 +197,4 @@ windows/healthchecksdb
 windows/MigrationBackup/
 windows/.ionide/
 windows/FodyWeavers.xsd
+.vs
