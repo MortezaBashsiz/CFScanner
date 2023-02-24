@@ -13,7 +13,7 @@ namespace WinCFScan
 {
     public partial class frmMain : Form
     {
-        private const string ourGitHubUrl = "https://github.com/goingfine/WinCFScan";
+        private const string ourGitHubUrl = "https://github.com/MortezaBashsiz/CFScanner";
         ConfigManager configManager;
         bool oneTimeChecked = false; // config checked once?
         ScanEngine scanEngine;
@@ -356,7 +356,7 @@ namespace WinCFScan
         {
             int val = 0;
             bool isInteger = int.TryParse(comboConcurrent.Text, out val);
-            if (!isInteger || val < 1 || val > 16)
+            if (!isInteger || val < 1 || val > 128)
             {
                 val = 4;
             }
@@ -500,13 +500,18 @@ namespace WinCFScan
 
         private void updateCFIPListStatusText()
         {
-            var ipRangeCounts = getCheckedCFIPList(true);
-            uint sum = 0;
-            foreach (var item in ipRangeCounts)
+            try
             {
-                sum += uint.Parse(item.Replace(",",""));
+                var ipRangeCounts = getCheckedCFIPList(true);
+                uint sum = 0;
+                foreach (var item in ipRangeCounts)
+                {
+                    sum += uint.Parse(item.Replace(",", ""));
+                }
+                lblCFIPListStatus.Text = $"{ipRangeCounts.Length} Cloudflare IP ranges are selected, contains {sum:n0} IPs";
             }
-            lblCFIPListStatus.Text = $"{ipRangeCounts.Length} Cloudflare IP ranges are selected, contains {sum:n0} IPs";
+            catch (Exception)
+            {}
         }
 
         private void btnSelectAllIPRanges_Click(object sender, EventArgs e)

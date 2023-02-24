@@ -245,7 +245,8 @@
             "2",
             "4",
             "8",
-            "16"});
+            "16",
+            "32"});
             this.comboConcurrent.Location = new System.Drawing.Point(621, 48);
             this.comboConcurrent.Name = "comboConcurrent";
             this.comboConcurrent.Size = new System.Drawing.Size(55, 23);
@@ -307,7 +308,7 @@
             this.listResults.GridLines = true;
             this.listResults.Location = new System.Drawing.Point(0, 40);
             this.listResults.Name = "listResults";
-            this.listResults.Size = new System.Drawing.Size(772, 181);
+            this.listResults.Size = new System.Drawing.Size(772, 178);
             this.listResults.TabIndex = 4;
             this.listResults.UseCompatibleStateImageBehavior = false;
             this.listResults.View = System.Windows.Forms.View.Details;
@@ -367,15 +368,13 @@
             // 
             // tabControl1
             // 
-            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Controls.Add(this.tabPageCFRanges);
             this.tabControl1.Controls.Add(this.tabPageResults);
-            this.tabControl1.Location = new System.Drawing.Point(3, 1);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(780, 249);
+            this.tabControl1.Size = new System.Drawing.Size(780, 246);
             this.tabControl1.TabIndex = 9;
             // 
             // tabPageCFRanges
@@ -387,7 +386,7 @@
             this.tabPageCFRanges.Location = new System.Drawing.Point(4, 24);
             this.tabPageCFRanges.Name = "tabPageCFRanges";
             this.tabPageCFRanges.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageCFRanges.Size = new System.Drawing.Size(772, 221);
+            this.tabPageCFRanges.Size = new System.Drawing.Size(772, 218);
             this.tabPageCFRanges.TabIndex = 1;
             this.tabPageCFRanges.Text = "Cloudflare IP ranges";
             this.tabPageCFRanges.UseVisualStyleBackColor = true;
@@ -434,7 +433,7 @@
             this.headTotalIPs});
             this.listCFIPList.Location = new System.Drawing.Point(0, 38);
             this.listCFIPList.Name = "listCFIPList";
-            this.listCFIPList.Size = new System.Drawing.Size(772, 183);
+            this.listCFIPList.Size = new System.Drawing.Size(772, 180);
             this.listCFIPList.TabIndex = 0;
             this.listCFIPList.UseCompatibleStateImageBehavior = false;
             this.listCFIPList.View = System.Windows.Forms.View.Details;
@@ -461,7 +460,7 @@
             this.tabPageResults.Location = new System.Drawing.Point(4, 24);
             this.tabPageResults.Name = "tabPageResults";
             this.tabPageResults.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageResults.Size = new System.Drawing.Size(772, 221);
+            this.tabPageResults.Size = new System.Drawing.Size(772, 218);
             this.tabPageResults.TabIndex = 0;
             this.tabPageResults.Text = "Scan Results";
             this.tabPageResults.UseVisualStyleBackColor = true;
