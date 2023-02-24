@@ -1,0 +1,5 @@
+{
+	"frontDomain": "fronting.sudoer.net",
+	"scanDomain": "scan.sudoer.net",
+	"configRealUrl": "http://bot.sudoer.net/config.real"
+}
