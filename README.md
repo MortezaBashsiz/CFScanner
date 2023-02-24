@@ -122,5 +122,9 @@ It will generate a file in datetime format in the result directory.
 
 This script also exists in docker, find out [here](https://github.com/MortezaBashsiz/CFScanner/tree/main/docker "here").
 
+## Windows
+
+This script is also available for windows maintained by another repo [here](https://github.com/goingfine/WinCFScan "here").
+
 ## Video Guide
 You can find a video guide for this script on [youtube](https://youtu.be/BKLRAHolhvM "youtube").
