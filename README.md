@@ -41,6 +41,8 @@ path:       Websocket endpoint like api20
 serverName: SNI
 ```
 
+NOTE: If you want to use your custom config DO NOT use it as config.real since script will update this file. Store your config in another file and pass it as an argument to script instead of config.real
+
 ### 4. Execute it
 
 At following command pay attention to the numbers **threads**, **speed** and **Custom Subnet File**.
