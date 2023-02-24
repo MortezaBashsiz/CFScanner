@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33403.182
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinCFScan", "WinCFScan.csproj", "{4CADB7B9-1CF1-4136-A910-7BCCDD0BE09D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4CADB7B9-1CF1-4136-A910-7BCCDD0BE09D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CADB7B9-1CF1-4136-A910-7BCCDD0BE09D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CADB7B9-1CF1-4136-A910-7BCCDD0BE09D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CADB7B9-1CF1-4136-A910-7BCCDD0BE09D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {57AE3044-4D7F-4818-8F61-5D3B2F5F947F}
+	EndGlobalSection
+EndGlobal

@@ -124,7 +124,7 @@ This script also exists in docker, find out [here](https://github.com/MortezaBas
 
 ## Windows
 
-This script is also available for windows maintained by another repo [here](https://github.com/goingfine/WinCFScan "here").
+This script is also available for windows maintained by another repo [here](https://github.com/MortezaBashsiz/CFScanner/tree/main/windows "here").
 
 ## Video Guide
 You can find a video guide for this script on [youtube](https://youtu.be/BKLRAHolhvM "youtube").
