@@ -312,6 +312,7 @@
             this.listResults.TabIndex = 4;
             this.listResults.UseCompatibleStateImageBehavior = false;
             this.listResults.View = System.Windows.Forms.View.Details;
+            this.listResults.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.listResults_ColumnClick);
             this.listResults.MouseClick += new System.Windows.Forms.MouseEventHandler(this.listResults_MouseClick);
             this.listResults.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.listResults_MouseDoubleClick);
             // 
@@ -437,6 +438,7 @@
             this.listCFIPList.TabIndex = 0;
             this.listCFIPList.UseCompatibleStateImageBehavior = false;
             this.listCFIPList.View = System.Windows.Forms.View.Details;
+            this.listCFIPList.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.listCFIPList_ColumnClick);
             this.listCFIPList.ItemChecked += new System.Windows.Forms.ItemCheckedEventHandler(this.listCFIPList_ItemChecked);
             // 
             // headIPRange
