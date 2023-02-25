@@ -68,6 +68,11 @@
             this.lblPrevListTotalIPs = new System.Windows.Forms.Label();
             this.lblPrevResults = new System.Windows.Forms.Label();
             this.btnDeleteResult = new System.Windows.Forms.Button();
+            this.mnuMain = new System.Windows.Forms.MenuStrip();
+            this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.scanASingleIPAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.mnuListView.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -77,6 +82,7 @@
             this.tabControl1.SuspendLayout();
             this.tabPageCFRanges.SuspendLayout();
             this.tabPageResults.SuspendLayout();
+            this.mnuMain.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnStart
@@ -102,7 +108,7 @@
             this.txtLog.Name = "txtLog";
             this.txtLog.ReadOnly = true;
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(780, 176);
+            this.txtLog.Size = new System.Drawing.Size(780, 185);
             this.txtLog.TabIndex = 1;
             this.txtLog.Text = "Welcome to Cloudflare IP Scanner.\r\n";
             // 
@@ -185,7 +191,7 @@
             this.groupBox1.Controls.Add(this.btnStart);
             this.groupBox1.Controls.Add(this.prgCurRange);
             this.groupBox1.Controls.Add(this.btnSkipCurRange);
-            this.groupBox1.Location = new System.Drawing.Point(12, 4);
+            this.groupBox1.Location = new System.Drawing.Point(12, 18);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(780, 120);
             this.groupBox1.TabIndex = 3;
@@ -208,9 +214,9 @@
             // 
             // btnCopyFastestIP
             // 
-            this.btnCopyFastestIP.Location = new System.Drawing.Point(545, 87);
+            this.btnCopyFastestIP.Location = new System.Drawing.Point(545, 85);
             this.btnCopyFastestIP.Name = "btnCopyFastestIP";
-            this.btnCopyFastestIP.Size = new System.Drawing.Size(131, 23);
+            this.btnCopyFastestIP.Size = new System.Drawing.Size(131, 25);
             this.btnCopyFastestIP.TabIndex = 11;
             this.btnCopyFastestIP.Text = "Copy fastest IP";
             this.btnCopyFastestIP.UseVisualStyleBackColor = true;
@@ -308,7 +314,7 @@
             this.listResults.GridLines = true;
             this.listResults.Location = new System.Drawing.Point(0, 40);
             this.listResults.Name = "listResults";
-            this.listResults.Size = new System.Drawing.Size(772, 178);
+            this.listResults.Size = new System.Drawing.Size(772, 188);
             this.listResults.TabIndex = 4;
             this.listResults.UseCompatibleStateImageBehavior = false;
             this.listResults.View = System.Windows.Forms.View.Details;
@@ -332,18 +338,19 @@
             this.mnuListViewCopyIP,
             this.mnuListViewTestThisIPAddress});
             this.mnuListView.Name = "mnuListView";
-            this.mnuListView.Size = new System.Drawing.Size(175, 48);
+            this.mnuListView.Size = new System.Drawing.Size(181, 70);
             // 
             // mnuListViewCopyIP
             // 
             this.mnuListViewCopyIP.Name = "mnuListViewCopyIP";
-            this.mnuListViewCopyIP.Size = new System.Drawing.Size(174, 22);
+            this.mnuListViewCopyIP.Size = new System.Drawing.Size(180, 22);
             this.mnuListViewCopyIP.Text = "Copy IP Address";
+            this.mnuListViewCopyIP.Click += new System.EventHandler(this.mnuListViewCopyIP_Click);
             // 
             // mnuListViewTestThisIPAddress
             // 
             this.mnuListViewTestThisIPAddress.Name = "mnuListViewTestThisIPAddress";
-            this.mnuListViewTestThisIPAddress.Size = new System.Drawing.Size(174, 22);
+            this.mnuListViewTestThisIPAddress.Size = new System.Drawing.Size(180, 22);
             this.mnuListViewTestThisIPAddress.Text = "Test this IP Address";
             this.mnuListViewTestThisIPAddress.Click += new System.EventHandler(this.mnuListViewTestThisIPAddress_Click);
             // 
@@ -352,7 +359,7 @@
             this.splitContainer1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.splitContainer1.Location = new System.Drawing.Point(12, 132);
+            this.splitContainer1.Location = new System.Drawing.Point(12, 146);
             this.splitContainer1.Name = "splitContainer1";
             this.splitContainer1.Orientation = System.Windows.Forms.Orientation.Horizontal;
             // 
@@ -363,8 +370,8 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.txtLog);
-            this.splitContainer1.Size = new System.Drawing.Size(780, 426);
-            this.splitContainer1.SplitterDistance = 246;
+            this.splitContainer1.Size = new System.Drawing.Size(780, 445);
+            this.splitContainer1.SplitterDistance = 256;
             this.splitContainer1.TabIndex = 7;
             // 
             // tabControl1
@@ -375,7 +382,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(780, 246);
+            this.tabControl1.Size = new System.Drawing.Size(780, 256);
             this.tabControl1.TabIndex = 9;
             // 
             // tabPageCFRanges
@@ -387,7 +394,7 @@
             this.tabPageCFRanges.Location = new System.Drawing.Point(4, 24);
             this.tabPageCFRanges.Name = "tabPageCFRanges";
             this.tabPageCFRanges.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageCFRanges.Size = new System.Drawing.Size(772, 218);
+            this.tabPageCFRanges.Size = new System.Drawing.Size(772, 228);
             this.tabPageCFRanges.TabIndex = 1;
             this.tabPageCFRanges.Text = "Cloudflare IP ranges";
             this.tabPageCFRanges.UseVisualStyleBackColor = true;
@@ -434,7 +441,7 @@
             this.headTotalIPs});
             this.listCFIPList.Location = new System.Drawing.Point(0, 38);
             this.listCFIPList.Name = "listCFIPList";
-            this.listCFIPList.Size = new System.Drawing.Size(772, 180);
+            this.listCFIPList.Size = new System.Drawing.Size(772, 190);
             this.listCFIPList.TabIndex = 0;
             this.listCFIPList.UseCompatibleStateImageBehavior = false;
             this.listCFIPList.View = System.Windows.Forms.View.Details;
@@ -462,7 +469,7 @@
             this.tabPageResults.Location = new System.Drawing.Point(4, 24);
             this.tabPageResults.Name = "tabPageResults";
             this.tabPageResults.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageResults.Size = new System.Drawing.Size(772, 218);
+            this.tabPageResults.Size = new System.Drawing.Size(772, 228);
             this.tabPageResults.TabIndex = 0;
             this.tabPageResults.Text = "Scan Results";
             this.tabPageResults.UseVisualStyleBackColor = true;
@@ -495,11 +502,52 @@
             this.btnDeleteResult.UseVisualStyleBackColor = true;
             this.btnDeleteResult.Click += new System.EventHandler(this.btnDeleteResult_Click);
             // 
+            // mnuMain
+            // 
+            this.mnuMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.fileToolStripMenuItem,
+            this.toolsToolStripMenuItem});
+            this.mnuMain.Location = new System.Drawing.Point(0, 0);
+            this.mnuMain.Name = "mnuMain";
+            this.mnuMain.Size = new System.Drawing.Size(804, 24);
+            this.mnuMain.TabIndex = 8;
+            this.mnuMain.Text = "menuStrip1";
+            // 
+            // fileToolStripMenuItem
+            // 
+            this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.exitToolStripMenuItem});
+            this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.fileToolStripMenuItem.Text = "File";
+            // 
+            // exitToolStripMenuItem
+            // 
+            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(93, 22);
+            this.exitToolStripMenuItem.Text = "Exit";
+            // 
+            // toolsToolStripMenuItem
+            // 
+            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.scanASingleIPAddressToolStripMenuItem});
+            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
+            this.toolsToolStripMenuItem.Text = "Tools";
+            // 
+            // scanASingleIPAddressToolStripMenuItem
+            // 
+            this.scanASingleIPAddressToolStripMenuItem.Name = "scanASingleIPAddressToolStripMenuItem";
+            this.scanASingleIPAddressToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.scanASingleIPAddressToolStripMenuItem.Text = "Test a single IP address";
+            this.scanASingleIPAddressToolStripMenuItem.Click += new System.EventHandler(this.scanASingleIPAddressToolStripMenuItem_Click);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(804, 570);
+            this.ClientSize = new System.Drawing.Size(804, 599);
+            this.Controls.Add(this.mnuMain);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.groupBox1);
             this.MinimumSize = new System.Drawing.Size(820, 480);
@@ -519,7 +567,10 @@
             this.tabPageCFRanges.PerformLayout();
             this.tabPageResults.ResumeLayout(false);
             this.tabPageResults.PerformLayout();
+            this.mnuMain.ResumeLayout(false);
+            this.mnuMain.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -564,5 +615,10 @@
         private Label lblCFIPListStatus;
         private Label lblPrevListTotalIPs;
         private LinkLabel linkGithub;
+        private MenuStrip mnuMain;
+        private ToolStripMenuItem fileToolStripMenuItem;
+        private ToolStripMenuItem exitToolStripMenuItem;
+        private ToolStripMenuItem toolsToolStripMenuItem;
+        private ToolStripMenuItem scanASingleIPAddressToolStripMenuItem;
     }
 }

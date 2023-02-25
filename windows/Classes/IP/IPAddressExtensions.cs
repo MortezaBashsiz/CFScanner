@@ -96,5 +96,36 @@ namespace WinCFScan.Classes.IP
 
             return network1.Equals(network2);
         }
+
+        public static bool isValidIPAddress(string stringIP)
+        {
+
+            if (stringIP == null || stringIP.Split(".").Count() < 3)
+                return false;
+
+            try
+            {
+                IPAddress address;
+
+                if (IPAddress.TryParse(stringIP, out address))
+                {
+                    switch (address.AddressFamily)
+                    {
+                        case System.Net.Sockets.AddressFamily.InterNetwork:
+                            return true;
+                        case System.Net.Sockets.AddressFamily.InterNetworkV6:
+                            // we dont accept ipv6 for now
+                            return false;
+                        default:
+                            return false;
+                    }
+                }
+                return false;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
 }

@@ -353,7 +353,7 @@ namespace WinCFScan
                     var checker = new CheckIPWorking();
                     if (!checker.checkFronting(false, 5))
                     {
-                        addTextLog($"Fronting domain is not accesible! you might need to get new frontig url from our github or check your internet connection.");
+                        addTextLog($"Fronting domain is not accessible! you might need to get new fronting url from our github or check your internet connection.");
                     }
                 });
 
@@ -642,5 +642,36 @@ namespace WinCFScan
             listView.Sort();
         }
 
+        // test user provided ip
+        private void scanASingleIPAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string input = Tools.ShowDialog("Enter a valid IP address:", "Test Sigle IP Address");
+
+            if(input == "" || input == null) { return; }
+
+            if(! IPAddressExtensions.isValidIPAddress(input))
+            {
+                // msg
+                MessageBox.Show("Invalid IP address is entered!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+           testSingleIP(input);
+        }
+
+        private void mnuListViewCopyIP_Click(object sender, EventArgs e)
+        {
+            var IPAddr = getSelectedIPAddress();
+            if (IPAddr != null)
+            {
+                try
+                {
+                    Clipboard.SetText(IPAddr);
+                }
+                catch (Exception ex) {
+                    addTextLog("Could not copy to clipboard!");
+                }
+            }
+        }
     }
 }
