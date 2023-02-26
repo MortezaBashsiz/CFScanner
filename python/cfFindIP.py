@@ -61,7 +61,13 @@ V2RAY_CONFIG_TEMPLATE = """
 }
 """
 
-class clsV2rayConfig:
+SCRIPTDIR = os.path.dirname(os.path.realpath(__file__))
+CONFIGDIR = f"{SCRIPTDIR}/../config"
+RESULTDIR = f"{SCRIPTDIR}/../result"
+BINDIR = f"{SCRIPTDIR}/../bin"
+
+
+class clsV2rayConfig(dict):
     localPort = ""
     addressIP = ""
     addressPort = ""
