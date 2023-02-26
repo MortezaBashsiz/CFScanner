@@ -305,38 +305,66 @@ def read_config(configPath):
 
     return v2rayConfig
 
+
+def parse_args(args=sys.argv[1:]):
+    parser = argparse.ArgumentParser(
+        description='Cloudflare edge ips scanner to use with v2ray')
+    parser.add_argument(
+        "-c", "--config",
+        help="The path to the config file. For confg file example, see http://bot.sudoer.net/config.real",
+        type=str,
+        dest="config_path",
+        required=True,
+    )
+    parser.add_argument(
+        "-t", "--threads",
+        help="Number of threads to use for parallel computing",
+        type=int,
+        dest="threads",
+        required=True
+    )
+    parser.add_argument(
+        "-s", "--subnets",
+        help="The path to the subnets file. each line should be in the form of ip.ip.ip.ip/subnet_mask",
+        dest="subnets_path",
+        required=True
+    )
+    return parser.parse_args(args)
+
+
+def cidr_to_ip_list(
+    cidr: str
+) -> list:
+    """converts a subnet to a list of ips
+
+    Args:
+        cidr (str): the cidr in the form of "ip/subnet"
+
+    Returns:
+        list: a list of ips associated with the subnet
+    """
+    ip_network = ipaddress.ip_network(cidr)
+    return (list(map(str, ip_network)))
+
+
 if __name__ == "__main__":
-    scriptDir = os.path.dirname(os.path.realpath(__file__))
-    configDir = f"{scriptDir}/../config" 
-    resultDir = f"{scriptDir}/../result" 
-    binDir = f"{scriptDir}/../bin" 
-    fncCreateDir(configDir)
-    fncCreateDir(resultDir)
-    configFilePath = sys.argv[1]
-    threadsCount=sys.argv[2]
-    subnetFilePath = sys.argv[3]
-    v2rayConfig = fncReadConfig(configFilePath)
-    v2rayConfig.configDir = configDir
-    v2rayConfig.resultDir = resultDir
-    v2rayConfig.binDir = binDir
-    subnetFile = open(str(subnetFilePath), 'r')
-    subnetList = subnetFile.readlines()
-    jobs = []
-    bigIPList = []
-    for subnet in subnetList:
-        breakedSubnets = list(ipaddress.ip_network(subnet.strip()).subnets(new_prefix=24))
-        for subnet in breakedSubnets:
-            ipList = list(ipaddress.ip_network(subnet).subnets(new_prefix=32))
-            for ip in ipList:
-                realIP = str(ip).replace('/32', '')
-                bigIPList.append(realIP)
+    fncCreateDir(CONFIGDIR)
+    fncCreateDir(RESULTDIR)
 
-    chunkedList = list(fncSplit(bigIPList, int(threadsCount)))
-    for chunkIP in chunkedList:
-        process = multiprocessing.Process(target=fncDomainCheck, args=(chunkedIP, v2rayConfig, ))
-        jobs.append(process)
-        process.start()
-    for job in jobs:
-        job.join()
+    args = parse_args()
+    configFilePath = args.config_path
+    threadsCount = args.threads
+    subnetFilePath = args.subnets_path
+    v2rayConfig = read_config(configFilePath)
+    v2rayConfig.configDir = CONFIGDIR
+    v2rayConfig.resultDir = RESULTDIR
+    v2rayConfig.binDir = BINDIR
 
+    with open(str(subnetFilePath), 'r') as subnetFile:
+        cidr_list = [l.strip() for l in subnetFile.readlines()]
 
+    big_ip_list = [ip for cidr in cidr_list for ip in cidr_to_ip_list(cidr)]
+    print(len(big_ip_list))
+
+    with multiprocessing.Pool(processes=threadsCount) as pool:
+        pool.map(partial(check_domain, v2rayConfig=v2rayConfig), big_ip_list)
