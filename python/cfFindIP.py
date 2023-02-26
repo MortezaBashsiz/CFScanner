@@ -280,10 +280,6 @@ def check_domain(ip, v2rayConfig):
         print(f"{clsColors.FAIL} NO {clsColors.FAIL} {realIP} {clsColors.ENDC}")
 
 
-def fncSplit(listInput, chunk_size):
-  for i in range(0, len(listInput), chunk_size):
-    yield listInput[i:i + chunk_size]
-
 def fncCreateDir(dirPath):
     isExist = os.path.exists(dirPath)
     if not isExist:
