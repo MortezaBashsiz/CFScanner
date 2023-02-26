@@ -119,40 +119,166 @@ def fncGenPort(ip):
     port = f"3{octetSum}"
     return port
 
-def fncV2rayCheck(v2rayConfig):
+
+def create_v2ray_config(
+    v2rayConfig: clsV2rayConfig
+) -> str:
+    """creates v2ray config json file based on ``clsV2rayConfig`` instance
+
+    Args:
+        v2rayConfig (clsV2rayConfig): contains information about the v2ray config
+
+    Returns:
+        str: the path to the json file created
+    """
     v2rayConfig.localPort = fncGenPort(v2rayConfig.addressIP)
-    config = v2rayConfigTemplate.replace("PORTPORT", v2rayConfig.localPort)
+    config = V2RAY_CONFIG_TEMPLATE.replace("PORTPORT", v2rayConfig.localPort)
     config = config.replace("IP.IP.IP.IP", v2rayConfig.addressIP)
     config = config.replace("CFPORTCFPORT", v2rayConfig.addressPort)
     config = config.replace("IDID", v2rayConfig.userId)
     config = config.replace("HOSTHOST", v2rayConfig.wsHeaderHost)
     config = config.replace("ENDPOINTENDPOINT", v2rayConfig.wsHeaderPath)
     config = config.replace("RANDOMHOST", v2rayConfig.tlsServerName)
-    configPath = f"{v2rayConfig.configDir}/config.json.{v2rayConfig.addressIP}"
-    configFile = open(configPath, "w")
-    configFile.write(config)
-    configFile.close()
-    #v2rayProcess = subprocess.Popen([f"{v2rayConfig.binDir}/v2ray","-c",f"{configPath}"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) 
-    time.sleep(2)
-    #v2rayProcess.kill()
-    print(f"{clsColors.OKGREEN} OK {clsColors.OKBLUE} {v2rayConfig.addressIP} {clsColors.ENDC}")
 
-def fncDomainCheck(ipList, v2rayConfig):
-    for ip in ipList:
-        realIP=str(ip).replace('/32', '')
-        realUrl=f"https://{realIP}/"
-        session = requests.Session()
-        session.mount('https://', clsFrontingAdapter(fronted_domain="fronting.sudoer.net"))
+    config_path = f"{v2rayConfig.configDir}/config.json.{v2rayConfig.addressIP}"
+    with open(config_path, "w") as configFile:
+        configFile.write(config)
+
+    return config_path
+
+
+def wait_for_port(
+    port: int,
+    host: str = 'localhost',
+    timeout: float = 5.0
+) -> None:
+    """Wait until a port starts accepting TCP connections.
+    Args:
+        port: Port number.
+        host: Host address on which the port should exist.
+        timeout: In seconds. How long to wait before raising errors.
+    Raises:
+        TimeoutError: The port isn't accepting connection after time specified in `timeout`.
+    """
+    start_time = time.perf_counter()
+    while True:
         try:
-            response = session.get(realUrl, headers={"Host": "fronting.sudoer.net"})
-            if response.status_code == 200:
-                v2rayConfig.addressIP = realIP
-                fncV2rayCheck(v2rayConfig)
-            else:
-                print(f"{clsColors.FAIL} NO {clsColors.WARNNING} {realIP} {clsColors.ENDC}")
-        except Exception:
-            traceback.print_exc()
-            print(f"{clsColors.FAIL} NO {clsColors.FAIL} {realIP} {clsColors.ENDC}")
+            with socket.create_connection((host, port), timeout=timeout):
+                break
+        except OSError as ex:
+            time.sleep(0.01)
+            if time.perf_counter() - start_time >= timeout:
+                raise TimeoutError('Waited too long for the port {} on host {} to start accepting '
+                                   'connections.'.format(port, host)) from ex
+
+
+def v2ray_speed_test(
+    v2ray_conf_path: str,
+    test_file: str = "data.100k",
+    test_url: str = "https://scan.sudoer.net/"
+) -> float:
+    """tests the download speed of a v2ray config and returns the response time
+
+    Args:
+        v2ray_conf_path (str): the path to the v2ray config json file 
+        test_file (str, optional): the name of the file to the file to download. Defaults to "data.100k".
+        test_url (str, optional): the host to download the file from. Defaults to "https://scan.sudoer.net/".
+
+    Returns:
+        foat: total seconds took to download the file. -1 if unsuccessful
+    """
+    with open(v2ray_conf_path, "r") as infile:
+        v2ray_conf = json.load(infile)
+
+    v2ray_listen = v2ray_conf["inbounds"][0]["listen"]
+    v2ray_port = v2ray_conf["inbounds"][0]["port"]
+
+    outbound_address = v2ray_conf["outbounds"][0]["settings"]["vnext"][0]["address"]
+
+    v2ray_process = subprocess.Popen(
+        [os.path.join(BINDIR, "v2ray"), "-c", f"{v2ray_conf_path}"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL
+    )
+
+    try:
+        wait_for_port(host=v2ray_listen, port=v2ray_port, timeout=5)
+    except Exception as e:
+        # v2ray could not start
+        print(
+            f"{clsColors.FAIL} Could not start v2ray - {v2ray_listen}:{v2ray_port} {clsColors.ENDC}")
+        traceback.print_exc()
+
+    proxies = dict(
+        http=f"socks5://{v2ray_listen}:{v2ray_port}",
+        https=f"socks5://{v2ray_listen}:{v2ray_port}"
+    )
+
+    response_time = -1.0
+    try:
+        url = f"{test_url.strip('/')}/{test_file.strip('/')}"
+        r = requests.get(
+            url=url,
+            proxies=proxies,
+            allow_redirects=True,
+            timeout=3
+        )
+        response_time = r.elapsed.total_seconds()
+        print(f"{clsColors.OKGREEN} OK {clsColors.OKBLUE} {outbound_address}  - {response_time:0.4f}s {clsColors.ENDC}")
+
+    except requests.exceptions.ReadTimeout as e:
+        print(
+            f"{clsColors.FAIL} NO {clsColors.WARNING} {outbound_address} v2ray timeout {clsColors.ENDC}"
+        )
+    except requests.exceptions.ConnectionError as e:
+        # v2ray connection does not work. the ip is not ok
+        print(
+            f"{clsColors.FAIL} NO {clsColors.WARNING} {outbound_address} v2ray fail {clsColors.ENDC}"
+        )
+        try:
+            os.remove(v2ray_conf_path)
+        except Exception as e:
+            # file could not be deleted
+            pass
+        # traceback.print_exc()
+    except Exception as e:
+        print(type(e))
+        traceback.print_exc()
+        print(
+            f"{clsColors.FAIL} NO {clsColors.WARNING} {clsColors.WARNING} v2ray fail - Unknown error {clsColors.ENDC}"
+        )
+        try:
+            os.remove(v2ray_conf_path)
+        except Exception as e:
+            # file could not be deleted
+            pass
+    finally:
+        v2ray_process.kill()
+
+    return response_time
+
+
+def check_domain(ip, v2rayConfig):
+    realIP = str(ip).replace('/32', '')
+    realUrl = f"https://{realIP}/"
+    session = requests.Session()
+    session.mount(
+        'https://', clsFrontingAdapter(fronted_domain="fronting.sudoer.net"))
+    try:
+        response = session.get(
+            realUrl, headers={"Host": "fronting.sudoer.net"})
+        if response.status_code == 200:
+            v2rayConfig.addressIP = realIP
+            v2ray_config_path = create_v2ray_config(v2rayConfig)
+            v2ray_speed_test(v2ray_conf_path=v2ray_config_path)
+        else:
+            print(
+                f"{clsColors.FAIL} NO {clsColors.WARNING} {realIP} {clsColors.ENDC}")
+            pass
+    except Exception:
+        # traceback.print_exc()
+        print(f"{clsColors.FAIL} NO {clsColors.FAIL} {realIP} {clsColors.ENDC}")
+
 
 def fncSplit(listInput, chunk_size):
   for i in range(0, len(listInput), chunk_size):
