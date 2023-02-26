@@ -286,15 +286,23 @@ def fncCreateDir(dirPath):
         os.makedirs(dirPath)
         print(f"Directory created : {dirPath}")
 
-def fncReadConfig(configPath):
+
+def read_config(configPath):
     v2rayConfig = clsV2rayConfig()
-    configFile = open(str(configPath), 'r')
-    configList = configFile.readlines()
-    v2rayConfig.addressPort="443"
-    v2rayConfig.userId="0aa7d9c9-1a5e-5834-82e6-42a77b0b2fbb"
-    v2rayConfig.wsHeaderHost="scherehtzflk01.schere.net"
-    v2rayConfig.wsHeaderPath="/api09"
-    v2rayConfig.tlsServerName="7f133f40-ae96-11ed-9820-0bc4a655c0b2.schere.net"
+
+    properties = dict()
+    with open(configPath, 'r') as file:
+        for line in file:
+            if line.strip():  # not empty lines
+                key, value = line.strip().split(': ')
+                properties[key] = value
+
+    v2rayConfig.addressPort = properties["Port"]
+    v2rayConfig.userId = properties["id"]
+    v2rayConfig.wsHeaderHost = properties["Host"]
+    v2rayConfig.wsHeaderPath = f"/{properties['path']}"
+    v2rayConfig.tlsServerName = f"{properties['serverName']}"
+
     return v2rayConfig
 
 if __name__ == "__main__":
