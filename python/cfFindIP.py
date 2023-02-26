@@ -5,6 +5,7 @@ import ipaddress
 import json
 import multiprocessing
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -330,6 +331,34 @@ def parse_args(args=sys.argv[1:]):
         required=True
     )
     return parser.parse_args(args)
+
+
+def read_cidrs_from_asnlookup(
+    asn_list: list = ["AS13335", "AS209242"]
+) -> list:
+    """reads cidrs from asn lookup 
+
+    Args:
+        asn_list (list, optional): a list of ASN codes to read from asn lookup. Defaults to ["AS13335", "AS209242"].
+
+    Returns:
+        list: The list of cidrs associated with ``asn_list``
+    """    
+    cidrs = []
+    for asn in asn_list:
+        url = f"https://asnlookup.com/asn/{asn}/"
+        
+        try:
+            r = requests.get(url)
+            cidr_regex = r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?:\/(?:[0-9]|[1-2][0-9]|3[0-2]))?"
+            this_cidrs = re.findall(cidr_regex, r.text)
+            print(len(this_cidrs))
+            cidrs.extend(this_cidrs)
+        except Exception as e:
+            traceback.print_exc()
+            print(f"{clsColors.FAIL}ERROR {clsColors.WARNING}Could not read asn {asn} from asnlookup{clsColors.ENDC}")
+        
+    return cidrs
 
 
 def cidr_to_ip_list(
