@@ -79,12 +79,14 @@ class clsV2rayConfig(dict):
     resultDir = ""
     binDir = ""
 
+
 class clsColors:
     OKBLUE = '\033[94m'
     OKGREEN = '\033[92m'
     WARNING = '\033[93m'
     FAIL = '\033[91m'
     ENDC = '\033[0m'
+
 
 class clsFrontingAdapter(HTTPAdapter):
     """"Transport adapter" that allows us to use SSLv3."""
@@ -105,7 +107,9 @@ class clsFrontingAdapter(HTTPAdapter):
         server_hostname = None
         if self.fronted_domain:
             server_hostname = self.fronted_domain
-        super(clsFrontingAdapter, self).init_poolmanager(server_hostname=server_hostname, *args, **kwargs)
+        super(clsFrontingAdapter, self).init_poolmanager(
+            server_hostname=server_hostname, *args, **kwargs)
+
 
 def fncGenPort(ip):
     octetList = ip.split(".")
