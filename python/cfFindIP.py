@@ -12,6 +12,8 @@ import sys
 import time
 import traceback
 from functools import partial
+from datetime import datetime
+import socketserver
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -66,6 +68,9 @@ SCRIPTDIR = os.path.dirname(os.path.realpath(__file__))
 CONFIGDIR = f"{SCRIPTDIR}/../config"
 RESULTDIR = f"{SCRIPTDIR}/../result"
 BINDIR = f"{SCRIPTDIR}/../bin"
+START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
+INTERIM_RESULTS_PATH = os.path.join(
+    RESULTDIR, START_DT_STR + '_interim_result.txt')
 
 
 class clsV2rayConfig(dict):
@@ -113,12 +118,9 @@ class clsFrontingAdapter(HTTPAdapter):
 
 
 def fncGenPort(ip):
-    octetList = ip.split(".")
-    octetSum = 0
-    for octet in octetList:
-        octetSum += int(octet)
-    port = f"3{octetSum}"
-    return port
+    with socketserver.TCPServer(("localhost", 0), None) as s:
+        free_port = s.server_address[1]
+    return free_port
 
 
 def create_v2ray_config(
@@ -133,7 +135,7 @@ def create_v2ray_config(
         str: the path to the json file created
     """
     v2rayConfig.localPort = fncGenPort(v2rayConfig.addressIP)
-    config = V2RAY_CONFIG_TEMPLATE.replace("PORTPORT", v2rayConfig.localPort)
+    config = V2RAY_CONFIG_TEMPLATE.replace("PORTPORT", str(v2rayConfig.localPort))
     config = config.replace("IP.IP.IP.IP", v2rayConfig.addressIP)
     config = config.replace("CFPORTCFPORT", v2rayConfig.addressPort)
     config = config.replace("IDID", v2rayConfig.userId)
@@ -259,10 +261,11 @@ def v2ray_speed_test(
     return response_time
 
 
-def check_domain(ip, v2rayConfig):
+def check_domain(ip, v2rayConfig, max_allowed_response_time=2):
     realIP = str(ip).replace('/32', '')
     realUrl = f"https://{realIP}/"
     session = requests.Session()
+    response_time = -1
     session.mount(
         'https://', clsFrontingAdapter(fronted_domain="fronting.sudoer.net"))
     try:
@@ -271,13 +274,16 @@ def check_domain(ip, v2rayConfig):
         if response.status_code == 200:
             v2rayConfig.addressIP = realIP
             v2ray_config_path = create_v2ray_config(v2rayConfig)
-            v2ray_speed_test(v2ray_conf_path=v2ray_config_path)
+            response_time = v2ray_speed_test(v2ray_conf_path=v2ray_config_path)
+            if 0 < response_time < max_allowed_response_time:
+                with open(INTERIM_RESULTS_PATH, "a") as outfile:
+                    outfile.write(f"{response_time*1000:.0f} {realIP}\n")
         else:
             print(
                 f"{clsColors.FAIL} NO {clsColors.WARNING} {realIP:15s} - fronting fail - status_code = {response.status_code} {clsColors.ENDC}")
             pass
     except Exception:
-        # traceback.print_exc()
+        traceback.print_exc()
         print(f"{clsColors.FAIL} NO {clsColors.FAIL} {realIP:15s} - fronting fail - Unknown error{clsColors.ENDC}")
 
 
@@ -311,24 +317,22 @@ def parse_args(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(
         description='Cloudflare edge ips scanner to use with v2ray')
     parser.add_argument(
-        "-c", "--config",
-        help="The path to the config file. For confg file example, see http://bot.sudoer.net/config.real",
-        type=str,
-        dest="config_path",
-        required=True,
-    )
-    parser.add_argument(
-        "-t", "--threads",
+        "threads",
         help="Number of threads to use for parallel computing",
-        type=int,
-        dest="threads",
-        required=True
+        type=int
     )
     parser.add_argument(
-        "-s", "--subnets",
-        help="The path to the subnets file. each line should be in the form of ip.ip.ip.ip/subnet_mask",
-        dest="subnets_path",
-        required=True
+        "config_path",
+        help="The path to the config file. For confg file example, see http://bot.sudoer.net/config.real",
+        metavar="config-path",
+        type=str
+    )
+    parser.add_argument(
+        "subnets_path",
+        help="(optional) The path to the custom subnets file. each line should be in the form of ip.ip.ip.ip/subnet_mask. If not provided, the program will read the cidrs from asn lookup",
+        type=str,
+        metavar="subnets-path",
+        nargs="?",
     )
     return parser.parse_args(args)
 
@@ -343,21 +347,21 @@ def read_cidrs_from_asnlookup(
 
     Returns:
         list: The list of cidrs associated with ``asn_list``
-    """    
+    """
     cidrs = []
     for asn in asn_list:
         url = f"https://asnlookup.com/asn/{asn}/"
-        
+
         try:
             r = requests.get(url)
-            cidr_regex = r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?:\/(?:[0-9]|[1-2][0-9]|3[0-2]))?"
+            cidr_regex = r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}\/[\d]+"
             this_cidrs = re.findall(cidr_regex, r.text)
-            print(len(this_cidrs))
             cidrs.extend(this_cidrs)
         except Exception as e:
             traceback.print_exc()
-            print(f"{clsColors.FAIL}ERROR {clsColors.WARNING}Could not read asn {asn} from asnlookup{clsColors.ENDC}")
-        
+            print(
+                f"{clsColors.FAIL}ERROR {clsColors.WARNING}Could not read asn {asn} from asnlookup{clsColors.ENDC}")
+
     return cidrs
 
 
@@ -372,28 +376,52 @@ def cidr_to_ip_list(
     Returns:
         list: a list of ips associated with the subnet
     """
-    ip_network = ipaddress.ip_network(cidr)
+    ip_network = ipaddress.ip_network(cidr, strict=False)
     return (list(map(str, ip_network)))
+
+
+def get_num_ips_in_cidr(cidr):
+    """
+    Returns the number of IP addresses in a CIDR block.
+    """
+    parts = cidr.split('/')
+
+    try:
+        subnet_mask = int(parts[1])
+    except IndexError as e:
+        subnet_mask = 32
+
+    num_ips = (2**(32-subnet_mask))
+
+    return num_ips
 
 
 if __name__ == "__main__":
     fncCreateDir(CONFIGDIR)
     fncCreateDir(RESULTDIR)
 
+    # create empty result file
+    with open(INTERIM_RESULTS_PATH, "w") as emptyfile:
+        pass
+
     args = parse_args()
     configFilePath = args.config_path
     threadsCount = args.threads
-    subnetFilePath = args.subnets_path
+
+    if args.subnets_path:
+        subnetFilePath = args.subnets_path
+        with open(str(subnetFilePath), 'r') as subnetFile:
+            cidr_list = [l.strip() for l in subnetFile.readlines()]
+    else:
+        cidr_list = read_cidrs_from_asnlookup()
     v2rayConfig = read_config(configFilePath)
     v2rayConfig.configDir = CONFIGDIR
     v2rayConfig.resultDir = RESULTDIR
     v2rayConfig.binDir = BINDIR
 
-    with open(str(subnetFilePath), 'r') as subnetFile:
-        cidr_list = [l.strip() for l in subnetFile.readlines()]
+    n_total_ips = sum(get_num_ips_in_cidr(cidr) for cidr in cidr_list)
+    print(f"Starting to scan {n_total_ips} ips...")
 
     big_ip_list = [ip for cidr in cidr_list for ip in cidr_to_ip_list(cidr)]
-    print(len(big_ip_list))
-
     with multiprocessing.Pool(processes=threadsCount) as pool:
         pool.map(partial(check_domain, v2rayConfig=v2rayConfig), big_ip_list)
