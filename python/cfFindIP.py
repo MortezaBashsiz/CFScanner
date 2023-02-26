@@ -224,7 +224,7 @@ def v2ray_speed_test(
             timeout=3
         )
         response_time = r.elapsed.total_seconds()
-        print(f"{clsColors.OKGREEN} OK {clsColors.OKBLUE} {outbound_address:15s} - {response_time*1000:4d}ms {clsColors.ENDC}")
+        print(f"{clsColors.OKGREEN} OK {clsColors.OKBLUE} {outbound_address:15s} - {response_time*1000:4.0f}ms {clsColors.ENDC}")
 
     except requests.exceptions.ReadTimeout as e:
         print(
