@@ -15,7 +15,7 @@ from functools import partial
 import requests
 from requests.adapters import HTTPAdapter
 
-v2rayConfigTemplate = """
+V2RAY_CONFIG_TEMPLATE = """
 {
   "inbounds": [{
     "port": PORTPORT,
