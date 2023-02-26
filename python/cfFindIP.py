@@ -224,16 +224,16 @@ def v2ray_speed_test(
             timeout=3
         )
         response_time = r.elapsed.total_seconds()
-        print(f"{clsColors.OKGREEN} OK {clsColors.OKBLUE} {outbound_address}  - {response_time:0.4f}s {clsColors.ENDC}")
+        print(f"{clsColors.OKGREEN} OK {clsColors.OKBLUE} {outbound_address:15s} - {response_time*1000:4d}ms {clsColors.ENDC}")
 
     except requests.exceptions.ReadTimeout as e:
         print(
-            f"{clsColors.FAIL} NO {clsColors.WARNING} {outbound_address} v2ray timeout {clsColors.ENDC}"
+            f"{clsColors.FAIL} NO {clsColors.WARNING} {outbound_address:15s} - v2ray timeout {clsColors.ENDC}"
         )
     except requests.exceptions.ConnectionError as e:
         # v2ray connection does not work. the ip is not ok
         print(
-            f"{clsColors.FAIL} NO {clsColors.WARNING} {outbound_address} v2ray fail {clsColors.ENDC}"
+            f"{clsColors.FAIL} NO {clsColors.WARNING} {outbound_address:15s} - v2ray fail - Connection error {clsColors.ENDC}"
         )
         try:
             os.remove(v2ray_conf_path)
@@ -245,7 +245,7 @@ def v2ray_speed_test(
         print(type(e))
         traceback.print_exc()
         print(
-            f"{clsColors.FAIL} NO {clsColors.WARNING} {clsColors.WARNING} v2ray fail - Unknown error {clsColors.ENDC}"
+            f"{clsColors.FAIL} NO {clsColors.WARNING} {outbound_address:15s} - v2ray fail - Unknown error {clsColors.ENDC}"
         )
         try:
             os.remove(v2ray_conf_path)
@@ -273,11 +273,11 @@ def check_domain(ip, v2rayConfig):
             v2ray_speed_test(v2ray_conf_path=v2ray_config_path)
         else:
             print(
-                f"{clsColors.FAIL} NO {clsColors.WARNING} {realIP} {clsColors.ENDC}")
+                f"{clsColors.FAIL} NO {clsColors.WARNING} {realIP:15s} - fronting fail - status_code = {response.status_code} {clsColors.ENDC}")
             pass
     except Exception:
         # traceback.print_exc()
-        print(f"{clsColors.FAIL} NO {clsColors.FAIL} {realIP} {clsColors.ENDC}")
+        print(f"{clsColors.FAIL} NO {clsColors.FAIL} {realIP:15s} - fronting fail - Unknown error{clsColors.ENDC}")
 
 
 def fncCreateDir(dirPath):
