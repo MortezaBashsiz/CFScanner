@@ -18,7 +18,7 @@ namespace WinCFScan
         bool oneTimeChecked = false; // config checked once?
         ScanEngine scanEngine;
         private List<ResultItem> currentScanResults = new();
-        private bool scanFnished = false;
+        private bool scanFinshed = false;
         private bool isUpdatinglistCFIP;
         private bool isAppCongigValid = true;
         private ListViewColumnSorter listResultsColumnSorter;
@@ -39,7 +39,6 @@ namespace WinCFScan
             configManager = new();
             if (!configManager.isConfigValid())
             {
-
                 addTextLog("App config is not valid! we can not continue.");
 
                 if (configManager.errorMessage != "")
@@ -157,7 +156,7 @@ namespace WinCFScan
                 Task.Factory.StartNew(() => scanEngine.start(scanType))
                     .ContinueWith(done =>
                     {
-                        scanFnished = true;
+                        scanFinshed = true;
                         this.currentScanResults = scanEngine.progressInfo.scanResults.workingIPs;
                         addTextLog($"{scanEngine.progressInfo.totalCheckedIP:n0} IPs tested and found {scanEngine.progressInfo.scanResults.totalFoundWorkingIPs:n0} working IPs.");
                     });
@@ -225,9 +224,9 @@ namespace WinCFScan
         private void timerBase_Tick(object sender, EventArgs e)
         {
             oneTimeChecks();
-            if (scanFnished)
+            if (scanFinshed)
             {
-                scanFnished = false;
+                scanFinshed = false;
                 updateConrtolsProgress(true);
                 updateUIControlls(false);
             }
@@ -466,33 +465,29 @@ namespace WinCFScan
         // add cloudflare ip ranges to list view
         private void loadCFIPListView()
         {
-            if (scanEngine.cfIPList == null)
+            if (!scanEngine.ipListLoader.isIPListValid())
             {
-                addTextLog("Cloudflare IP range file is not found!");
+                addTextLog("Cloudflare IP range file is not set!");
                 lblCFIPListStatus.Text = "Failed to load IP ranges.";
                 lblCFIPListStatus.ForeColor = Color.Red;
                 return;
             }
 
+            listCFIPList.Items.Clear(); 
             listCFIPList.BeginUpdate();
             isUpdatinglistCFIP = true;
             uint totalIPs = 0;
             addTextLog($"Loading Cloudflare IPs ranges...");
 
-            foreach (var ipRange in scanEngine.cfIPList)
+            foreach (var ipRange in scanEngine.ipListLoader.validIPRanges)
             {
-                if (ipRange != "")
-                {
-                    var rangeTotalIPs = IPAddressExtensions.getIPRangeTotalIPs(ipRange);
-                    var item = listCFIPList.Items.Add(new ListViewItem(new string[] { ipRange, $"{rangeTotalIPs:n0}" }));
-                    item.Checked = true;
-                    totalIPs += rangeTotalIPs;
-                }
+                var lvwItem = listCFIPList.Items.Add(new ListViewItem(new string[] { ipRange.rangeText, $"{ipRange.totalIps:n0}" }));
+                lvwItem.Checked= true;
             }
 
             listCFIPList.EndUpdate();
             isUpdatinglistCFIP = false;
-            addTextLog($"Total {totalIPs:n0} Cloudflare IPs are ready to be scanned.");
+            addTextLog($"Total {scanEngine.ipListLoader.totalIPs:n0} Cloudflare IPs are ready to be scanned.");
             updateCFIPListStatusText();
         }
 
@@ -692,6 +687,31 @@ namespace WinCFScan
                     addTextLog("Could not copy to clipboard!");
                 }
             }
+        }
+
+        private void btnLoadIPRanges_Click(object sender, EventArgs e)
+        {
+            loadCustomCPIPList();
+        }
+
+        // load custom ip ranges from disk by user input
+        private void loadCustomCPIPList()
+        {
+            openFileDialog1.Title = "Load custom cloudflare IP ranges";
+            var result = openFileDialog1.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                if (scanEngine.loadCFIPList(openFileDialog1.FileName))
+                {
+                    loadCFIPListView();
+                }
+                else
+                {
+                    addTextLog($"Could not find any valid IP ranges in '{openFileDialog1.FileName}'");
+                }
+            };
+
         }
     }
 }

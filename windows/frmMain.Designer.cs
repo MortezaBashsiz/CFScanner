@@ -50,6 +50,7 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.comboResults = new System.Windows.Forms.ComboBox();
             this.btnScanInPrevResults = new System.Windows.Forms.Button();
+            this.btnLoadIPRanges = new System.Windows.Forms.Button();
             this.listResults = new System.Windows.Forms.ListView();
             this.hdrDelay = new System.Windows.Forms.ColumnHeader();
             this.hdrIP = new System.Windows.Forms.ColumnHeader();
@@ -74,6 +75,7 @@
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scanASingleIPAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.groupBox1.SuspendLayout();
             this.mnuListView.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -148,7 +150,7 @@
             this.btnSkipCurRange.Name = "btnSkipCurRange";
             this.btnSkipCurRange.Size = new System.Drawing.Size(131, 23);
             this.btnSkipCurRange.TabIndex = 3;
-            this.btnSkipCurRange.Text = "Skip Curent IP Range";
+            this.btnSkipCurRange.Text = "Skip curent IP range";
             this.btnSkipCurRange.UseVisualStyleBackColor = true;
             this.btnSkipCurRange.Click += new System.EventHandler(this.btnSkipCurRange_Click);
             // 
@@ -319,6 +321,18 @@
             this.btnScanInPrevResults.UseVisualStyleBackColor = true;
             this.btnScanInPrevResults.Click += new System.EventHandler(this.btnScanInPrevResults_Click);
             // 
+            // btnLoadIPRanges
+            // 
+            this.btnLoadIPRanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnLoadIPRanges.Location = new System.Drawing.Point(481, 8);
+            this.btnLoadIPRanges.Name = "btnLoadIPRanges";
+            this.btnLoadIPRanges.Size = new System.Drawing.Size(94, 23);
+            this.btnLoadIPRanges.TabIndex = 4;
+            this.btnLoadIPRanges.Text = "Load IP ranges";
+            this.toolTip1.SetToolTip(this.btnLoadIPRanges, "Load your custom IP ranges");
+            this.btnLoadIPRanges.UseVisualStyleBackColor = true;
+            this.btnLoadIPRanges.Click += new System.EventHandler(this.btnLoadIPRanges_Click);
+            // 
             // listResults
             // 
             this.listResults.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -404,6 +418,7 @@
             // 
             // tabPageCFRanges
             // 
+            this.tabPageCFRanges.Controls.Add(this.btnLoadIPRanges);
             this.tabPageCFRanges.Controls.Add(this.lblCFIPListStatus);
             this.tabPageCFRanges.Controls.Add(this.btnSelectNoneIPRanges);
             this.tabPageCFRanges.Controls.Add(this.btnSelectAllIPRanges);
@@ -559,6 +574,11 @@
             this.scanASingleIPAddressToolStripMenuItem.Text = "Test a single IP address";
             this.scanASingleIPAddressToolStripMenuItem.Click += new System.EventHandler(this.scanASingleIPAddressToolStripMenuItem_Click);
             // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
+            this.openFileDialog1.RestoreDirectory = true;
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -638,5 +658,7 @@
         private ToolStripMenuItem toolsToolStripMenuItem;
         private ToolStripMenuItem scanASingleIPAddressToolStripMenuItem;
         private Label lblDebugMode;
+        private Button btnLoadIPRanges;
+        private OpenFileDialog openFileDialog1;
     }
 }
