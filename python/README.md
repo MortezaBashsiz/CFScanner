@@ -74,7 +74,7 @@ Each line of the subnets file must be a Cloudflare subnets in CIDR notation:
 
 ## **positional arguments:**
 * **threads**: Number of threads to use for parallel computing
-* **config-path**: The path to the config file. For confg file example, see http://bot.sudoer.net/config.real
+* **config-path**: The path to the config file. For confg file example, see [config.sample](https://github.com/tempookian/CFScanner/blob/python/python/config.sample)
 * **subnets-path**: (optional) The path to the custom subnets file. each line should be in the form of ip.ip.ip.ip/subnet_mask. If not provided, the program will read the cidrs from asn lookup
 
 ---
