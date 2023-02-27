@@ -11,7 +11,7 @@ namespace WinCFScan.Classes.Config
 
     {
         public string? resultsFileName;
-        private ScanResults loadedInstance;
+        private ScanResults? loadedInstance;
 
         public DateTime startDate { get; set; }
         public DateTime endDate { get; set; }        
@@ -28,6 +28,13 @@ namespace WinCFScan.Classes.Config
             workingIPs = new List<ResultItem>();
             unFetchedWorkingIPs = new List<ResultItem>();
             resultsFileName = fileName;
+        }
+        
+        public ScanResults(List<ResultItem> workingIPs, string resultsFileName) {
+            this.workingIPs = workingIPs;
+            unFetchedWorkingIPs = new List<ResultItem>();
+            this.resultsFileName = resultsFileName;
+            totalFoundWorkingIPs= workingIPs.Count; 
         }
 
         public ScanResults() : this("") {}
@@ -73,6 +80,28 @@ namespace WinCFScan.Classes.Config
             catch (Exception ex)
             {
                 Tools.logStep($"ScanResults.save() had exception: {ex.Message}");
+
+                return false;
+            }
+
+            return true;
+        }
+
+        public bool savePlain(bool sortBeforeSave = true)
+        {
+            try
+            {
+                if (sortBeforeSave)
+                {
+                    workingIPs = this.workingIPs.OrderBy(x => x.delay).ToList<ResultItem>();
+                }
+
+                var plain = workingIPs.Select(x => $"{x.delay} - {x.ip}").ToArray<string>();
+                File.WriteAllText(resultsFileName, String.Join("\n", plain));
+            }
+            catch (Exception ex)
+            {
+                Tools.logStep($"ScanResults.savePlain() had exception: {ex.Message}");
 
                 return false;
             }

@@ -30,12 +30,12 @@ namespace WinCFScan.Classes
 
             string fileData = File.ReadAllText(fileName);
 
-            checkIPList(fileData.Split());
+            validateIPList(fileData.Split());
 
             return true;
         }
 
-        private void checkIPList(string[] loadedIPList)
+        private void validateIPList(string[] loadedIPList)
         {
             validIPRanges.Clear();
             totalIPs = 0;

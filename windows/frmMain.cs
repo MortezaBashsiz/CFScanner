@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Security.Policy;
+using System.Windows.Forms;
 using WinCFScan.Classes;
 using WinCFScan.Classes.Config;
 using WinCFScan.Classes.HTTPRequest;
@@ -116,7 +117,7 @@ namespace WinCFScan
                 return;
             }
 
-            if (scanEngine.progressInfo.isScanRunning)
+            if (isScanRunning())
             {
                 // stop scan
                 waitUntilScannerStoped();
@@ -124,7 +125,16 @@ namespace WinCFScan
             }
             else
             {   // start scan
-                if (!inPrevResult)
+                if (inPrevResult)
+                {
+                    if (currentScanResults.Count == 0)
+                    {
+                        addTextLog("Current result list is empty!");
+                        return;
+                    }
+                    addTextLog($"Start scanning {currentScanResults.Count} IPs in previous results...");
+                }
+                else
                 {
                     // set cf ip list to scan engine
                     string[] ipRanges = getCheckedCFIPList();
@@ -135,17 +145,9 @@ namespace WinCFScan
                              "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
+                    currentScanResults = new();
                     scanEngine.setCFIPRangeList(ipRanges);
                     addTextLog($"Start scanning {ipRanges.Length} Cloudflare IP ranges...");
-                }
-                else
-                {
-                    if (currentScanResults.Count == 0)
-                    {
-                        addTextLog("Current result list is empty!");
-                        return;
-                    }
-                    addTextLog($"Start scanning {currentScanResults.Count} IPs in previous result...");
                 }
 
                 updateUIControlls(true);
@@ -241,7 +243,7 @@ namespace WinCFScan
         private void updateConrtolsProgress(bool forceUpdate = false)
         {
             var pInf = scanEngine.progressInfo;
-            if (scanEngine.progressInfo.isScanRunning || forceUpdate)
+            if (isScanRunning() || forceUpdate)
             {
                 lblLastIPRange.Text = $"Current IP range: {pInf.currentIPRange} ({pInf.currentIPRangesNumber:n0}/{pInf.totalIPRanges:n0})";
                 labelLastIPChecked.Text = $"Last checked IP:  {pInf.lastCheckedIP} ({pInf.totalCheckedIPInCurIPRange:n0}/{pInf.currentIPRangeTotalIPs:n0})";
@@ -467,10 +469,14 @@ namespace WinCFScan
         {
             if (!scanEngine.ipListLoader.isIPListValid())
             {
-                addTextLog("Cloudflare IP range file is not set!");
+                addTextLog("Cloudflare IP range file is not valid!");
                 lblCFIPListStatus.Text = "Failed to load IP ranges.";
                 lblCFIPListStatus.ForeColor = Color.Red;
                 return;
+            }
+            else
+            {
+                lblCFIPListStatus.ForeColor = Color.Black;
             }
 
             listCFIPList.Items.Clear(); 
@@ -591,7 +597,7 @@ namespace WinCFScan
 
         private void waitUntilScannerStoped()
         {
-            if (scanEngine.progressInfo.isScanRunning)
+            if (isScanRunning())
             {
                 // stop scan
                 scanEngine.stop();
@@ -599,7 +605,7 @@ namespace WinCFScan
                 {
                     System.Windows.Forms.Application.DoEvents();
                     Thread.Sleep(100);
-                } while (scanEngine.progressInfo.isScanRunning);
+                } while (isScanRunning());
 
             }
         }
@@ -694,9 +700,17 @@ namespace WinCFScan
             loadCustomCPIPList();
         }
 
+        private void loadCustomIPRangesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            loadCustomCPIPList();
+        }
+
         // load custom ip ranges from disk by user input
         private void loadCustomCPIPList()
         {
+            if (isScanRunning())
+                return;
+
             openFileDialog1.Title = "Load custom cloudflare IP ranges";
             var result = openFileDialog1.ShowDialog();
 
@@ -713,5 +727,53 @@ namespace WinCFScan
             };
 
         }
+
+        private void cmdExportResults_Click(object sender, EventArgs e)
+        {
+            exportResults();
+        }
+
+        private void exportScanResultsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            exportResults();
+        }
+
+        // export results
+        private void exportResults()
+        {
+            var resultIPs = isScanRunning() ? scanEngine.progressInfo.scanResults.workingIPs : currentScanResults;
+            if (resultIPs.Count == 0)
+            {
+                addTextLog("Current result list is empty!");
+                return;
+            }
+
+            saveFileDialog1.Title = $"Saving {resultIPs.Count} IP addressses";
+            saveFileDialog1.FileName = $"scan-results-{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")}.txt";
+            saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            var result = saveFileDialog1.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                var scanResults = new ScanResults(resultIPs, saveFileDialog1.FileName);
+                bool isSaved = scanResults.savePlain();
+                if (isSaved)
+                {
+                    addTextLog($"{scanResults.totalFoundWorkingIPs} IPs exported into '{saveFileDialog1.FileName}'");
+                }
+                else
+                {
+                    addTextLog($"Could save into '{saveFileDialog1.FileName}'");
+                }
+            };
+
+
+        }
+
+        private bool isScanRunning()
+        {
+            return scanEngine.progressInfo.isScanRunning;
+        }
+
     }
 }

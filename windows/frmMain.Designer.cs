@@ -67,15 +67,19 @@
             this.headIPRange = new System.Windows.Forms.ColumnHeader();
             this.headTotalIPs = new System.Windows.Forms.ColumnHeader();
             this.tabPageResults = new System.Windows.Forms.TabPage();
+            this.cmdExportResults = new System.Windows.Forms.Button();
             this.lblPrevListTotalIPs = new System.Windows.Forms.Label();
             this.lblPrevResults = new System.Windows.Forms.Label();
             this.btnDeleteResult = new System.Windows.Forms.Button();
             this.mnuMain = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadCustomIPRangesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scanASingleIPAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.exportScanResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.mnuListView.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -492,6 +496,7 @@
             // 
             // tabPageResults
             // 
+            this.tabPageResults.Controls.Add(this.cmdExportResults);
             this.tabPageResults.Controls.Add(this.lblPrevListTotalIPs);
             this.tabPageResults.Controls.Add(this.lblPrevResults);
             this.tabPageResults.Controls.Add(this.btnDeleteResult);
@@ -505,6 +510,16 @@
             this.tabPageResults.TabIndex = 0;
             this.tabPageResults.Text = "Scan Results";
             this.tabPageResults.UseVisualStyleBackColor = true;
+            // 
+            // cmdExportResults
+            // 
+            this.cmdExportResults.Location = new System.Drawing.Point(675, 11);
+            this.cmdExportResults.Name = "cmdExportResults";
+            this.cmdExportResults.Size = new System.Drawing.Size(91, 23);
+            this.cmdExportResults.TabIndex = 10;
+            this.cmdExportResults.Text = "Export";
+            this.cmdExportResults.UseVisualStyleBackColor = true;
+            this.cmdExportResults.Click += new System.EventHandler(this.cmdExportResults_Click);
             // 
             // lblPrevListTotalIPs
             // 
@@ -548,15 +563,24 @@
             // fileToolStripMenuItem
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.loadCustomIPRangesToolStripMenuItem,
+            this.exportScanResultsToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
             // 
+            // loadCustomIPRangesToolStripMenuItem
+            // 
+            this.loadCustomIPRangesToolStripMenuItem.Name = "loadCustomIPRangesToolStripMenuItem";
+            this.loadCustomIPRangesToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.loadCustomIPRangesToolStripMenuItem.Text = "Load custom IP ranges";
+            this.loadCustomIPRangesToolStripMenuItem.Click += new System.EventHandler(this.loadCustomIPRangesToolStripMenuItem_Click);
+            // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(93, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
             this.exitToolStripMenuItem.Text = "Exit";
             // 
             // toolsToolStripMenuItem
@@ -578,6 +602,18 @@
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             this.openFileDialog1.RestoreDirectory = true;
+            // 
+            // saveFileDialog1
+            // 
+            this.saveFileDialog1.DefaultExt = "txt";
+            this.saveFileDialog1.RestoreDirectory = true;
+            // 
+            // exportScanResultsToolStripMenuItem
+            // 
+            this.exportScanResultsToolStripMenuItem.Name = "exportScanResultsToolStripMenuItem";
+            this.exportScanResultsToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.exportScanResultsToolStripMenuItem.Text = "Export scan results";
+            this.exportScanResultsToolStripMenuItem.Click += new System.EventHandler(this.exportScanResultsToolStripMenuItem_Click);
             // 
             // frmMain
             // 
@@ -660,5 +696,9 @@
         private Label lblDebugMode;
         private Button btnLoadIPRanges;
         private OpenFileDialog openFileDialog1;
+        private Button cmdExportResults;
+        private ToolStripMenuItem loadCustomIPRangesToolStripMenuItem;
+        private SaveFileDialog saveFileDialog1;
+        private ToolStripMenuItem exportScanResultsToolStripMenuItem;
     }
 }
