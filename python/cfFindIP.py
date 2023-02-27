@@ -7,13 +7,13 @@ import multiprocessing
 import os
 import re
 import socket
+import socketserver
 import subprocess
 import sys
 import time
 import traceback
-from functools import partial
 from datetime import datetime
-import socketserver
+from functools import partial
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -135,7 +135,8 @@ def create_v2ray_config(
         str: the path to the json file created
     """
     v2rayConfig.localPort = fncGenPort(v2rayConfig.addressIP)
-    config = V2RAY_CONFIG_TEMPLATE.replace("PORTPORT", str(v2rayConfig.localPort))
+    local_port_str = str(v2rayConfig.localPort)
+    config = V2RAY_CONFIG_TEMPLATE.replace("PORTPORT", local_port_str)
     config = config.replace("IP.IP.IP.IP", v2rayConfig.addressIP)
     config = config.replace("CFPORTCFPORT", v2rayConfig.addressPort)
     config = config.replace("IDID", v2rayConfig.userId)
@@ -396,6 +397,37 @@ def get_num_ips_in_cidr(cidr):
     return num_ips
 
 
+def save_results(
+    results: list,
+    save_path: str,
+    sort=True
+):
+    """saves results to file
+
+    Args:
+        results (list): a list of (ms, ip) tuples
+        save_path (str): the path to save the file
+        sort (bool, optional): binary indicating if the results should be
+        sorted based on the response time Defaults to True.
+    """
+    # clean the results and make sure the first element is integer
+    results = [
+        (int(float(l[0])), l[1])
+        for l in results
+    ]
+
+    if sort:
+        results.sort(key=lambda r: r[0])
+
+    with open(save_path, "w") as outfile:
+        outfile.write(
+            "\n".join([
+                " ".join(map(str, res)) for res in results
+            ])
+        )
+        outfile.write("\n")
+
+
 if __name__ == "__main__":
     fncCreateDir(CONFIGDIR)
     fncCreateDir(RESULTDIR)
@@ -425,3 +457,17 @@ if __name__ == "__main__":
     big_ip_list = [ip for cidr in cidr_list for ip in cidr_to_ip_list(cidr)]
     with multiprocessing.Pool(processes=threadsCount) as pool:
         pool.map(partial(check_domain, v2rayConfig=v2rayConfig), big_ip_list)
+
+    # store the final results
+    with open(INTERIM_RESULTS_PATH, "r") as infile:
+        results = [
+            (int(float(l.strip().split()[0].strip())),
+             l.strip().split()[1].strip())
+            for l in infile.readlines()
+        ]
+
+    save_path = os.path.join(
+        RESULTDIR,
+        START_DT_STR + '_final_result.txt'
+    )
+    save_results(results, save_path, sort=True)
