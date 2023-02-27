@@ -1,0 +1,5 @@
+id: 4cdbec77-b7f5-425a-91d0-cdc543963d69
+Host: sub.example.com 
+Port: 443
+path: mypath
+serverName: maybeanothersub.example.com
