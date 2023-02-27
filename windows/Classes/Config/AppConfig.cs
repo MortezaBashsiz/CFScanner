@@ -32,6 +32,7 @@ namespace WinCFScan.Classes.Config
             }
             catch (Exception ex)
             {
+                Tools.logStep($"AppConfig.load() had exception: {ex.Message}");
                 return false;
             }
 

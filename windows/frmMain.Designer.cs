@@ -39,6 +39,7 @@
             this.lblLastIPRange = new System.Windows.Forms.Label();
             this.timerProgress = new System.Windows.Forms.Timer(this.components);
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.lblDebugMode = new System.Windows.Forms.Label();
             this.linkGithub = new System.Windows.Forms.LinkLabel();
             this.btnCopyFastestIP = new System.Windows.Forms.Button();
             this.txtFastestIP = new System.Windows.Forms.TextBox();
@@ -178,6 +179,7 @@
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.lblDebugMode);
             this.groupBox1.Controls.Add(this.linkGithub);
             this.groupBox1.Controls.Add(this.btnCopyFastestIP);
             this.groupBox1.Controls.Add(this.txtFastestIP);
@@ -196,6 +198,21 @@
             this.groupBox1.Size = new System.Drawing.Size(780, 120);
             this.groupBox1.TabIndex = 3;
             this.groupBox1.TabStop = false;
+            // 
+            // lblDebugMode
+            // 
+            this.lblDebugMode.AutoSize = true;
+            this.lblDebugMode.BackColor = System.Drawing.Color.White;
+            this.lblDebugMode.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.lblDebugMode.ForeColor = System.Drawing.Color.Red;
+            this.lblDebugMode.Location = new System.Drawing.Point(272, 69);
+            this.lblDebugMode.Name = "lblDebugMode";
+            this.lblDebugMode.Size = new System.Drawing.Size(143, 15);
+            this.lblDebugMode.TabIndex = 13;
+            this.lblDebugMode.Text = "DEBUG MODE is Enabled";
+            this.toolTip1.SetToolTip(this.lblDebugMode, "To exit debug mode delete \'enable-debug\' file in the app directory.\r\nIn debug mod" +
+        "e you can not set concurrent processes.");
+            this.lblDebugMode.Visible = false;
             // 
             // linkGithub
             // 
@@ -338,19 +355,19 @@
             this.mnuListViewCopyIP,
             this.mnuListViewTestThisIPAddress});
             this.mnuListView.Name = "mnuListView";
-            this.mnuListView.Size = new System.Drawing.Size(181, 70);
+            this.mnuListView.Size = new System.Drawing.Size(175, 48);
             // 
             // mnuListViewCopyIP
             // 
             this.mnuListViewCopyIP.Name = "mnuListViewCopyIP";
-            this.mnuListViewCopyIP.Size = new System.Drawing.Size(180, 22);
+            this.mnuListViewCopyIP.Size = new System.Drawing.Size(174, 22);
             this.mnuListViewCopyIP.Text = "Copy IP Address";
             this.mnuListViewCopyIP.Click += new System.EventHandler(this.mnuListViewCopyIP_Click);
             // 
             // mnuListViewTestThisIPAddress
             // 
             this.mnuListViewTestThisIPAddress.Name = "mnuListViewTestThisIPAddress";
-            this.mnuListViewTestThisIPAddress.Size = new System.Drawing.Size(180, 22);
+            this.mnuListViewTestThisIPAddress.Size = new System.Drawing.Size(174, 22);
             this.mnuListViewTestThisIPAddress.Text = "Test this IP Address";
             this.mnuListViewTestThisIPAddress.Click += new System.EventHandler(this.mnuListViewTestThisIPAddress_Click);
             // 
@@ -620,5 +637,6 @@
         private ToolStripMenuItem exitToolStripMenuItem;
         private ToolStripMenuItem toolsToolStripMenuItem;
         private ToolStripMenuItem scanASingleIPAddressToolStripMenuItem;
+        private Label lblDebugMode;
     }
 }

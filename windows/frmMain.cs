@@ -23,6 +23,7 @@ namespace WinCFScan
         private bool isAppCongigValid = true;
         private ListViewColumnSorter listResultsColumnSorter;
         private ListViewColumnSorter listCFIPsColumnSorter;
+        private Version appVersion;
 
         public frmMain()
         {
@@ -53,11 +54,27 @@ namespace WinCFScan
 
             loadLastResultsComboList();
 
-            Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            appVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             DateTime buildDate = new DateTime(2000, 1, 1)
-                                    .AddDays(version.Build).AddSeconds(version.Revision * 2);
-            string displayableVersion = $" - {version}";
+                                    .AddDays(appVersion.Build).AddSeconds(appVersion.Revision * 2);
+            string displayableVersion = $" - {appVersion}";
             this.Text += displayableVersion;
+
+            // is debug mode enable? this line should be at bottom line
+            checkEnableDebugMode();
+        }
+
+        private void checkEnableDebugMode()
+        {
+            if(configManager.enableDebug)
+            {
+                comboConcurrent.Text = "1";
+                comboConcurrent.Enabled = false;
+                lblDebugMode.Visible = true;
+                addTextLog("Debug mode is enabled. In this mode concurrent process is set to 1 and you can see scan debug data in 'debug.txt' file in the app directory.");
+                addTextLog("To exit debug mode delete 'enable-debug' file from the app directory and re-open the app.");
+                Tools.logStep($"\n\nApp started. Version: {appVersion}");
+            }
         }
 
         // add text log to log textbox
@@ -172,7 +189,10 @@ namespace WinCFScan
                 timerProgress.Enabled = false;
                 btnSkipCurRange.Enabled = false;
                 comboResults.Enabled = true;
-                comboConcurrent.Enabled = true;
+                if (!configManager.enableDebug)
+                {
+                    comboConcurrent.Enabled = true;
+                }
                 tabPageCFRanges.Enabled = true;
 
                 // save result file if found working IPs

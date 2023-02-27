@@ -48,6 +48,7 @@ namespace WinCFScan.Classes.Config
             }
             catch (Exception ex)
             {
+                Tools.logStep($"ScanResults.load() had exception: {ex.Message}");
                 return false;
             }
 
@@ -71,6 +72,8 @@ namespace WinCFScan.Classes.Config
             }
             catch (Exception ex)
             {
+                Tools.logStep($"ScanResults.save() had exception: {ex.Message}");
+
                 return false;
             }
 
