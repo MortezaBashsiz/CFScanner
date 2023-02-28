@@ -253,11 +253,12 @@ function fncValidateConfig {
 	if [[ -f "$config" ]]
 	then
 		echo "reading config ..."
-		configId=$(grep "^id" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
-		configHost=$(grep "^Host" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
-		configPort=$(grep "^Port" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
-		configPath=$(grep "^path" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g" | sed 's/\//\\\//g')	
-		configServerName=$(grep "^serverName" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
+		frontDomain=$(cat "$config" | jq --raw-output .frontDomain)
+		configId=$(cat "$config" | jq --raw-output .id)	
+		configHost=$(cat "$config" | jq --raw-output .Host)	
+		configPort=$(cat "$config" | jq --raw-output .Port)	
+		configPath=$(cat "$config" | jq --raw-output .path)	
+		configServerName=$(cat "$config" | jq --raw-output .serverName)	
 		if ! [[ "$configId" ]] || ! [[ $configHost ]] || ! [[ $configPort ]] || ! [[ $configPath ]] || ! [[ $configServerName ]]
 		then
 			echo "config is not correct"
@@ -337,16 +338,22 @@ function fncMainCFFindSubnet {
 	
 	cloudFlareASNList=( AS13335 AS209242 )
 	
-	echo "Updating config.real..."
-	if curl -sSfL http://bot.sudoer.net/config.real -o "$scriptDir"/config.real; then
-	  echo "config.real updated with http://bot.sudoer.net/config.real"
-		echo ""
-	  fncValidateConfig "$config"
-	else
-	  echo "url http://bot.sudoer.net/config.real is not reachable"
-	  echo "Make sure that you have the updated config.real"
-		echo ""
-	fi
+	#echo "updating config.real"
+	#configRealUrlResult=$(curl -I -L -s "$clientConfigFile" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
+	#if [[ "$configRealUrlResult" == "200" ]]
+	#then
+	#	curl -s "$clientConfigFile" -o "$scriptDir"/config.real
+	#	echo "config.real updated with $clientConfigFile"
+	#	echo ""
+	#	config="$scriptDir/config.real"
+	#	echo "$config"
+	#	fncValidateConfig "$config"
+	#else
+	#	echo ""
+	#	echo "url $clientConfigFile is not reachable"
+	#	echo "make sure that you have the updated config.real"
+	#	echo ""
+	#fi
 
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
@@ -444,23 +451,23 @@ function fncMainCFFindIP {
 		echo "OS not supported only Linux or Mac"
 		exit 1
 	fi
-	
-	echo "updating config.real"
-	configRealUrlResult=$(curl -I -L -s http://bot.sudoer.net/config.real | grep "^HTTP" | grep 200 | awk '{ print $2 }')
-	if [[ "$configRealUrlResult" == "200" ]]
-	then
-		curl -s http://bot.sudoer.net/config.real -o "$scriptDir"/config.real
-		echo "config.real updated with http://bot.sudoer.net/config.real"
-		echo ""
-		config="$scriptDir/config.real"
-		echo "$config"
-		fncValidateConfig "$config"
-	else
-		echo ""
-		echo "url http://bot.sudoer.net/config.real is not reachable"
-		echo "make sure that you have the updated config.real"
-		echo ""
-	fi
+
+	#echo "updating config.real"
+	#configRealUrlResult=$(curl -I -L -s "$clientConfigFile" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
+	#if [[ "$configRealUrlResult" == "200" ]]
+	#then
+	#	curl -s "$clientConfigFile" -o "$scriptDir"/config.real
+	#	echo "config.real updated with $clientConfigFile"
+	#	echo ""
+	#	config="$scriptDir/config.real"
+	#	echo "$config"
+	#	fncValidateConfig "$config"
+	#else
+	#	echo ""
+	#	echo "url $clientConfigFile is not reachable"
+	#	echo "make sure that you have the updated config.real"
+	#	echo ""
+	#fi
 
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
@@ -485,6 +492,7 @@ function fncMainCFFindIP {
 }
 # End of Function fncMainCFFindIP
 
+clientConfigFile="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/dev/bash/ClientConfig.json"
 
 mode="$1"
 threads="$2"
@@ -502,8 +510,8 @@ then
 	fi
 fi
 
-frontDomain="fronting.sudoer.net"
-scanDomain="scan.sudoer.net"
+frontDomain=$(cat "$config" | jq --raw-output .frontDomain)
+scanDomain=$(cat "$config" | jq --raw-output .scanDomain)
 downloadFile="data.100k"
 
 now=$(date +"%Y%m%d-%H%M%S")
@@ -532,6 +540,25 @@ fncCreateDir "${configDir}"
 echo "" > "$resultFile"
 
 osVersion="$(fncCheckDpnd)"
+
+echo "updating config.real"
+configRealUrlResult=$(curl -I -L -s "$clientConfigFile" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
+if [[ "$configRealUrlResult" == "200" ]] && [[ "$config" == "config.real"  ]]
+then
+	curl -s "$clientConfigFile" -o "$scriptDir"/config.real
+	echo "config.real updated with $clientConfigFile"
+	echo ""
+	config="$scriptDir/config.real"
+	cat "$config"
+else
+	echo ""
+	echo "url $clientConfigFile is not reachable"
+	echo "make sure that you have the updated config.real using your own config $config"
+	cat "$config"
+	echo ""
+fi
+
+fncValidateConfig "$config"
 
 if [[ "$mode" == "SUBNET" ]]
 then
