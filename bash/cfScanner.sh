@@ -253,12 +253,12 @@ function fncValidateConfig {
 	if [[ -f "$config" ]]
 	then
 		echo "reading config ..."
-		frontDomain=$(cat "$config" | jq --raw-output .frontDomain)
-		configId=$(cat "$config" | jq --raw-output .id)	
-		configHost=$(cat "$config" | jq --raw-output .Host)	
-		configPort=$(cat "$config" | jq --raw-output .Port)	
-		configPath=$(cat "$config" | jq --raw-output .path)	
-		configServerName=$(cat "$config" | jq --raw-output .serverName)	
+		frontDomain=$(jq --raw-output .frontDomain "$config")
+		configId=$(jq --raw-output .id "$config")	
+		configHost=$(jq --raw-output .Host "$config")	
+		configPort=$(jq --raw-output .Port "$config")	
+		configPath=$(jq --raw-output .path "$config")	
+		configServerName=$(jq --raw-output .serverName "$config")	
 		if ! [[ "$configId" ]] || ! [[ $configHost ]] || ! [[ $configPort ]] || ! [[ $configPath ]] || ! [[ $configServerName ]]
 		then
 			echo "config is not correct"
@@ -338,23 +338,6 @@ function fncMainCFFindSubnet {
 	
 	cloudFlareASNList=( AS13335 AS209242 )
 	
-	#echo "updating config.real"
-	#configRealUrlResult=$(curl -I -L -s "$clientConfigFile" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
-	#if [[ "$configRealUrlResult" == "200" ]]
-	#then
-	#	curl -s "$clientConfigFile" -o "$scriptDir"/config.real
-	#	echo "config.real updated with $clientConfigFile"
-	#	echo ""
-	#	config="$scriptDir/config.real"
-	#	echo "$config"
-	#	fncValidateConfig "$config"
-	#else
-	#	echo ""
-	#	echo "url $clientConfigFile is not reachable"
-	#	echo "make sure that you have the updated config.real"
-	#	echo ""
-	#fi
-
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
 	downloadFile="$(fncCheckSpeed "$speed")"
@@ -452,23 +435,6 @@ function fncMainCFFindIP {
 		exit 1
 	fi
 
-	#echo "updating config.real"
-	#configRealUrlResult=$(curl -I -L -s "$clientConfigFile" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
-	#if [[ "$configRealUrlResult" == "200" ]]
-	#then
-	#	curl -s "$clientConfigFile" -o "$scriptDir"/config.real
-	#	echo "config.real updated with $clientConfigFile"
-	#	echo ""
-	#	config="$scriptDir/config.real"
-	#	echo "$config"
-	#	fncValidateConfig "$config"
-	#else
-	#	echo ""
-	#	echo "url $clientConfigFile is not reachable"
-	#	echo "make sure that you have the updated config.real"
-	#	echo ""
-	#fi
-
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
 	downloadFile="$(fncCheckSpeed "$speed")"
@@ -492,7 +458,7 @@ function fncMainCFFindIP {
 }
 # End of Function fncMainCFFindIP
 
-clientConfigFile="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/dev/bash/ClientConfig.json"
+clientConfigFile="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/ClientConfig.json"
 
 mode="$1"
 threads="$2"
@@ -510,8 +476,8 @@ then
 	fi
 fi
 
-frontDomain=$(cat "$config" | jq --raw-output .frontDomain)
-scanDomain=$(cat "$config" | jq --raw-output .scanDomain)
+frontDomain=$(jq --raw-output .frontDomain "$config")
+scanDomain=$(jq --raw-output .scanDomain "$config")
 downloadFile="data.100k"
 
 now=$(date +"%Y%m%d-%H%M%S")
@@ -542,18 +508,26 @@ echo "" > "$resultFile"
 osVersion="$(fncCheckDpnd)"
 
 echo "updating config.real"
-configRealUrlResult=$(curl -I -L -s "$clientConfigFile" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
-if [[ "$configRealUrlResult" == "200" ]] && [[ "$config" == "config.real"  ]]
+if [[ "$config" == "config.real"  ]]
 then
-	curl -s "$clientConfigFile" -o "$scriptDir"/config.real
-	echo "config.real updated with $clientConfigFile"
-	echo ""
-	config="$scriptDir/config.real"
-	cat "$config"
+	configRealUrlResult=$(curl -I -L -s "$clientConfigFile" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
+	if [[ "$configRealUrlResult" == "200" ]]
+	then
+		curl -s "$clientConfigFile" -o "$scriptDir"/config.real
+		echo "config.real updated with $clientConfigFile"
+		echo ""
+		config="$scriptDir/config.real"
+		cat "$config"
+	else
+		echo ""
+		echo "config file is not available $clientConfigFile"
+		echo "use your own"
+		echo ""	
+		exit 1
+	fi
 else
 	echo ""
-	echo "url $clientConfigFile is not reachable"
-	echo "make sure that you have the updated config.real using your own config $config"
+	echo "using your own config $config"
 	cat "$config"
 	echo ""
 fi
