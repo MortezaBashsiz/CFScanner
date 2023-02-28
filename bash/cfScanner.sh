@@ -231,12 +231,14 @@ function fncCheckDpnd {
 	osVersion="Linux"
 	if [[ "$(uname)" == "Linux" ]]; then
 			osVersion="Linux"
+	    command -v jq >/dev/null 2>&1 || { echo >&2 "I require 'jq' but it's not installed. Please install it and try again."; exit 1; }
 	    command -v parallel >/dev/null 2>&1 || { echo >&2 "I require 'parallel' but it's not installed. Please install it and try again."; exit 1; }
 	    command -v bc >/dev/null 2>&1 || { echo >&2 "I require 'bc' but it's not installed. Please install it and try again."; exit 1; }
 			command -v timeout >/dev/null 2>&1 || { echo >&2 "I require 'timeout' but it's not installed. Please install it and try again."; exit 1; }
 	
 	elif [[ "$(uname)" == "Darwin" ]];then
 			osVersion="Mac"
+	    command -v jq >/dev/null 2>&1 || { echo >&2 "I require 'jq' but it's not installed. Please install it and try again."; exit 1; }
 	    command -v parallel >/dev/null 2>&1 || { echo >&2 "I require 'parallel' but it's not installed. Please install it and try again."; exit 1; }
 	    command -v bc >/dev/null 2>&1 || { echo >&2 "I require 'bc' but it's not installed. Please install it and try again."; exit 1; }
 	    command -v gtimeout >/dev/null 2>&1 || { echo >&2 "I require 'gtimeout' but it's not installed. Please install it and try again."; exit 1; }
@@ -253,11 +255,12 @@ function fncValidateConfig {
 	if [[ -f "$config" ]]
 	then
 		echo "reading config ..."
-		configId=$(grep "^id" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
-		configHost=$(grep "^Host" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
-		configPort=$(grep "^Port" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
-		configPath=$(grep "^path" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g" | sed 's/\//\\\//g')	
-		configServerName=$(grep "^serverName" "$config" | awk -F ":" '{ print $2 }' | sed "s/ //g")	
+		frontDomain=$(jq --raw-output .frontDomain "$config")
+		configId=$(jq --raw-output .id "$config")	
+		configHost=$(jq --raw-output .Host "$config")	
+		configPort=$(jq --raw-output .Port "$config")	
+		configPath=$(jq --raw-output .path "$config")	
+		configServerName=$(jq --raw-output .serverName "$config")	
 		if ! [[ "$configId" ]] || ! [[ $configHost ]] || ! [[ $configPort ]] || ! [[ $configPath ]] || ! [[ $configServerName ]]
 		then
 			echo "config is not correct"
@@ -337,17 +340,6 @@ function fncMainCFFindSubnet {
 	
 	cloudFlareASNList=( AS13335 AS209242 )
 	
-	echo "Updating config.real..."
-	if curl -sSfL http://bot.sudoer.net/config.real -o "$scriptDir"/config.real; then
-	  echo "config.real updated with http://bot.sudoer.net/config.real"
-		echo ""
-	  fncValidateConfig "$config"
-	else
-	  echo "url http://bot.sudoer.net/config.real is not reachable"
-	  echo "Make sure that you have the updated config.real"
-		echo ""
-	fi
-
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
 	downloadFile="$(fncCheckSpeed "$speed")"
@@ -444,23 +436,6 @@ function fncMainCFFindIP {
 		echo "OS not supported only Linux or Mac"
 		exit 1
 	fi
-	
-	echo "updating config.real"
-	configRealUrlResult=$(curl -I -L -s http://bot.sudoer.net/config.real | grep "^HTTP" | grep 200 | awk '{ print $2 }')
-	if [[ "$configRealUrlResult" == "200" ]]
-	then
-		curl -s http://bot.sudoer.net/config.real -o "$scriptDir"/config.real
-		echo "config.real updated with http://bot.sudoer.net/config.real"
-		echo ""
-		config="$scriptDir/config.real"
-		echo "$config"
-		fncValidateConfig "$config"
-	else
-		echo ""
-		echo "url http://bot.sudoer.net/config.real is not reachable"
-		echo "make sure that you have the updated config.real"
-		echo ""
-	fi
 
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
@@ -485,6 +460,7 @@ function fncMainCFFindIP {
 }
 # End of Function fncMainCFFindIP
 
+clientConfigFile="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/ClientConfig.json"
 
 mode="$1"
 threads="$2"
@@ -502,8 +478,8 @@ then
 	fi
 fi
 
-frontDomain="fronting.sudoer.net"
-scanDomain="scan.sudoer.net"
+frontDomain=$(jq --raw-output .frontDomain "$config")
+scanDomain=$(jq --raw-output .scanDomain "$config")
 downloadFile="data.100k"
 
 now=$(date +"%Y%m%d-%H%M%S")
@@ -532,6 +508,33 @@ fncCreateDir "${configDir}"
 echo "" > "$resultFile"
 
 osVersion="$(fncCheckDpnd)"
+
+echo "updating config.real"
+if [[ "$config" == "config.real"  ]]
+then
+	configRealUrlResult=$(curl -I -L -s "$clientConfigFile" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
+	if [[ "$configRealUrlResult" == "200" ]]
+	then
+		curl -s "$clientConfigFile" -o "$scriptDir"/config.real
+		echo "config.real updated with $clientConfigFile"
+		echo ""
+		config="$scriptDir/config.real"
+		cat "$config"
+	else
+		echo ""
+		echo "config file is not available $clientConfigFile"
+		echo "use your own"
+		echo ""	
+		exit 1
+	fi
+else
+	echo ""
+	echo "using your own config $config"
+	cat "$config"
+	echo ""
+fi
+
+fncValidateConfig "$config"
 
 if [[ "$mode" == "SUBNET" ]]
 then
