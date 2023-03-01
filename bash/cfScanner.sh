@@ -143,6 +143,7 @@ function fncCheckIPList {
 	downloadFile="${12}"
 	osVersion="${13}"
 	v2rayCommand="${14}"
+	tryCount="${15}"
 	binDir="$scriptDir/../bin"
 	configDir="$scriptDir/../config"
 	# set proper command for linux
@@ -198,19 +199,28 @@ function fncCheckIPList {
 					then
 						kill -9 "$pid" > /dev/null 2>&1
 					fi
+					avgTime=0
+					avgStr=""
+					timeMil=0
 					nohup "$binDir"/"$v2rayCommand" -c "$ipConfigFile" > /dev/null &
 					sleep 2
-					timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" https://"$scanDomain"/"$downloadFile" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
+					for i in $(seq 1 "$tryCount");
+					do
+						timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" https://"$scanDomain"/"$downloadFile" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
+						avgTime=$(( avgTime+timeMil ))
+						avgStr="$avgStr $timeMil"
+					done
+					realTime=$(( avgTime/tryCount ))
 					# shellcheck disable=SC2009
 					pid=$(ps aux | grep config.json."$ip" | grep -v grep | awk '{ print $2 }')
 					if [[ "$pid" ]]
 					then
 						kill -9 "$pid" > /dev/null 2>&1
 					fi
-					if [[ "$timeMil" ]] && [[ "$timeMil" != 0 ]]
+					if [[ "$realTime" ]] && [[ "$realTime" != 0 ]]
 					then
-						echo -e "${GREEN}OK${NC} $ip ${BLUE}ResponseTime $timeMil${NC}" 
-						echo "$timeMil $ip" >> "$resultFile"
+						echo -e "${GREEN}OK${NC} $ip ${BLUE}AverageTime $realTime  StringTime$avgStr${NC}" 
+						echo "$realTime StringTime $avgStr  IP $ip" >> "$resultFile"
 					else
 						echo -e "${YELLOW}FAILED${NC} $ip"
 					fi
@@ -326,6 +336,7 @@ function fncMainCFFindSubnet {
 	speed="${12}"
 	osVersion="${13}"
 	subnetsFile="${14}"
+	tryCount="${15}"
 
 	if [[ "$osVersion" == "Linux" ]]
 	then
@@ -394,10 +405,10 @@ function fncMainCFFindSubnet {
 	  	tput cuu1; tput ed # rewrites Parallel's bar
 	  	if [[ $parallelVersion -gt "20220515" ]];
 	  	then
-	  	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	  	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount"
 	  	else
 	  	  echo -e "${RED}$progressBar${NC}"
-	  	  parallel -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	  	  parallel -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount"
 	  	fi
 			killall v2ray > /dev/null 2>&1
 			passedIpsCount=$(( passedIpsCount+1 ))
@@ -425,6 +436,7 @@ function fncMainCFFindIP {
 	speed="${12}"
 	osVersion="${13}"
 	IPFile="${14}"
+	tryCount="${15}"
 
 	if [[ "$osVersion" == "Linux" ]]
 	then
@@ -450,10 +462,10 @@ function fncMainCFFindIP {
 	tput cuu1; tput ed # rewrites Parallel's bar
 	if [[ $parallelVersion -gt "20220515" ]];
 	then
-	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount"
 	else
 	  echo -e "${RED}$progressBar${NC}"
-	  parallel -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand"
+	  parallel -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$frontDomain" ::: "$scanDomain" ::: "$downloadFile" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount"
 	fi
 	killall v2ray > /dev/null 2>&1
 	sort -n -k1 -t, "$resultFile" -o "$resultFile"
@@ -464,13 +476,14 @@ clientConfigFile="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/mai
 
 mode="$1"
 threads="$2"
-config="$3"
-speed="$4"
+tryCount="$3"
+config="$4"
+speed="$5"
 subnetIPFile="NULL"
 
-if [[ "$5" ]]
+if [[ "$6" ]]
 then
-	subnetIPFile="$5"
+	subnetIPFile="$6"
 	if ! [[ -f "$subnetIPFile" ]]
 	then
 		echo "file does not exists: $subnetIPFile"
@@ -538,10 +551,10 @@ fncValidateConfig "$config"
 
 if [[ "$mode" == "SUBNET" ]]
 then
-	fncMainCFFindSubnet	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$osVersion" "$subnetIPFile"
+	fncMainCFFindSubnet	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$osVersion" "$subnetIPFile" "$tryCount"
 elif [[ "$mode" == "IP" ]]
 then
-	fncMainCFFindIP	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$osVersion" "$subnetIPFile"
+	fncMainCFFindIP	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$frontDomain" "$scanDomain" "$speed" "$osVersion" "$subnetIPFile" "$tryCount"
 else
 	echo "$mode is not correct choose one SUBNET or IP"
 	exit 1
