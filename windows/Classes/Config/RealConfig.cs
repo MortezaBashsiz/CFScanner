@@ -94,6 +94,7 @@ namespace WinCFScan.Classes.Config
                 }
                 catch (Exception ex)
                 {
+                    Tools.logStep($"remoteUpdateConfigReal() had exception: {ex.Message}");
                     return false;
                 }
                 finally

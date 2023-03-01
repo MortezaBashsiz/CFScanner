@@ -29,14 +29,22 @@ namespace WinCFScan.Classes
         {
         }
 
-        public bool check()
+         public bool check()
         {
+            bool success = false;
+            Tools.logStep("\n ------- Start IP Check ------- ");
+            
             // first of all quick test on fronting domain through cloudflare
-            if(! checkFronting())
-                return false;
+            if(checkFronting())
+            {
+                // then test quality of connection by downloading small file through v2ray vpn
+                success = checkV2ray();
 
-            // then test quality of connection by downloading small file through v2ray vpn
-            return checkV2ray();    
+            }
+
+            Tools.logStep("\n------- End IP Check -------\n");
+            return success;
+
         }
 
         public bool checkV2ray() {
@@ -59,6 +67,46 @@ namespace WinCFScan.Classes
             return success;
         }
 
+        public bool checkFronting(bool withCustumDNSResolver = true, int timeout = 1)
+        {
+            DnsHandler dnsHandler;
+            HttpClient client;
+            if (withCustumDNSResolver)
+            {
+                dnsHandler = new DnsHandler(new CustomDnsResolver(ip));
+                client = new HttpClient(dnsHandler);
+            }
+            else
+            {
+                client = new HttpClient();
+            }
+
+            //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            client.Timeout = TimeSpan.FromSeconds(timeout);
+
+            Tools.logStep($"Start fronting check, timeout: {timeout}, Resolver IP: {ip}, withCustumDNSResolver: {withCustumDNSResolver.ToString()}");
+
+            try
+            {
+                Stopwatch sw = new Stopwatch();
+                string frUrl = "https://" + ConfigManager.Instance.getAppConfig()?.frontDomain;
+                Tools.logStep($"Starting fronting check with url: {frUrl}");
+                var html = client.GetStringAsync(frUrl).Result;
+                Tools.logStep($"Fronting check done in {sw.ElapsedMilliseconds:n0} ms, content: '{html.Substring(0, 50)}'");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Tools.logStep($"Fronting check had exception: {ex.Message}");
+                return false;
+            }
+            finally
+            {
+                client.Dispose();
+            }
+
+        }
+
         private bool checkDownloadSpeed()
         {
             var proxy = new WebProxy();
@@ -70,17 +118,21 @@ namespace WinCFScan.Classes
 
             var client = new HttpClient(handler);
             client.Timeout = TimeSpan.FromSeconds(2); // 2 seconds
+            Tools.logStep($"Start check dl speed, proxy port: {port}, timeout: {client.Timeout.TotalSeconds} sec");
             Stopwatch sw =  new Stopwatch();
             try
             {
                 sw.Start();
                 string dlUrl = "https://" + ConfigManager.Instance.getAppConfig().scanDomain + "/data.100k";
+                Tools.logStep($"Starting dl url: {dlUrl}");
                 var data = client.GetStringAsync(dlUrl).Result;
-                
+                Tools.logStep($"*** Download success in {sw.ElapsedMilliseconds:n0} ms, dl size: {data.Length:n0} bytes for IP {ip}");
+
                 return data.Length > 90_000;
             }
             catch (Exception ex)
             {
+                Tools.logStep($"dl had exception: {ex.Message}");
                 return false;
             }
             finally
@@ -111,8 +163,9 @@ namespace WinCFScan.Classes
 
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Tools.logStep($"createV2rayConfigFile has exception: {ex.Message}");
                 return false;
             }
 
@@ -139,43 +192,14 @@ namespace WinCFScan.Classes
             startInfo.UseShellExecute = false;
             startInfo.CreateNoWindow = true;
             startInfo.Arguments = $"run -config=\"{v2rayConfigPath}\"";
+            Tools.logStep($"Starting v2ray.exe with arg: {startInfo.Arguments}");
             process = Process.Start(startInfo);
             Thread.Sleep(1500);
-            return process.Responding && ! process.HasExited;
+            bool wasSuccess = process.Responding && !process.HasExited;
+            Tools.logStep($"v2ray.exe executed success:  {wasSuccess}");
+            return wasSuccess;
         }
 
-        public bool checkFronting(bool withCstumDNSResolver = true, int timeout = 1)
-        {
-            DnsHandler dnsHandler;
-            HttpClient client;
-            if (withCstumDNSResolver)
-            {
-                dnsHandler = new DnsHandler(new CustomDnsResolver(ip));
-                client = new HttpClient(dnsHandler);
-            }
-            else
-            {
-                client = new HttpClient();
-            }
-
-            //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            client.Timeout = TimeSpan.FromSeconds(timeout);
-
-            try
-            {
-                string frUrl = "https://" + ConfigManager.Instance.getAppConfig()?.frontDomain;
-                var html = client.GetStringAsync(frUrl).Result;
-
-                return true;
-            } 
-            catch (Exception ex)
-            {
-                return false;
-            }
-            finally { 
-                client.Dispose();
-            }
-
-        }
+        
     }
 }

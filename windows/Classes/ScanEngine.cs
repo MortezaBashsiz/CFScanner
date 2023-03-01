@@ -16,8 +16,9 @@ namespace WinCFScan.Classes
     {
         protected string errMessage = "";
         protected bool hasError = false;
+        public CFIPList ipListLoader;
 
-        public string[] cfIPList;
+        private string[] cfIPRangeList;
         public ScanProgressInfo progressInfo { get; protected set; }
         private CancellationTokenSource cts;
         public List<ResultItem>? workingIPsFromPrevScan { get; set; }
@@ -78,9 +79,9 @@ namespace WinCFScan.Classes
             if (hasError)
                 return;
 
-            progressInfo.totalIPRanges = cfIPList.Count();
+            progressInfo.totalIPRanges = cfIPRangeList.Count();
 
-            foreach (var cfIP in cfIPList)
+            foreach (var cfIP in cfIPRangeList)
             {
                 // stop scan?
                 if (progressInfo.stopRequested == true)
@@ -114,7 +115,7 @@ namespace WinCFScan.Classes
 
         public void setCFIPRangeList(string[] list)
         {
-            this.cfIPList = list;
+            this.cfIPRangeList = list;
         }
 
         private bool isValidIPRange(string cfIP)
@@ -168,16 +169,19 @@ namespace WinCFScan.Classes
         }
 
 
-        private void loadCFIPList()
+        public bool loadCFIPList(string fileName = "cf.local.iplist")
         {
-            CFIPList ipList = new CFIPList();
-            if(ipList.isIPListValid())
-                this.cfIPList = ipList.getIPList();
-            else
+            CFIPList ipList = new CFIPList(fileName);
+            if (ipList.isIPListValid())
             {
-                progressInfo.lastErrMessage = "Invalid couldflare IP list";
-                progressInfo.hasError = true;
+                cfIPRangeList = ipList.getIPList();
+                ipListLoader = ipList;
+                return true;
             }
+
+            progressInfo.lastErrMessage = "Invalid couldflare IP list";
+            progressInfo.hasError = true;
+            return false;
         }
 
 

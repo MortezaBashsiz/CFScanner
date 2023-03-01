@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Security.Policy;
+using System.Windows.Forms;
 using WinCFScan.Classes;
 using WinCFScan.Classes.Config;
 using WinCFScan.Classes.HTTPRequest;
@@ -18,21 +19,30 @@ namespace WinCFScan
         bool oneTimeChecked = false; // config checked once?
         ScanEngine scanEngine;
         private List<ResultItem> currentScanResults = new();
-        private bool scanFnished = false;
+        private bool scanFinshed = false;
         private bool isUpdatinglistCFIP;
         private bool isAppCongigValid = true;
+        private ListViewColumnSorter listResultsColumnSorter;
+        private ListViewColumnSorter listCFIPsColumnSorter;
+        private Version appVersion;
 
         public frmMain()
         {
             InitializeComponent();
 
+            listResultsColumnSorter = new ListViewColumnSorter();
+            this.listResults.ListViewItemSorter = listResultsColumnSorter;
+
+            listCFIPsColumnSorter = new ListViewColumnSorter();
+            this.listCFIPList.ListViewItemSorter = listCFIPsColumnSorter;
+
             // load configs
             configManager = new();
-            if(!configManager.isConfigValid()) {
-
+            if (!configManager.isConfigValid())
+            {
                 addTextLog("App config is not valid! we can not continue.");
-                
-                if(configManager.errorMessage != "")
+
+                if (configManager.errorMessage != "")
                 {
                     addTextLog(configManager.errorMessage);
                 }
@@ -44,11 +54,27 @@ namespace WinCFScan
 
             loadLastResultsComboList();
 
-            Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            appVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
             DateTime buildDate = new DateTime(2000, 1, 1)
-                                    .AddDays(version.Build).AddSeconds(version.Revision * 2);
-            string displayableVersion = $" - {version}";
+                                    .AddDays(appVersion.Build).AddSeconds(appVersion.Revision * 2);
+            string displayableVersion = $" - {appVersion}";
             this.Text += displayableVersion;
+
+            // is debug mode enable? this line should be at bottom line
+            checkEnableDebugMode();
+        }
+
+        private void checkEnableDebugMode()
+        {
+            if(configManager.enableDebug)
+            {
+                comboConcurrent.Text = "1";
+                comboConcurrent.Enabled = false;
+                lblDebugMode.Visible = true;
+                addTextLog("Debug mode is enabled. In this mode concurrent process is set to 1 and you can see scan debug data in 'debug.txt' file in the app directory.");
+                addTextLog("To exit debug mode delete 'enable-debug' file from the app directory and re-open the app.");
+                Tools.logStep($"\n\nApp started. Version: {appVersion}");
+            }
         }
 
         // add text log to log textbox
@@ -80,18 +106,18 @@ namespace WinCFScan
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            startStopScan(false);  
+            startStopScan(false);
         }
 
         private void startStopScan(bool inPrevResult = false)
         {
-            if(!isAppCongigValid)
+            if (!isAppCongigValid)
             {
                 showCanNotContinueMessage();
                 return;
             }
 
-          if (scanEngine.progressInfo.isScanRunning)
+            if (isScanRunning())
             {
                 // stop scan
                 waitUntilScannerStoped();
@@ -99,7 +125,16 @@ namespace WinCFScan
             }
             else
             {   // start scan
-                if (!inPrevResult)
+                if (inPrevResult)
+                {
+                    if (currentScanResults.Count == 0)
+                    {
+                        addTextLog("Current result list is empty!");
+                        return;
+                    }
+                    addTextLog($"Start scanning {currentScanResults.Count} IPs in previous results...");
+                }
+                else
                 {
                     // set cf ip list to scan engine
                     string[] ipRanges = getCheckedCFIPList();
@@ -110,17 +145,9 @@ namespace WinCFScan
                              "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
+                    currentScanResults = new();
                     scanEngine.setCFIPRangeList(ipRanges);
                     addTextLog($"Start scanning {ipRanges.Length} Cloudflare IP ranges...");
-                }
-                else
-                {
-                    if(currentScanResults.Count == 0)
-                    {
-                        addTextLog("Current result list is empty!");
-                        return;
-                    }
-                    addTextLog($"Start scanning {currentScanResults.Count} IPs in previous result...");
                 }
 
                 updateUIControlls(true);
@@ -129,8 +156,9 @@ namespace WinCFScan
 
                 // start scan job in new thread
                 Task.Factory.StartNew(() => scanEngine.start(scanType))
-                    .ContinueWith(done => { 
-                        scanFnished = true;
+                    .ContinueWith(done =>
+                    {
+                        scanFinshed = true;
                         this.currentScanResults = scanEngine.progressInfo.scanResults.workingIPs;
                         addTextLog($"{scanEngine.progressInfo.totalCheckedIP:n0} IPs tested and found {scanEngine.progressInfo.scanResults.totalFoundWorkingIPs:n0} working IPs.");
                     });
@@ -147,7 +175,7 @@ namespace WinCFScan
                 listResults.Items.Clear();
                 btnStart.Text = "Stop Scan";
                 btnScanInPrevResults.Enabled = false;
-                btnDeleteResult.Enabled = false;
+                btnResultsActions.Enabled = false;
                 comboConcurrent.Enabled = false;
                 timerProgress.Enabled = true;
                 btnSkipCurRange.Enabled = true;
@@ -158,11 +186,14 @@ namespace WinCFScan
             {   // is stopping
                 btnStart.Text = "Start Scan";
                 btnScanInPrevResults.Enabled = true;
-                btnDeleteResult.Enabled = true;
+                btnResultsActions.Enabled = true;
                 timerProgress.Enabled = false;
                 btnSkipCurRange.Enabled = false;
                 comboResults.Enabled = true;
-                comboConcurrent.Enabled = true;
+                if (!configManager.enableDebug)
+                {
+                    comboConcurrent.Enabled = true;
+                }
                 tabPageCFRanges.Enabled = true;
 
                 // save result file if found working IPs
@@ -170,7 +201,7 @@ namespace WinCFScan
                 if (scanResults.totalFoundWorkingIPs != 0)
                 {
                     // save results into disk
-                    if (! scanResults.save())
+                    if (!scanResults.save())
                     {
                         addTextLog($"Could not save scan result into the file: {scanResults.resultsFileName}");
                     }
@@ -183,15 +214,21 @@ namespace WinCFScan
 
                 loadLastResultsComboList();
 
+                // sort results list
+                listResultsColumnSorter.Order = SortOrder.Ascending;
+                listResultsColumnSorter.SortColumn = 0;
+                listResults.Sort();
+
+
             }
         }
 
         private void timerBase_Tick(object sender, EventArgs e)
         {
             oneTimeChecks();
-            if (scanFnished)
+            if (scanFinshed)
             {
-                scanFnished = false;
+                scanFinshed = false;
                 updateConrtolsProgress(true);
                 updateUIControlls(false);
             }
@@ -206,12 +243,12 @@ namespace WinCFScan
         private void updateConrtolsProgress(bool forceUpdate = false)
         {
             var pInf = scanEngine.progressInfo;
-            if (scanEngine.progressInfo.isScanRunning || forceUpdate)
+            if (isScanRunning() || forceUpdate)
             {
                 lblLastIPRange.Text = $"Current IP range: {pInf.currentIPRange} ({pInf.currentIPRangesNumber:n0}/{pInf.totalIPRanges:n0})";
                 labelLastIPChecked.Text = $"Last checked IP:  {pInf.lastCheckedIP} ({pInf.totalCheckedIPInCurIPRange:n0}/{pInf.currentIPRangeTotalIPs:n0})";
                 lblTotalWorkingIPs.Text = $"Total working IPs found:  {pInf.scanResults.totalFoundWorkingIPs:n0}";
-                if(pInf.scanResults.fastestIP !=null)
+                if (pInf.scanResults.fastestIP != null)
                 {
                     txtFastestIP.Text = $"{pInf.scanResults.fastestIP.ip}  -  {pInf.scanResults.fastestIP.delay:n0} ms";
                 }
@@ -231,8 +268,8 @@ namespace WinCFScan
         // fetch new woriking ips and add to the list view while scanning
         private void fetchWorkingIPResults()
         {
-           List<ResultItem> scanResults = scanEngine.progressInfo.scanResults.fetchWorkingIPs();
-           addResulItemsToListView(scanResults);
+            List<ResultItem> scanResults = scanEngine.progressInfo.scanResults.fetchWorkingIPs();
+            addResulItemsToListView(scanResults);
         }
 
         private void btnSkipCurRange_Click(object sender, EventArgs e)
@@ -249,7 +286,7 @@ namespace WinCFScan
             {
                 comboResults.Items.Add(resultFile);
             }
-            comboResults.SelectedIndex= 0;
+            comboResults.SelectedIndex = 0;
         }
 
         private void comboResults_SelectedIndexChanged(object sender, EventArgs e)
@@ -274,21 +311,22 @@ namespace WinCFScan
         }
 
         // load previous results into list view
-        private void fillResultsListView(string resultsFileName)
+        private void fillResultsListView(string resultsFileName, bool plainFile = false)
         {
             var results = new ScanResults(resultsFileName);
-            if (results.load())
+            bool isLoaded = plainFile ? results.loadPlain() : results.load();
+            if (isLoaded)
             {
                 listResults.Items.Clear();
-                var loaded = results.getLoadedInstance();
-                this.currentScanResults = loaded.workingIPs;
+                var loadedResults = results.getLoadedInstance();
+                this.currentScanResults = loadedResults.workingIPs;
                 addResulItemsToListView(currentScanResults);
-                
-                addTextLog($"'{resultsFileName}' loaded with {loaded.totalFoundWorkingIPs:n0} working IPs, scan time: {loaded.startDate}");
+
+                addTextLog($"'{resultsFileName}' loaded with {loadedResults.totalFoundWorkingIPs:n0} working IPs, scan time: {loadedResults.startDate}");
             }
             else
             {
-                addTextLog($"Could not load scan result file from disk: {resultsFileName}");
+                addTextLog($"Could not load scan result file from disk: '{resultsFileName}'");
             }
         }
 
@@ -304,7 +342,7 @@ namespace WinCFScan
             }
         }
 
-        
+
         private void oneTimeChecks()
         {
             if (!oneTimeChecked && isAppCongigValid)
@@ -337,7 +375,7 @@ namespace WinCFScan
                     var checker = new CheckIPWorking();
                     if (!checker.checkFronting(false, 5))
                     {
-                        addTextLog($"Fronting domain is not accesible! you might need to get new frontig url from our github or check your internet connection.");
+                        addTextLog($"Fronting domain is not accessible! you might need to get new fronting url from our github or check your internet connection.");
                     }
                 });
 
@@ -376,13 +414,52 @@ namespace WinCFScan
             catch (Exception ex) { }
         }
 
-        // delete result
-        private void btnDeleteResult_Click(object sender, EventArgs e)
+        // results actions
+        private void btnResultsActions_MouseClick(object sender, MouseEventArgs e)
         {
+           mnuResultsActions.Show(this, btnResultsActions.Left + 5 , splitContainer1.Top +  btnResultsActions.Top + btnResultsActions.Height+ 25);
+        }
+
+        private void deleteResultsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            deleteResultItem();
+        }
+
+        private void exportResultsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            exportResults();
+        }
+
+        private void importResultsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            importResults();
+        }
+
+        private void importResults()
+        {
+            if (isScanRunning())
+                return;
+
+            openFileDialog1.Title = "Import IP results";
+            var result = openFileDialog1.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                fillResultsListView(openFileDialog1.FileName, true);
+                tabControl1.SelectedIndex = 1;
+           };
+
+        }
+
+        private void deleteResultItem()
+        {
+            if (isScanRunning())
+                return;
+
             string? filename = getSelectedScanResultFilename();
             if (filename != null)
             {
-                var result = MessageBox.Show($"Are you sure you want to delete {filename}?", 
+                var result = MessageBox.Show($"Are you sure you want to delete {filename}?",
                             "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
                 if (result == DialogResult.Yes)
                 {
@@ -396,7 +473,8 @@ namespace WinCFScan
                         lblPrevListTotalIPs.Text = "0 IPs";
 
                     }
-                    catch (Exception){
+                    catch (Exception)
+                    {
                         addTextLog($"Could not delete '{filename}'");
                     }
                 }
@@ -407,18 +485,20 @@ namespace WinCFScan
         private string[] getCheckedCFIPList(bool getIPCount = false)
         {
             return listCFIPList.CheckedItems.Cast<ListViewItem>()
-                                 .Select(item => {
+                                 .Select(item =>
+                                 {
                                      return getIPCount ? item.SubItems[1].Text : item.SubItems[0].Text;
-                                     })
+                                 })
                                  .ToArray<string>();
 
-     
+
         }
 
         // list view right click
         private void listResults_MouseClick(object sender, MouseEventArgs e)
         {
-            if(e.Button == MouseButtons.Right) {
+            if (e.Button == MouseButtons.Right)
+            {
                 mnuListViewCopyIP.Text = "Copy IP Address " + getSelectedIPAddress();
                 mnuListView.Show(listResults, e.X, e.Y);
             }
@@ -427,33 +507,33 @@ namespace WinCFScan
         // add cloudflare ip ranges to list view
         private void loadCFIPListView()
         {
-            if(scanEngine.cfIPList == null)
+            if (!scanEngine.ipListLoader.isIPListValid())
             {
-                addTextLog("Cloudflare IP range file is not found!");
+                addTextLog("Cloudflare IP range file is not valid!");
                 lblCFIPListStatus.Text = "Failed to load IP ranges.";
                 lblCFIPListStatus.ForeColor = Color.Red;
                 return;
             }
+            else
+            {
+                lblCFIPListStatus.ForeColor = Color.Black;
+            }
 
+            listCFIPList.Items.Clear(); 
             listCFIPList.BeginUpdate();
             isUpdatinglistCFIP = true;
             uint totalIPs = 0;
             addTextLog($"Loading Cloudflare IPs ranges...");
 
-            foreach (var ipRange in scanEngine.cfIPList)
+            foreach (var ipRange in scanEngine.ipListLoader.validIPRanges)
             {
-                if (ipRange != "")
-                {
-                    var rangeTotalIPs = IPAddressExtensions.getIPRangeTotalIPs(ipRange);
-                    var item = listCFIPList.Items.Add(new ListViewItem(new string[] { ipRange, $"{rangeTotalIPs:n0}" }));
-                    item.Checked = true;
-                    totalIPs += rangeTotalIPs;
-                }
+                var lvwItem = listCFIPList.Items.Add(new ListViewItem(new string[] { ipRange.rangeText, $"{ipRange.totalIps:n0}" }));
+                lvwItem.Checked= true;
             }
 
             listCFIPList.EndUpdate();
             isUpdatinglistCFIP = false;
-            addTextLog($"Total {totalIPs:n0} Cloudflare IPs are ready to be scanned.");
+            addTextLog($"Total {scanEngine.ipListLoader.totalIPs:n0} Cloudflare IPs are ready to be scanned.");
             updateCFIPListStatusText();
         }
 
@@ -461,7 +541,7 @@ namespace WinCFScan
         private void mnuListViewTestThisIPAddress_Click(object sender, EventArgs e)
         {
             var IPAddress = getSelectedIPAddress();
-            if(IPAddress != null)
+            if (IPAddress != null)
             {
                 testSingleIP(IPAddress);
             }
@@ -484,7 +564,7 @@ namespace WinCFScan
             {
                 return listResults.SelectedItems[0].SubItems[1].Text;
             }
-            catch (Exception ex) {}
+            catch (Exception ex) { }
 
             return null;
         }
@@ -511,7 +591,7 @@ namespace WinCFScan
                 lblCFIPListStatus.Text = $"{ipRangeCounts.Length} Cloudflare IP ranges are selected, contains {sum:n0} IPs";
             }
             catch (Exception)
-            {}
+            { }
         }
 
         private void btnSelectAllIPRanges_Click(object sender, EventArgs e)
@@ -539,7 +619,7 @@ namespace WinCFScan
 
         private void listCFIPList_ItemChecked(object sender, ItemCheckedEventArgs e)
         {
-            if(!isUpdatinglistCFIP)
+            if (!isUpdatinglistCFIP)
                 updateCFIPListStatusText();
         }
 
@@ -557,15 +637,15 @@ namespace WinCFScan
 
         private void waitUntilScannerStoped()
         {
-            if (scanEngine.progressInfo.isScanRunning)
-            {                
+            if (isScanRunning())
+            {
                 // stop scan
                 scanEngine.stop();
                 do
                 {
                     System.Windows.Forms.Application.DoEvents();
                     Thread.Sleep(100);
-                } while (scanEngine.progressInfo.isScanRunning);
+                } while (isScanRunning());
 
             }
         }
@@ -582,6 +662,166 @@ namespace WinCFScan
                 addTextLog($"Visit us on {ourGitHubUrl}");
                 throw;
             }
+        }
+
+        // sort CF Ranges listview
+        private void listCFIPList_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            sortListView(listCFIPList, listCFIPsColumnSorter, e.Column);
+        }
+
+        // sort Results listview
+        private void listResults_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            sortListView(listResults, listResultsColumnSorter, e.Column);
+        }
+
+        // sort listview
+        private void sortListView(ListView listView, ListViewColumnSorter columnSorter, int columnNumber)
+        {
+            // Determine if clicked column is already the column that is being sorted.
+            if (columnNumber == columnSorter.SortColumn)
+            {
+                // Reverse the current sort direction for this column.
+                if (columnSorter.Order == SortOrder.Ascending)
+                {
+                    columnSorter.Order = SortOrder.Descending;
+                }
+                else
+                {
+                    columnSorter.Order = SortOrder.Ascending;
+                }
+            }
+            else
+            {
+                // Set the column number that is to be sorted; default to ascending.
+                columnSorter.SortColumn = columnNumber;
+                columnSorter.Order = SortOrder.Ascending;
+            }
+
+            // Perform the sort with these new sort options.
+            listView.Sort();
+        }
+
+        // test user provided ip
+        private void scanASingleIPAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string input = Tools.ShowDialog("Enter a valid IP address:", "Test Sigle IP Address");
+
+            if(input == "" || input == null) { return; }
+
+            if(! IPAddressExtensions.isValidIPAddress(input))
+            {
+                // msg
+                MessageBox.Show("Invalid IP address is entered!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+           testSingleIP(input);
+        }
+
+        private void mnuListViewCopyIP_Click(object sender, EventArgs e)
+        {
+            var IPAddr = getSelectedIPAddress();
+            if (IPAddr != null)
+            {
+                try
+                {
+                    Clipboard.SetText(IPAddr);
+                }
+                catch (Exception ex) {
+                    addTextLog("Could not copy to clipboard!");
+                }
+            }
+        }
+
+        private void btnLoadIPRanges_Click(object sender, EventArgs e)
+        {
+            loadCustomCPIPList();
+        }
+
+        private void loadCustomIPRangesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            loadCustomCPIPList();
+        }
+
+        // load custom ip ranges from disk by user input
+        private void loadCustomCPIPList()
+        {
+            if (isScanRunning())
+                return;
+
+            openFileDialog1.Title = "Load custom cloudflare IP ranges";
+            var result = openFileDialog1.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                if (scanEngine.loadCFIPList(openFileDialog1.FileName))
+                {
+                    loadCFIPListView();
+                    tabControl1.SelectedIndex = 0;
+                }
+                else
+                {
+                    addTextLog($"Could not find any valid IP ranges in '{openFileDialog1.FileName}'");
+                }
+            };
+
+        }
+
+        private void exportScanResultsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            exportResults();
+        }
+
+        // export results
+        private void exportResults()
+        {
+            var resultIPs = isScanRunning() ? scanEngine.progressInfo.scanResults.workingIPs : currentScanResults;
+            if (resultIPs.Count == 0)
+            {
+                addTextLog("Current results list is empty!");
+                return;
+            }
+
+            saveFileDialog1.Title = $"Saving {resultIPs.Count} IP addressses";
+            saveFileDialog1.FileName = $"scan-results-{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")}.txt";
+            saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            var result = saveFileDialog1.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                var scanResults = new ScanResults(resultIPs, saveFileDialog1.FileName);
+                bool isSaved = scanResults.savePlain();
+                if (isSaved)
+                {
+                    addTextLog($"{scanResults.totalFoundWorkingIPs} IPs exported into '{saveFileDialog1.FileName}'");
+                }
+                else
+                {
+                    addTextLog($"Could save into '{saveFileDialog1.FileName}'");
+                }
+            };
+        }
+
+        private bool isScanRunning()
+        {
+            return scanEngine.progressInfo.isScanRunning;
+        }
+
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Windows.Forms.Application.Exit();
+        }
+
+        private void importScanResultsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            importResults();
+        }
+
+        private void btnResultsActions_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

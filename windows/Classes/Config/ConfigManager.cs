@@ -11,6 +11,7 @@ namespace WinCFScan.Classes.Config
     internal class ConfigManager
     {
         protected string v2rayTemplateConfigFileName = "v2ray-config/config.json.template";
+        protected string enableDebugFileName = "enable-debug"; // debug enabler file
         public string? v2rayConfigTemplate { get; private set; }
         protected string[] mandatoryDirectories = { "v2ray-config", "v2ray-config/generated", "results" }; //this dirs must be existed
 
@@ -21,6 +22,7 @@ namespace WinCFScan.Classes.Config
         protected bool loadedOK = true;
 
         public static ConfigManager? Instance { get; private set; }
+        public bool enableDebug = false;
 
         public ConfigManager()
         {
@@ -31,6 +33,8 @@ namespace WinCFScan.Classes.Config
 
             // set static instance for later access of this instance
             Instance = this;
+
+            checkDebugEnable();
         }
 
         protected bool load()
@@ -72,6 +76,7 @@ namespace WinCFScan.Classes.Config
             }
             catch(Exception ex)
             {
+                Tools.logStep($"ConfigManager.load() had exception: {ex.Message}");
                 errorMessage = ex.Message;
                 return false;
             }
@@ -87,6 +92,12 @@ namespace WinCFScan.Classes.Config
             }
 
             return false;
+        }
+
+        // debugging enabled from outside?
+        private void checkDebugEnable()
+        {
+            enableDebug = File.Exists(enableDebugFileName) || File.Exists(enableDebugFileName + ".txt");
         }
 
 
