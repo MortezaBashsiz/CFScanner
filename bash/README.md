@@ -1,6 +1,7 @@
 ## Requirements
 You have to install the following packages:
 
+[jq](https://stedolan.github.io/jq/)<br>
 [git](https://git-scm.com/)<br>
 [tput](https://command-not-found.com/tput)<br>
 [bc](https://www.gnu.org/software/bc/)<br>
@@ -29,11 +30,15 @@ You have to install the following packages:
 
 In the config file the variables are
 ```shell
-id:         User's UUID
-Host:       Host address which is behind Cloudflare
-Port:       Port which you are using behind Cloudflare on your origin server
-path:       Websocket endpoint like api20
-serverName: SNI
+{
+	"id": "User's UUID",
+	"Host": "Host address which is behind Cloudflare",
+	"Port": "Port which you are using behind Cloudflare on your origin server",
+	"path": "Websocket endpoint like api20",
+	"serverName": "SNI",
+	"frontDomain": "fronting domain check",
+	"scanDomain": "scan domain which is behind CF for download test"
+}
 ```
 
 NOTE: If you want to use your custom config DO NOT use it as config.real since script will update this file. Store your config in another file and pass it as an argument to script instead of config.real
