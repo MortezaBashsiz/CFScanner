@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using WinCFScan.Classes.IP;
 
 namespace WinCFScan.Classes.Config
 {
@@ -60,6 +61,45 @@ namespace WinCFScan.Classes.Config
             }
 
             return true;
+        }
+
+        public bool loadPlain()
+        {
+            try
+            {
+                if (!File.Exists(resultsFileName) || (new FileInfo(resultsFileName)).Length > 2 * 1_000_000)
+                {
+                    return false;
+                }
+
+                string plainString = File.ReadAllText(resultsFileName);
+                long delay = 0; string ip;
+                foreach(var line in plainString.Split("\n"))
+                {
+                    ip = line; delay = 0;
+                    if(line.Contains(" - "))
+                    {
+                        var splited = line.Split(" - ");
+                        long.TryParse(splited[0], out delay);
+                        ip = splited[1];
+                    }
+
+                    if(IPAddressExtensions.isValidIPAddress(ip))
+                    {
+                        this.addIPResult(delay, ip);
+                    }
+
+                }
+                loadedInstance = this;
+
+            }
+            catch (Exception ex)
+            {
+                Tools.logStep($"ScanResults.loadPlain() had exception: {ex.Message}");
+                return false;
+            }
+
+            return this.totalFoundWorkingIPs > 0;
         }
 
         public bool save(bool sortBeforeSave = true)

@@ -175,7 +175,7 @@ namespace WinCFScan
                 listResults.Items.Clear();
                 btnStart.Text = "Stop Scan";
                 btnScanInPrevResults.Enabled = false;
-                btnDeleteResult.Enabled = false;
+                btnResultsActions.Enabled = false;
                 comboConcurrent.Enabled = false;
                 timerProgress.Enabled = true;
                 btnSkipCurRange.Enabled = true;
@@ -186,7 +186,7 @@ namespace WinCFScan
             {   // is stopping
                 btnStart.Text = "Start Scan";
                 btnScanInPrevResults.Enabled = true;
-                btnDeleteResult.Enabled = true;
+                btnResultsActions.Enabled = true;
                 timerProgress.Enabled = false;
                 btnSkipCurRange.Enabled = false;
                 comboResults.Enabled = true;
@@ -311,21 +311,22 @@ namespace WinCFScan
         }
 
         // load previous results into list view
-        private void fillResultsListView(string resultsFileName)
+        private void fillResultsListView(string resultsFileName, bool plainFile = false)
         {
             var results = new ScanResults(resultsFileName);
-            if (results.load())
+            bool isLoaded = plainFile ? results.loadPlain() : results.load();
+            if (isLoaded)
             {
                 listResults.Items.Clear();
-                var loaded = results.getLoadedInstance();
-                this.currentScanResults = loaded.workingIPs;
+                var loadedResults = results.getLoadedInstance();
+                this.currentScanResults = loadedResults.workingIPs;
                 addResulItemsToListView(currentScanResults);
 
-                addTextLog($"'{resultsFileName}' loaded with {loaded.totalFoundWorkingIPs:n0} working IPs, scan time: {loaded.startDate}");
+                addTextLog($"'{resultsFileName}' loaded with {loadedResults.totalFoundWorkingIPs:n0} working IPs, scan time: {loadedResults.startDate}");
             }
             else
             {
-                addTextLog($"Could not load scan result file from disk: {resultsFileName}");
+                addTextLog($"Could not load scan result file from disk: '{resultsFileName}'");
             }
         }
 
@@ -413,9 +414,48 @@ namespace WinCFScan
             catch (Exception ex) { }
         }
 
-        // delete result
-        private void btnDeleteResult_Click(object sender, EventArgs e)
+        // results actions
+        private void btnResultsActions_MouseClick(object sender, MouseEventArgs e)
         {
+           mnuResultsActions.Show(this, btnResultsActions.Left + 5 , splitContainer1.Top +  btnResultsActions.Top + btnResultsActions.Height+ 25);
+        }
+
+        private void deleteResultsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            deleteResultItem();
+        }
+
+        private void exportResultsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            exportResults();
+        }
+
+        private void importResultsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            importResults();
+        }
+
+        private void importResults()
+        {
+            if (isScanRunning())
+                return;
+
+            openFileDialog1.Title = "Import IP results";
+            var result = openFileDialog1.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                fillResultsListView(openFileDialog1.FileName, true);
+                tabControl1.SelectedIndex = 1;
+           };
+
+        }
+
+        private void deleteResultItem()
+        {
+            if (isScanRunning())
+                return;
+
             string? filename = getSelectedScanResultFilename();
             if (filename != null)
             {
@@ -719,6 +759,7 @@ namespace WinCFScan
                 if (scanEngine.loadCFIPList(openFileDialog1.FileName))
                 {
                     loadCFIPListView();
+                    tabControl1.SelectedIndex = 0;
                 }
                 else
                 {
@@ -726,11 +767,6 @@ namespace WinCFScan
                 }
             };
 
-        }
-
-        private void cmdExportResults_Click(object sender, EventArgs e)
-        {
-            exportResults();
         }
 
         private void exportScanResultsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -744,7 +780,7 @@ namespace WinCFScan
             var resultIPs = isScanRunning() ? scanEngine.progressInfo.scanResults.workingIPs : currentScanResults;
             if (resultIPs.Count == 0)
             {
-                addTextLog("Current result list is empty!");
+                addTextLog("Current results list is empty!");
                 return;
             }
 
@@ -766,8 +802,6 @@ namespace WinCFScan
                     addTextLog($"Could save into '{saveFileDialog1.FileName}'");
                 }
             };
-
-
         }
 
         private bool isScanRunning()
@@ -775,5 +809,19 @@ namespace WinCFScan
             return scanEngine.progressInfo.isScanRunning;
         }
 
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            System.Windows.Forms.Application.Exit();
+        }
+
+        private void importScanResultsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            importResults();
+        }
+
+        private void btnResultsActions_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

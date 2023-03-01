@@ -23,7 +23,7 @@ namespace WinCFScan.Classes
 
         private bool loadList(string fileName)
         {
-            if (!File.Exists(fileName) && (new FileInfo(fileName)).Length < 2 * 1_000_000)
+            if (!File.Exists(fileName) || (new FileInfo(fileName)).Length > 2 * 1_000_000)
             {
                 return false;
             }

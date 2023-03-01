@@ -67,19 +67,25 @@
             this.headIPRange = new System.Windows.Forms.ColumnHeader();
             this.headTotalIPs = new System.Windows.Forms.ColumnHeader();
             this.tabPageResults = new System.Windows.Forms.TabPage();
-            this.cmdExportResults = new System.Windows.Forms.Button();
             this.lblPrevListTotalIPs = new System.Windows.Forms.Label();
             this.lblPrevResults = new System.Windows.Forms.Label();
-            this.btnDeleteResult = new System.Windows.Forms.Button();
+            this.btnResultsActions = new System.Windows.Forms.Button();
             this.mnuMain = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadCustomIPRangesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
+            this.importScanResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportScanResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scanASingleIPAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.exportScanResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.mnuResultsActions = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.exportResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.deleteResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.mnuListView.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -90,11 +96,13 @@
             this.tabPageCFRanges.SuspendLayout();
             this.tabPageResults.SuspendLayout();
             this.mnuMain.SuspendLayout();
+            this.mnuResultsActions.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnStart
             // 
             this.btnStart.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnStart.Font = new System.Drawing.Font("Segoe UI Semibold", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnStart.Location = new System.Drawing.Point(685, 19);
             this.btnStart.Name = "btnStart";
             this.btnStart.Size = new System.Drawing.Size(89, 52);
@@ -373,20 +381,20 @@
             this.mnuListViewCopyIP,
             this.mnuListViewTestThisIPAddress});
             this.mnuListView.Name = "mnuListView";
-            this.mnuListView.Size = new System.Drawing.Size(175, 48);
+            this.mnuListView.Size = new System.Drawing.Size(173, 48);
             // 
             // mnuListViewCopyIP
             // 
             this.mnuListViewCopyIP.Name = "mnuListViewCopyIP";
-            this.mnuListViewCopyIP.Size = new System.Drawing.Size(174, 22);
-            this.mnuListViewCopyIP.Text = "Copy IP Address";
+            this.mnuListViewCopyIP.Size = new System.Drawing.Size(172, 22);
+            this.mnuListViewCopyIP.Text = "Copy IP address";
             this.mnuListViewCopyIP.Click += new System.EventHandler(this.mnuListViewCopyIP_Click);
             // 
             // mnuListViewTestThisIPAddress
             // 
             this.mnuListViewTestThisIPAddress.Name = "mnuListViewTestThisIPAddress";
-            this.mnuListViewTestThisIPAddress.Size = new System.Drawing.Size(174, 22);
-            this.mnuListViewTestThisIPAddress.Text = "Test this IP Address";
+            this.mnuListViewTestThisIPAddress.Size = new System.Drawing.Size(172, 22);
+            this.mnuListViewTestThisIPAddress.Text = "Test this IP address";
             this.mnuListViewTestThisIPAddress.Click += new System.EventHandler(this.mnuListViewTestThisIPAddress_Click);
             // 
             // splitContainer1
@@ -496,10 +504,9 @@
             // 
             // tabPageResults
             // 
-            this.tabPageResults.Controls.Add(this.cmdExportResults);
             this.tabPageResults.Controls.Add(this.lblPrevListTotalIPs);
             this.tabPageResults.Controls.Add(this.lblPrevResults);
-            this.tabPageResults.Controls.Add(this.btnDeleteResult);
+            this.tabPageResults.Controls.Add(this.btnResultsActions);
             this.tabPageResults.Controls.Add(this.comboResults);
             this.tabPageResults.Controls.Add(this.btnScanInPrevResults);
             this.tabPageResults.Controls.Add(this.listResults);
@@ -510,16 +517,6 @@
             this.tabPageResults.TabIndex = 0;
             this.tabPageResults.Text = "Scan Results";
             this.tabPageResults.UseVisualStyleBackColor = true;
-            // 
-            // cmdExportResults
-            // 
-            this.cmdExportResults.Location = new System.Drawing.Point(675, 11);
-            this.cmdExportResults.Name = "cmdExportResults";
-            this.cmdExportResults.Size = new System.Drawing.Size(91, 23);
-            this.cmdExportResults.TabIndex = 10;
-            this.cmdExportResults.Text = "Export";
-            this.cmdExportResults.UseVisualStyleBackColor = true;
-            this.cmdExportResults.Click += new System.EventHandler(this.cmdExportResults_Click);
             // 
             // lblPrevListTotalIPs
             // 
@@ -539,15 +536,16 @@
             this.lblPrevResults.TabIndex = 7;
             this.lblPrevResults.Text = "Previous scan results:";
             // 
-            // btnDeleteResult
+            // btnResultsActions
             // 
-            this.btnDeleteResult.Location = new System.Drawing.Point(538, 11);
-            this.btnDeleteResult.Name = "btnDeleteResult";
-            this.btnDeleteResult.Size = new System.Drawing.Size(131, 23);
-            this.btnDeleteResult.TabIndex = 8;
-            this.btnDeleteResult.Text = "Delete current result";
-            this.btnDeleteResult.UseVisualStyleBackColor = true;
-            this.btnDeleteResult.Click += new System.EventHandler(this.btnDeleteResult_Click);
+            this.btnResultsActions.Location = new System.Drawing.Point(538, 11);
+            this.btnResultsActions.Name = "btnResultsActions";
+            this.btnResultsActions.Size = new System.Drawing.Size(131, 23);
+            this.btnResultsActions.TabIndex = 8;
+            this.btnResultsActions.Text = "Actions";
+            this.btnResultsActions.UseVisualStyleBackColor = true;
+            this.btnResultsActions.Click += new System.EventHandler(this.btnResultsActions_Click);
+            this.btnResultsActions.MouseClick += new System.Windows.Forms.MouseEventHandler(this.btnResultsActions_MouseClick);
             // 
             // mnuMain
             // 
@@ -564,7 +562,10 @@
             // 
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.loadCustomIPRangesToolStripMenuItem,
+            this.toolStripMenuItem1,
+            this.importScanResultsToolStripMenuItem,
             this.exportScanResultsToolStripMenuItem,
+            this.toolStripMenuItem2,
             this.exitToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
@@ -577,11 +578,36 @@
             this.loadCustomIPRangesToolStripMenuItem.Text = "Load custom IP ranges";
             this.loadCustomIPRangesToolStripMenuItem.Click += new System.EventHandler(this.loadCustomIPRangesToolStripMenuItem_Click);
             // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(191, 6);
+            // 
+            // importScanResultsToolStripMenuItem
+            // 
+            this.importScanResultsToolStripMenuItem.Name = "importScanResultsToolStripMenuItem";
+            this.importScanResultsToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.importScanResultsToolStripMenuItem.Text = "Import scan results";
+            this.importScanResultsToolStripMenuItem.Click += new System.EventHandler(this.importScanResultsToolStripMenuItem_Click);
+            // 
+            // exportScanResultsToolStripMenuItem
+            // 
+            this.exportScanResultsToolStripMenuItem.Name = "exportScanResultsToolStripMenuItem";
+            this.exportScanResultsToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
+            this.exportScanResultsToolStripMenuItem.Text = "Export scan results";
+            this.exportScanResultsToolStripMenuItem.Click += new System.EventHandler(this.exportScanResultsToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem2
+            // 
+            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(191, 6);
+            // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
             this.exitToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
             this.exitToolStripMenuItem.Text = "Exit";
+            this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // toolsToolStripMenuItem
             // 
@@ -608,12 +634,36 @@
             this.saveFileDialog1.DefaultExt = "txt";
             this.saveFileDialog1.RestoreDirectory = true;
             // 
-            // exportScanResultsToolStripMenuItem
+            // mnuResultsActions
             // 
-            this.exportScanResultsToolStripMenuItem.Name = "exportScanResultsToolStripMenuItem";
-            this.exportScanResultsToolStripMenuItem.Size = new System.Drawing.Size(194, 22);
-            this.exportScanResultsToolStripMenuItem.Text = "Export scan results";
-            this.exportScanResultsToolStripMenuItem.Click += new System.EventHandler(this.exportScanResultsToolStripMenuItem_Click);
+            this.mnuResultsActions.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.exportResultsToolStripMenuItem,
+            this.importResultsToolStripMenuItem,
+            this.deleteResultsToolStripMenuItem});
+            this.mnuResultsActions.Name = "mnuResultsActions";
+            this.mnuResultsActions.Size = new System.Drawing.Size(148, 70);
+            this.mnuResultsActions.Text = "Actions";
+            // 
+            // exportResultsToolStripMenuItem
+            // 
+            this.exportResultsToolStripMenuItem.Name = "exportResultsToolStripMenuItem";
+            this.exportResultsToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.exportResultsToolStripMenuItem.Text = "Export results";
+            this.exportResultsToolStripMenuItem.Click += new System.EventHandler(this.exportResultsToolStripMenuItem_Click);
+            // 
+            // importResultsToolStripMenuItem
+            // 
+            this.importResultsToolStripMenuItem.Name = "importResultsToolStripMenuItem";
+            this.importResultsToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.importResultsToolStripMenuItem.Text = "Import results";
+            this.importResultsToolStripMenuItem.Click += new System.EventHandler(this.importResultsToolStripMenuItem_Click);
+            // 
+            // deleteResultsToolStripMenuItem
+            // 
+            this.deleteResultsToolStripMenuItem.Name = "deleteResultsToolStripMenuItem";
+            this.deleteResultsToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
+            this.deleteResultsToolStripMenuItem.Text = "Delete results";
+            this.deleteResultsToolStripMenuItem.Click += new System.EventHandler(this.deleteResultsToolStripMenuItem_Click);
             // 
             // frmMain
             // 
@@ -642,6 +692,7 @@
             this.tabPageResults.PerformLayout();
             this.mnuMain.ResumeLayout(false);
             this.mnuMain.PerformLayout();
+            this.mnuResultsActions.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -670,7 +721,7 @@
         private Label lblPrevResults;
         private ComboBox comboConcurrent;
         private Label lblConcurrent;
-        private Button btnDeleteResult;
+        private Button btnResultsActions;
         private TextBox txtFastestIP;
         private Label lblFastestIP;
         private Button btnCopyFastestIP;
@@ -696,9 +747,15 @@
         private Label lblDebugMode;
         private Button btnLoadIPRanges;
         private OpenFileDialog openFileDialog1;
-        private Button cmdExportResults;
         private ToolStripMenuItem loadCustomIPRangesToolStripMenuItem;
         private SaveFileDialog saveFileDialog1;
         private ToolStripMenuItem exportScanResultsToolStripMenuItem;
+        private ContextMenuStrip mnuResultsActions;
+        private ToolStripMenuItem exportResultsToolStripMenuItem;
+        private ToolStripMenuItem importResultsToolStripMenuItem;
+        private ToolStripMenuItem deleteResultsToolStripMenuItem;
+        private ToolStripSeparator toolStripMenuItem1;
+        private ToolStripMenuItem importScanResultsToolStripMenuItem;
+        private ToolStripSeparator toolStripMenuItem2;
     }
 }
