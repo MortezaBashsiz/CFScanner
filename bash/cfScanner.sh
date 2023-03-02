@@ -500,7 +500,7 @@ else
 	echo ""
 fi
 
-downloadSize="$speed""000"
+downloadSize="$(( 2*speed ))000"
 fncValidateConfig "$config"
 
 if [[ "$mode" == "SUBNET" ]]
