@@ -25,7 +25,7 @@ You have to install the following packages:
 ### 3. Get config.real
 
 ```shell
-[~/CFScanner/bash]>$ curl -s http://bot.sudoer.net/config.real -o ./config.real
+[~/CFScanner/bash]>$ curl -s https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/ClientConfig.json -o config.real
 ```
 
 In the config file the variables are
@@ -56,19 +56,19 @@ Speed: This is the filter that you can define to list the IPs based on download 
 Custom Subnet File: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET threads tryCount ./config.real speed [Custome Subnet File]
+[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET threads tryCount config.real speed [Custome Subnet File]
 ```
 
 #### EXAMPLE: without custom subnet
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET 8 1 ./config.real 100
+[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET 8 1 config.real 100
 ```
 
 #### EXAMPLE: with custom subnet
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET 8 1 ./config.real 100 ./custom.subnets
+[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET 8 1 config.real 100 custom.subnets
 ```
 
 Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
@@ -83,7 +83,7 @@ Which the `custom.subnets` is like as follows. You can edit this file and add yo
 #### EXAMPLE: with custom ip file
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh IP 8 1 ./config.real 100 ./ip.list
+[~/CFScanner/bash]>$ bash cfScanner.sh IP 8 1 config.real 100 ip.list
 ```
 
 Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
