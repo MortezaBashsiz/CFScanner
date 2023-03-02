@@ -1,8 +1,0 @@
-{
-	"id": "248ecb72-89cf-5be7-923f-b790fca681c5",
-	"host": "scherehtzhel01.sudoer.net",
-	"port": "443",
-	"path": "api01",
-	"serverName": "248ecb72-89cf-5be7-923f-b790fca681c5.sudoer.net",
-	"subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/cf.local.iplist"
-}
