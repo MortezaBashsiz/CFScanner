@@ -45,11 +45,13 @@ NOTE: If you want to use your custom config DO NOT use it as config.real since s
 
 ### 4. Execute it
 
-At following command pay attention to the numbers **threads**, **speed** and **Custom Subnet File**.
+At following command pay attention to the numbers **threads**, **tryCount**, **speed** and **Custom Subnet File**.
 
 Threads: This is an integer number that defines the parallel threads count
 
-Speed: This is the filter that you can define to list the IPs based on download speed. The values must be one of [25 50 100 150 200 250 500], and all values are in KBPS (Kilo Bytes Per Second). For example, if you set it to 50, it means that you will only list the IPs which have a download speed of more than 50 KB/S.
+tryCount: This is an integer to define how many times you like to check an IP
+
+Speed: This is the filter that you can define to list the IPs based on download speed. The value is in KBPS (Kilo Bytes Per Second). For example, if you set it to 50, it means that you will only list the IPs which have a download speed of more than 50 KB/S.
 
 Custom Subnet File: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
 
