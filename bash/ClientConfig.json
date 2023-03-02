@@ -4,7 +4,5 @@
 	"Port": "443",
 	"path": "api01",
 	"serverName": "248ecb72-89cf-5be7-923f-b790fca681c5.sudoer.net",
-	"frontDomain": "fronting.sudoer.net",
-	"scanDomain": "scan.sudoer.net",
 	"subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/cf.local.iplist"
 }
