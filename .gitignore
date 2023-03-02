@@ -1,5 +1,6 @@
 config/
 result/
+files/
 bash/config.real
 bash/subnets.list
 windows/*.rsuser

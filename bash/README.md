@@ -45,7 +45,11 @@ NOTE: If you want to use your custom config DO NOT use it as config.real since s
 
 ### 4. Execute it
 
-At following command pay attention to the numbers **threads**, **tryCount**, **speed** and **Custom Subnet File**.
+At following command pay attention to the arguments **SUBNET or IP** **DOWN or UP** **threads**, **tryCount**, **speed** and **Custom Subnet File**.
+
+SUBNET or IP: Choose one of them for scanning subnets or single IPs
+
+DOWN or UP: Choos one of them for download and upload test
 
 Threads: This is an integer number that defines the parallel threads count
 
@@ -56,19 +60,25 @@ Speed: This is the filter that you can define to list the IPs based on download 
 Custom Subnet File: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET threads tryCount config.real speed [Custome Subnet File]
+[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET DOWN threads tryCount config.real speed [Custome Subnet File]
 ```
 
-#### EXAMPLE: without custom subnet
+#### EXAMPLE: without custom subnet download
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET 8 1 config.real 100
+[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET DOWN 8 1 config.real 100
+```
+
+#### EXAMPLE: without custom subnet upload
+
+```shell
+[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET UP 8 1 config.real 100
 ```
 
 #### EXAMPLE: with custom subnet
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET 8 1 config.real 100 custom.subnets
+[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET DOWN 8 1 config.real 100 custom.subnets
 ```
 
 Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
