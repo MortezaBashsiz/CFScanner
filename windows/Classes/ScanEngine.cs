@@ -187,11 +187,16 @@ namespace WinCFScan.Classes
 
         internal void stop()
         {
-            if(progressInfo.isScanRunning)
+            try
             {
-                progressInfo.stopRequested = true;
-                cts.Cancel();
+                if (progressInfo.isScanRunning)
+                {
+                    progressInfo.stopRequested = true;
+                    cts.Cancel();
+                }
             }
+            catch (Exception)
+            {}
         }
 
         public void skipCurrentIPRange() {

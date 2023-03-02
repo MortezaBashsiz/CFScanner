@@ -16,7 +16,7 @@ namespace WinCFScan.Classes.Config
         protected string[] mandatoryDirectories = { "v2ray-config", "v2ray-config/generated", "results" }; //this dirs must be existed
 
         protected AppConfig? appConfig;
-        protected RealConfig? realConfig;
+        protected ClientConfig? clientConfig;
 
         public string errorMessage { get; set; } = "";
         protected bool loadedOK = true;
@@ -28,7 +28,7 @@ namespace WinCFScan.Classes.Config
         {
             if (this.load() && appConfig != null)
             {
-                realConfig = new RealConfig(appConfig);
+                clientConfig = (new ClientConfig(appConfig)).getLoadedInstance();
             }
 
             // set static instance for later access of this instance
@@ -81,12 +81,16 @@ namespace WinCFScan.Classes.Config
                 return false;
             }
 
-            return isConfigValid();
+            return true;
         }
 
         public bool isConfigValid()
         {
-            if(appConfig != null && appConfig.isConfigValid() && v2rayConfigTemplate != null && loadedOK)
+            if(
+                appConfig != null && appConfig.isConfigValid() && 
+                v2rayConfigTemplate != null && loadedOK && 
+                clientConfig != null && clientConfig.isConfigValid()
+                )
             {
                 return true;
             }
@@ -106,9 +110,9 @@ namespace WinCFScan.Classes.Config
             return this.appConfig;
         }
 
-        public RealConfig? getRealConfig()
+        public ClientConfig? getClientConfig()
         {
-            return this.realConfig;
+            return this.clientConfig;
         }
     }
 }

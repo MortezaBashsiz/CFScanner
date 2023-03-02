@@ -123,7 +123,7 @@ namespace WinCFScan.Classes
             try
             {
                 sw.Start();
-                string dlUrl = "https://" + ConfigManager.Instance.getAppConfig().scanDomain + "/data.100k";
+                string dlUrl = "https://" + ConfigManager.Instance.getAppConfig().scanDomain + "100000";
                 Tools.logStep($"Starting dl url: {dlUrl}");
                 var data = client.GetStringAsync(dlUrl).Result;
                 Tools.logStep($"*** Download success in {sw.ElapsedMilliseconds:n0} ms, dl size: {data.Length:n0} bytes for IP {ip}");
@@ -148,16 +148,16 @@ namespace WinCFScan.Classes
             try
             {
                 var configTemplate = ConfigManager.Instance.v2rayConfigTemplate;
-                RealConfig realConfig = ConfigManager.Instance.getRealConfig();
+                ClientConfig clientConfig = ConfigManager.Instance.getClientConfig();
 
                 configTemplate = configTemplate
-                    .Replace("IDID", realConfig.id)
+                    .Replace("IDID", clientConfig.id)
                     .Replace("PORTPORT", port)
-                    .Replace("HOSTHOST", realConfig.host)
-                    .Replace("CFPORTCFPORT", realConfig.port)
-                    .Replace("RANDOMHOST", realConfig.serverName)
+                    .Replace("HOSTHOST", clientConfig.host)
+                    .Replace("CFPORTCFPORT", clientConfig.port)
+                    .Replace("RANDOMHOST", clientConfig.serverName)
                     .Replace("IP.IP.IP.IP", this.ip)
-                    .Replace("ENDPOINTENDPOINT", realConfig.path);
+                    .Replace("ENDPOINTENDPOINT", clientConfig.path);
 
                 File.WriteAllText(v2rayConfigPath, configTemplate);
 
@@ -197,6 +197,13 @@ namespace WinCFScan.Classes
             Thread.Sleep(1500);
             bool wasSuccess = process.Responding && !process.HasExited;
             Tools.logStep($"v2ray.exe executed success:  {wasSuccess}");
+
+            // log error
+            if (!wasSuccess)
+            {
+                Tools.logStep($"v2ray.exe Error: {process.StandardError.ReadToEnd()}");
+            }
+
             return wasSuccess;
         }
 

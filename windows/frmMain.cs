@@ -25,6 +25,7 @@ namespace WinCFScan
         private ListViewColumnSorter listResultsColumnSorter;
         private ListViewColumnSorter listCFIPsColumnSorter;
         private Version appVersion;
+        private AppUpdateChecker appUpdateChecker;
 
         public frmMain()
         {
@@ -54,11 +55,14 @@ namespace WinCFScan
 
             loadLastResultsComboList();
 
-            appVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            appVersion = AppUpdateChecker.getCurrentVersion();
+
             DateTime buildDate = new DateTime(2000, 1, 1)
                                     .AddDays(appVersion.Build).AddSeconds(appVersion.Revision * 2);
             string displayableVersion = $" - {appVersion}";
             this.Text += displayableVersion;
+
+            appUpdateChecker = new AppUpdateChecker();
 
             // is debug mode enable? this line should be at bottom line
             checkEnableDebugMode();
@@ -72,7 +76,7 @@ namespace WinCFScan
                 comboConcurrent.Enabled = false;
                 lblDebugMode.Visible = true;
                 addTextLog("Debug mode is enabled. In this mode concurrent process is set to 1 and you can see scan debug data in 'debug.txt' file in the app directory.");
-                addTextLog("To exit debug mode delete 'enable-debug' file from the app directory and re-open the app.");
+                addTextLog("To exit debug mode delete 'enable-debug' file from the app directory and then re-open the app.");
                 Tools.logStep($"\n\nApp started. Version: {appVersion}");
             }
         }
@@ -218,8 +222,6 @@ namespace WinCFScan
                 listResultsColumnSorter.Order = SortOrder.Ascending;
                 listResultsColumnSorter.SortColumn = 0;
                 listResults.Sort();
-
-
             }
         }
 
@@ -233,7 +235,6 @@ namespace WinCFScan
                 updateUIControlls(false);
             }
         }
-
 
         private void timerProgress_Tick(object sender, EventArgs e)
         {
@@ -261,8 +262,6 @@ namespace WinCFScan
                 fetchWorkingIPResults();
                 pInf.scanResults.autoSave();
             }
-
-
         }
 
         // fetch new woriking ips and add to the list view while scanning
@@ -349,23 +348,24 @@ namespace WinCFScan
             {
                 //Load cf ip ranges
                 loadCFIPListView();
+               
 
-                // check if config real file is exists and update
-                if (configManager.getRealConfig() != null && configManager.getRealConfig().isConfigRealOld())
+                // check if client config file is exists and update
+                if (configManager.getClientConfig() != null && configManager.getClientConfig().isClientConfigOld())
                 {
-                    addTextLog("Updating real config from remote...");
-                    bool result = configManager.getRealConfig().remoteUpdateConfigReal();
+                    addTextLog("Updating client config from remote...");
+                    bool result = configManager.getClientConfig().remoteUpdateClientConfig();
                     if (result)
                     {
-                        addTextLog("'real config' is successfully updated.");
-                        if (!configManager.getRealConfig().isConfigValid())
+                        addTextLog("'client config' is successfully updated.");
+                        if (!configManager.getClientConfig().isConfigValid())
                         {
-                            addTextLog("'real config' data is not valid!");
+                            addTextLog("'client config' data is not valid!");
                         }
                     }
                     else
                     {
-                        addTextLog("Failed to update real config. check your internet connection or maybe real config update url is blocked by your ISP!");
+                        addTextLog("Failed to update client config. check your internet connection or maybe client config update url is blocked by your ISP!");
                     }
                 }
 
@@ -378,6 +378,19 @@ namespace WinCFScan
                         addTextLog($"Fronting domain is not accessible! you might need to get new fronting url from our github or check your internet connection.");
                     }
                 });
+
+                // check for updates
+                if (appUpdateChecker.shouldCheck())
+                {
+                    Task.Factory.StartNew(() => appUpdateChecker.check())
+                    .ContinueWith(done =>
+                    {
+                        if(appUpdateChecker.isFoundNewVersion())
+                        {
+                            addTextLog($"There is a new version available ({appUpdateChecker.getUpdateVersion()}) Download it from here: {ourGitHubUrl}/releases");
+                        }
+                    });
+                }
 
                 oneTimeChecked = true;
             }

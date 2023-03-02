@@ -13,7 +13,7 @@ namespace WinCFScan.Classes
 
         public static void logStep(string message)
         {
-            if(ConfigManager.Instance.enableDebug)
+            if(ConfigManager.Instance != null && ConfigManager.Instance.enableDebug)
             {
                 LogControl.Write(message, "debug.txt");
             }
