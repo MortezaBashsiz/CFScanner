@@ -344,7 +344,30 @@ function fncMainCFFindSubnet {
 	else
 		cfSubnetList=$(cat "$subnetsFile")
 	fi
-	ipListLength=$(echo "$cfSubnetList" | wc -l)
+	
+	ipListLength="0"
+	for subNet in ${cfSubnetList}
+	do
+		breakedSubnets=
+		maxSubnet=24
+		network=${subNet%/*}
+		netmask=${subNet#*/}
+		if [[ ${netmask} -ge ${maxSubnet} ]]
+		then
+		  breakedSubnets="${breakedSubnets} ${network}/${netmask}"
+		else
+		  for i in $(seq 0 $(( $(( 2 ** (maxSubnet - netmask) )) - 1 )) )
+		  do
+		    breakedSubnets="${breakedSubnets} $( fncLongIntToStr $(( $( fncIpToLongInt "${network}" ) + $(( 2 ** ( 32 - maxSubnet ) * i )) )) )/${maxSubnet}"
+		  done
+		fi
+		breakedSubnets=$(echo "${breakedSubnets}"|tr ' ' '\n')
+		for breakedSubnet in ${breakedSubnets}
+		do
+			ipListLength=$(( ipListLength+1 ))
+		done
+	done
+
 	passedIpsCount=0
 	for subNet in ${cfSubnetList}
 	do
