@@ -271,8 +271,8 @@ function fncValidateConfig {
 	then
 		echo "reading config ..."
 		configId=$(jq --raw-output .id "$config")	
-		configHost=$(jq --raw-output .Host "$config")	
-		configPort=$(jq --raw-output .Port "$config")	
+		configHost=$(jq --raw-output .host "$config")	
+		configPort=$(jq --raw-output .port "$config")	
 		configPath=$(jq --raw-output .path "$config")	
 		configServerName=$(jq --raw-output .serverName "$config")	
 		if ! [[ "$configId" ]] || ! [[ $configHost ]] || ! [[ $configPort ]] || ! [[ $configPath ]] || ! [[ $configServerName ]]
