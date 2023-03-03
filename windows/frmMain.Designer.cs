@@ -95,6 +95,7 @@
             this.exportResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.checkForUpdateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.mnuListView.SuspendLayout();
@@ -688,7 +689,8 @@
             // toolsToolStripMenuItem
             // 
             this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.scanASingleIPAddressToolStripMenuItem});
+            this.scanASingleIPAddressToolStripMenuItem,
+            this.checkForUpdateToolStripMenuItem});
             this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             this.toolsToolStripMenuItem.Size = new System.Drawing.Size(46, 20);
             this.toolsToolStripMenuItem.Text = "Tools";
@@ -740,6 +742,13 @@
             this.deleteResultsToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
             this.deleteResultsToolStripMenuItem.Text = "Delete results";
             this.deleteResultsToolStripMenuItem.Click += new System.EventHandler(this.deleteResultsToolStripMenuItem_Click);
+            // 
+            // checkForUpdateToolStripMenuItem
+            // 
+            this.checkForUpdateToolStripMenuItem.Name = "checkForUpdateToolStripMenuItem";
+            this.checkForUpdateToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.checkForUpdateToolStripMenuItem.Text = "Check for update";
+            this.checkForUpdateToolStripMenuItem.Click += new System.EventHandler(this.checkForUpdateToolStripMenuItem_Click);
             // 
             // frmMain
             // 
@@ -842,5 +851,6 @@
         private ToolStripMenuItem mnuPauseScan;
         private ToolStripButton btnSkipCurRange;
         private ToolStripSeparator toolStripSeparator3;
+        private ToolStripMenuItem checkForUpdateToolStripMenuItem;
     }
 }

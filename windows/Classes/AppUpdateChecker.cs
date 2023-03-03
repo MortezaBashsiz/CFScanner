@@ -17,6 +17,7 @@ namespace WinCFScan.Classes
         private string remoteVersionUrl = "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/windows/Properties/latest-version";
         private string localVersionFileName = "local-version";
         private bool foundNewVersion = false;
+        public UpdateCheckResult updateCheckResult;
 
         public static Version getCurrentVersion()
         {
@@ -33,12 +34,14 @@ namespace WinCFScan.Classes
             if(getRemoteVersion())
             {
                 foundNewVersion = isNewVersionAvailable();
-                return foundNewVersion ? UpdateCheckResult.NewVersionAvailable : UpdateCheckResult.NewVersionAvailable;
+                updateCheckResult = foundNewVersion ? UpdateCheckResult.NewVersionAvailable : UpdateCheckResult.NewVersionAvailable;
             }
             else
             {
-                return UpdateCheckResult.HasError;
+                updateCheckResult = UpdateCheckResult.HasError;
             }
+
+            return updateCheckResult;
         }
 
         public bool isFoundNewVersion()
@@ -71,10 +74,10 @@ namespace WinCFScan.Classes
         // return true if remote version is higher
         private bool compareVersions() {
 
-            var remoteV = remoteVersion.Substring(2).Split(".").Sum(p => Convert.ToUInt32(p));
-            var localV = localVersion.Split(".").Sum(p => Convert.ToUInt32(p));
+            var remoteV = new Version(remoteVersion.Substring(2));
+            var localV = new Version(localVersion);
 
-            return remoteV > localV;
+            return remoteV.CompareTo(localV) == 1;
         }
 
         private bool isFileOld(string file)

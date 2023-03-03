@@ -388,18 +388,32 @@ namespace WinCFScan
                 // check for updates
                 if (appUpdateChecker.shouldCheck())
                 {
-                    Task.Factory.StartNew(() => appUpdateChecker.check())
-                    .ContinueWith(done =>
-                    {
-                        if(appUpdateChecker.isFoundNewVersion())
-                        {
-                            addTextLog($"There is a new version available ({appUpdateChecker.getUpdateVersion()}) Download it from here: {ourGitHubUrl}/releases");
-                        }
-                    });
+                    checkForUpdate();
                 }
 
                 oneTimeChecked = true;
             }
+        }
+
+        // check for update
+        private void checkForUpdate(bool logNoNewVersion = false)
+        {
+            Task.Factory.StartNew(() => { appUpdateChecker.check(); })
+            .ContinueWith(done =>
+            {
+                if (appUpdateChecker.isFoundNewVersion())
+                {
+                    addTextLog($"There is a new version available ({appUpdateChecker.getUpdateVersion()}) Download it from here: {ourGitHubUrl}/releases");
+                }
+                else if(appUpdateChecker.updateCheckResult == UpdateCheckResult.HasError)
+                {
+                    addTextLog("Something went wrong while checking for update!");
+                }
+                else if(logNoNewVersion)
+                {
+                    addTextLog("Everything is up to date.");
+                }
+            });
         }
 
         private void comboConcurrent_TextChanged(object sender, EventArgs e)
@@ -857,6 +871,12 @@ namespace WinCFScan
         private void btnStart_ButtonClick(object sender, EventArgs e)
         {
             startStopScan(false);
+        }
+
+        private void checkForUpdateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            addTextLog("Checking for new version...");
+            checkForUpdate(true);
         }
     }
 }

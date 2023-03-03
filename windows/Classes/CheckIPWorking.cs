@@ -121,7 +121,7 @@ namespace WinCFScan.Classes
             int timeout = 2;
             var client = new HttpClient(handler);
             client.Timeout = TimeSpan.FromSeconds(timeout); // 2 seconds
-            Tools.logStep($"Start check dl speed, proxy port: {port}, timeout: {client.Timeout.TotalSeconds} sec");
+            Tools.logStep($"Start check dl speed, proxy port: {port}, timeout: {timeout} sec, target speed: {targetSpeed.getTargetSpeed():n0} b/s");
             Stopwatch sw =  new Stopwatch();
             try
             {
