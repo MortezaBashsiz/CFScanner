@@ -145,6 +145,7 @@ function fncCheckIPList {
 	downloadOrUpload="${14}"
 	binDir="$scriptDir/../bin"
 	configDir="$scriptDir/../config"
+	configPath=$(echo "$configPath" | sed 's/\//\\\//g')
 	# set proper command for linux
 	if command -v timeout >/dev/null 2>&1; 
 	then
