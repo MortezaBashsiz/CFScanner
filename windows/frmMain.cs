@@ -125,6 +125,7 @@ namespace WinCFScan
             if (isScanRunning())
             {
                 // stop scan
+                btnStart.Enabled= false;
                 waitUntilScannerStoped();
                 updateUIControlls(false);
             }
@@ -157,6 +158,7 @@ namespace WinCFScan
 
                 updateUIControlls(true);
                 scanEngine.workingIPsFromPrevScan = inPrevResult ? currentScanResults : null;
+                 scanEngine.targetSpeed = getTargetSpeed(); // set target speed
                 var scanType = inPrevResult ? ScanType.SCAN_IN_PERV_RESULTS : ScanType.SCAN_CLOUDFLARE_IPS;
 
                 // start scan job in new thread
@@ -182,6 +184,7 @@ namespace WinCFScan
                 btnScanInPrevResults.Enabled = false;
                 btnResultsActions.Enabled = false;
                 comboConcurrent.Enabled = false;
+                comboTargetSpeed.Enabled = false;
                 timerProgress.Enabled = true;
                 btnSkipCurRange.Enabled = true;
                 comboResults.Enabled = false;
@@ -190,6 +193,7 @@ namespace WinCFScan
             else
             {   // is stopping
                 btnStart.Text = "Start Scan";
+                btnStart.Enabled = true;
                 btnScanInPrevResults.Enabled = true;
                 btnResultsActions.Enabled = true;
                 timerProgress.Enabled = false;
@@ -199,6 +203,7 @@ namespace WinCFScan
                 {
                     comboConcurrent.Enabled = true;
                 }
+                comboTargetSpeed.Enabled = true;
                 tabPageCFRanges.Enabled = true;
 
                 // save result file if found working IPs
@@ -564,12 +569,18 @@ namespace WinCFScan
         private void testSingleIP(string IPAddress)
         {
             addTextLog($"Testing {IPAddress} ...");
-            var checker = new CheckIPWorking(IPAddress);
+            var checker = new CheckIPWorking(IPAddress, getTargetSpeed());
             var success = checker.check();
             if (success)
                 addTextLog($"{IPAddress} is working. Delay: {checker.downloadDuration:n0} ms.");
             else
                 addTextLog($"{IPAddress} is NOT working.");
+        }
+
+        private ScanSpeed getTargetSpeed()
+        {
+            int speed = int.Parse(comboTargetSpeed.SelectedItem.ToString().Replace(" KB/s", ""));
+            return new ScanSpeed(speed);
         }
 
         private string? getSelectedIPAddress()

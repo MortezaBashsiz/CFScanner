@@ -301,12 +301,13 @@
             // 
             // btnSkipCurRange
             // 
+            this.btnSkipCurRange.AutoSize = false;
             this.btnSkipCurRange.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
             this.btnSkipCurRange.Enabled = false;
             this.btnSkipCurRange.Image = ((System.Drawing.Image)(resources.GetObject("btnSkipCurRange.Image")));
             this.btnSkipCurRange.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btnSkipCurRange.Name = "btnSkipCurRange";
-            this.btnSkipCurRange.Size = new System.Drawing.Size(33, 30);
+            this.btnSkipCurRange.Size = new System.Drawing.Size(33, 23);
             this.btnSkipCurRange.Text = "Skip";
             this.btnSkipCurRange.ToolTipText = "Skip curent IP range";
             this.btnSkipCurRange.Click += new System.EventHandler(this.btnSkipCurRange_Click);
@@ -331,7 +332,7 @@
             this.lblDebugMode.BackColor = System.Drawing.SystemColors.Control;
             this.lblDebugMode.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblDebugMode.ForeColor = System.Drawing.Color.Red;
-            this.lblDebugMode.Location = new System.Drawing.Point(550, 89);
+            this.lblDebugMode.Location = new System.Drawing.Point(550, 91);
             this.lblDebugMode.Name = "lblDebugMode";
             this.lblDebugMode.Size = new System.Drawing.Size(143, 15);
             this.lblDebugMode.TabIndex = 13;
@@ -345,7 +346,7 @@
             this.linkGithub.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.linkGithub.Image = global::WinCFScan.Properties.Resources.github_mark24;
             this.linkGithub.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.linkGithub.Location = new System.Drawing.Point(699, 86);
+            this.linkGithub.Location = new System.Drawing.Point(699, 88);
             this.linkGithub.Name = "linkGithub";
             this.linkGithub.Size = new System.Drawing.Size(71, 23);
             this.linkGithub.TabIndex = 12;
@@ -434,7 +435,6 @@
             this.listResults.Location = new System.Drawing.Point(0, 40);
             this.listResults.Name = "listResults";
             this.listResults.Size = new System.Drawing.Size(772, 186);
-            this.listResults.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.listResults.TabIndex = 4;
             this.listResults.UseCompatibleStateImageBehavior = false;
             this.listResults.View = System.Windows.Forms.View.Details;
