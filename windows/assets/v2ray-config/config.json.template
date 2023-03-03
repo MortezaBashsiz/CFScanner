@@ -35,7 +35,11 @@
         },
         "tlsSettings": {
             "serverName": "RANDOMHOST",
-            "allowInsecure": false
+            "allowInsecure": false,
+			"fingerprint": "chrome",
+			"alpn": [
+			"http/1.1"
+			]
         }
     }
 	}],

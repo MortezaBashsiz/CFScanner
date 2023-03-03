@@ -44,10 +44,11 @@
             this.lblConcurrent = new System.Windows.Forms.ToolStripLabel();
             this.comboTargetSpeed = new System.Windows.Forms.ToolStripComboBox();
             this.lblTargetSpeed = new System.Windows.Forms.ToolStripLabel();
+            this.toolStripComboBox1 = new System.Windows.Forms.ToolStripComboBox();
+            this.toolStripLabel3 = new System.Windows.Forms.ToolStripLabel();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.prgOveral = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripLabel1 = new System.Windows.Forms.ToolStripLabel();
-            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.btnSkipCurRange = new System.Windows.Forms.ToolStripButton();
             this.prgCurRange = new System.Windows.Forms.ToolStripProgressBar();
             this.toolStripLabel2 = new System.Windows.Forms.ToolStripLabel();
@@ -121,7 +122,7 @@
             this.txtLog.Name = "txtLog";
             this.txtLog.ReadOnly = true;
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(723, 186);
+            this.txtLog.Size = new System.Drawing.Size(690, 186);
             this.txtLog.TabIndex = 1;
             this.txtLog.Text = "Welcome to Cloudflare IP Scanner.\r\n";
             // 
@@ -169,7 +170,7 @@
             this.groupBox1.Location = new System.Drawing.Point(12, 21);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Padding = new System.Windows.Forms.Padding(3, 0, 3, 3);
-            this.groupBox1.Size = new System.Drawing.Size(723, 120);
+            this.groupBox1.Size = new System.Drawing.Size(690, 120);
             this.groupBox1.TabIndex = 3;
             this.groupBox1.TabStop = false;
             // 
@@ -183,17 +184,18 @@
             this.lblConcurrent,
             this.comboTargetSpeed,
             this.lblTargetSpeed,
+            this.toolStripComboBox1,
+            this.toolStripLabel3,
             this.toolStripSeparator1,
             this.prgOveral,
             this.toolStripLabel1,
-            this.toolStripSeparator3,
             this.btnSkipCurRange,
             this.prgCurRange,
             this.toolStripLabel2});
             this.toolStrip1.Location = new System.Drawing.Point(3, 16);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.toolStrip1.Size = new System.Drawing.Size(717, 33);
+            this.toolStrip1.Size = new System.Drawing.Size(684, 33);
             this.toolStrip1.TabIndex = 16;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -277,6 +279,24 @@
             this.lblTargetSpeed.Size = new System.Drawing.Size(74, 30);
             this.lblTargetSpeed.Text = "Target Speed";
             // 
+            // toolStripComboBox1
+            // 
+            this.toolStripComboBox1.AutoSize = false;
+            this.toolStripComboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.toolStripComboBox1.Items.AddRange(new object[] {
+            "Default"});
+            this.toolStripComboBox1.Name = "toolStripComboBox1";
+            this.toolStripComboBox1.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.toolStripComboBox1.Size = new System.Drawing.Size(90, 23);
+            this.toolStripComboBox1.Visible = false;
+            // 
+            // toolStripLabel3
+            // 
+            this.toolStripLabel3.Name = "toolStripLabel3";
+            this.toolStripLabel3.Size = new System.Drawing.Size(43, 30);
+            this.toolStripLabel3.Text = "Config";
+            this.toolStripLabel3.Visible = false;
+            // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
@@ -286,7 +306,7 @@
             // 
             this.prgOveral.AutoSize = false;
             this.prgOveral.Name = "prgOveral";
-            this.prgOveral.Size = new System.Drawing.Size(100, 22);
+            this.prgOveral.Size = new System.Drawing.Size(90, 22);
             this.prgOveral.ToolTipText = "Overal progress";
             // 
             // toolStripLabel1
@@ -294,11 +314,6 @@
             this.toolStripLabel1.Name = "toolStripLabel1";
             this.toolStripLabel1.Size = new System.Drawing.Size(41, 30);
             this.toolStripLabel1.Text = "Overal";
-            // 
-            // toolStripSeparator3
-            // 
-            this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 33);
             // 
             // btnSkipCurRange
             // 
@@ -317,7 +332,7 @@
             // 
             this.prgCurRange.AutoSize = false;
             this.prgCurRange.Name = "prgCurRange";
-            this.prgCurRange.Size = new System.Drawing.Size(100, 22);
+            this.prgCurRange.Size = new System.Drawing.Size(90, 22);
             this.prgCurRange.ToolTipText = "Current IP range progress";
             // 
             // toolStripLabel2
@@ -333,7 +348,7 @@
             this.lblDebugMode.BackColor = System.Drawing.SystemColors.Control;
             this.lblDebugMode.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblDebugMode.ForeColor = System.Drawing.Color.Red;
-            this.lblDebugMode.Location = new System.Drawing.Point(493, 91);
+            this.lblDebugMode.Location = new System.Drawing.Point(460, 91);
             this.lblDebugMode.Name = "lblDebugMode";
             this.lblDebugMode.Size = new System.Drawing.Size(143, 15);
             this.lblDebugMode.TabIndex = 13;
@@ -347,7 +362,7 @@
             this.linkGithub.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.linkGithub.Image = global::WinCFScan.Properties.Resources.github_mark24;
             this.linkGithub.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.linkGithub.Location = new System.Drawing.Point(642, 88);
+            this.linkGithub.Location = new System.Drawing.Point(609, 88);
             this.linkGithub.Name = "linkGithub";
             this.linkGithub.Size = new System.Drawing.Size(71, 23);
             this.linkGithub.TabIndex = 12;
@@ -360,7 +375,7 @@
             // btnCopyFastestIP
             // 
             this.btnCopyFastestIP.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCopyFastestIP.Location = new System.Drawing.Point(566, 55);
+            this.btnCopyFastestIP.Location = new System.Drawing.Point(533, 55);
             this.btnCopyFastestIP.Name = "btnCopyFastestIP";
             this.btnCopyFastestIP.Size = new System.Drawing.Size(151, 25);
             this.btnCopyFastestIP.TabIndex = 10;
@@ -374,7 +389,7 @@
             this.txtFastestIP.BackColor = System.Drawing.Color.White;
             this.txtFastestIP.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.txtFastestIP.ForeColor = System.Drawing.Color.Green;
-            this.txtFastestIP.Location = new System.Drawing.Point(352, 57);
+            this.txtFastestIP.Location = new System.Drawing.Point(319, 57);
             this.txtFastestIP.Name = "txtFastestIP";
             this.txtFastestIP.PlaceholderText = "Fastest IP";
             this.txtFastestIP.ReadOnly = true;
@@ -415,7 +430,7 @@
             // btnLoadIPRanges
             // 
             this.btnLoadIPRanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnLoadIPRanges.Location = new System.Drawing.Point(424, 8);
+            this.btnLoadIPRanges.Location = new System.Drawing.Point(391, 8);
             this.btnLoadIPRanges.Name = "btnLoadIPRanges";
             this.btnLoadIPRanges.Size = new System.Drawing.Size(94, 23);
             this.btnLoadIPRanges.TabIndex = 4;
@@ -436,7 +451,7 @@
             this.listResults.GridLines = true;
             this.listResults.Location = new System.Drawing.Point(0, 40);
             this.listResults.Name = "listResults";
-            this.listResults.Size = new System.Drawing.Size(715, 186);
+            this.listResults.Size = new System.Drawing.Size(712, 186);
             this.listResults.TabIndex = 4;
             this.listResults.UseCompatibleStateImageBehavior = false;
             this.listResults.View = System.Windows.Forms.View.Details;
@@ -492,7 +507,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.txtLog);
-            this.splitContainer1.Size = new System.Drawing.Size(723, 444);
+            this.splitContainer1.Size = new System.Drawing.Size(690, 444);
             this.splitContainer1.SplitterDistance = 254;
             this.splitContainer1.TabIndex = 7;
             // 
@@ -504,7 +519,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(723, 254);
+            this.tabControl1.Size = new System.Drawing.Size(690, 254);
             this.tabControl1.TabIndex = 9;
             // 
             // tabPageCFRanges
@@ -517,7 +532,7 @@
             this.tabPageCFRanges.Location = new System.Drawing.Point(4, 24);
             this.tabPageCFRanges.Name = "tabPageCFRanges";
             this.tabPageCFRanges.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageCFRanges.Size = new System.Drawing.Size(715, 226);
+            this.tabPageCFRanges.Size = new System.Drawing.Size(682, 226);
             this.tabPageCFRanges.TabIndex = 1;
             this.tabPageCFRanges.Text = "Cloudflare IP ranges";
             this.tabPageCFRanges.UseVisualStyleBackColor = true;
@@ -534,7 +549,7 @@
             // btnSelectNoneIPRanges
             // 
             this.btnSelectNoneIPRanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSelectNoneIPRanges.Location = new System.Drawing.Point(524, 9);
+            this.btnSelectNoneIPRanges.Location = new System.Drawing.Point(491, 9);
             this.btnSelectNoneIPRanges.Name = "btnSelectNoneIPRanges";
             this.btnSelectNoneIPRanges.Size = new System.Drawing.Size(88, 23);
             this.btnSelectNoneIPRanges.TabIndex = 2;
@@ -545,7 +560,7 @@
             // btnSelectAllIPRanges
             // 
             this.btnSelectAllIPRanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSelectAllIPRanges.Location = new System.Drawing.Point(621, 9);
+            this.btnSelectAllIPRanges.Location = new System.Drawing.Point(588, 9);
             this.btnSelectAllIPRanges.Name = "btnSelectAllIPRanges";
             this.btnSelectAllIPRanges.Size = new System.Drawing.Size(88, 23);
             this.btnSelectAllIPRanges.TabIndex = 1;
@@ -564,7 +579,7 @@
             this.headTotalIPs});
             this.listCFIPList.Location = new System.Drawing.Point(0, 38);
             this.listCFIPList.Name = "listCFIPList";
-            this.listCFIPList.Size = new System.Drawing.Size(715, 188);
+            this.listCFIPList.Size = new System.Drawing.Size(682, 188);
             this.listCFIPList.TabIndex = 0;
             this.listCFIPList.UseCompatibleStateImageBehavior = false;
             this.listCFIPList.View = System.Windows.Forms.View.Details;
@@ -592,7 +607,7 @@
             this.tabPageResults.Location = new System.Drawing.Point(4, 24);
             this.tabPageResults.Name = "tabPageResults";
             this.tabPageResults.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageResults.Size = new System.Drawing.Size(715, 226);
+            this.tabPageResults.Size = new System.Drawing.Size(712, 226);
             this.tabPageResults.TabIndex = 0;
             this.tabPageResults.Text = "Scan Results";
             this.tabPageResults.UseVisualStyleBackColor = true;
@@ -632,7 +647,7 @@
             this.toolsToolStripMenuItem});
             this.mnuMain.Location = new System.Drawing.Point(0, 0);
             this.mnuMain.Name = "mnuMain";
-            this.mnuMain.Size = new System.Drawing.Size(747, 24);
+            this.mnuMain.Size = new System.Drawing.Size(714, 24);
             this.mnuMain.TabIndex = 8;
             this.mnuMain.Text = "menuStrip1";
             // 
@@ -755,11 +770,11 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(747, 599);
+            this.ClientSize = new System.Drawing.Size(714, 599);
             this.Controls.Add(this.mnuMain);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.groupBox1);
-            this.MinimumSize = new System.Drawing.Size(760, 480);
+            this.MinimumSize = new System.Drawing.Size(730, 480);
             this.Name = "frmMain";
             this.Text = "Cloudflare Scan";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
@@ -851,7 +866,8 @@
         private ToolStripSplitButton btnStart;
         private ToolStripMenuItem mnuPauseScan;
         private ToolStripButton btnSkipCurRange;
-        private ToolStripSeparator toolStripSeparator3;
         private ToolStripMenuItem checkForUpdateToolStripMenuItem;
+        private ToolStripComboBox toolStripComboBox1;
+        private ToolStripLabel toolStripLabel3;
     }
 }

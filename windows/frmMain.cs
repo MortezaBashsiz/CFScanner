@@ -71,14 +71,17 @@ namespace WinCFScan
 
         private void checkEnableDebugMode()
         {
-            if(configManager.enableDebug)
+            if (configManager.enableDebug)
             {
                 comboConcurrent.Text = "1";
                 comboConcurrent.Enabled = false;
                 lblDebugMode.Visible = true;
                 addTextLog("Debug mode is enabled. In this mode concurrent process is set to 1 and you can see scan debug data in 'debug.txt' file in the app directory.");
                 addTextLog("To exit debug mode delete 'enable-debug' file from the app directory and then re-open the app.");
-                Tools.logStep($"\n\nApp started. Version: {appVersion}");
+                
+                string systemInfo = $"OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription} {System.Runtime.InteropServices.RuntimeInformation.OSArchitecture}, " +
+                    $"Cpu Arch: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}, Framework: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}";
+                Tools.logStep($"\n\nApp started. Version: {appVersion}\n{systemInfo}");
             }
         }
 
@@ -371,7 +374,7 @@ namespace WinCFScan
                     }
                     else
                     {
-                        addTextLog("Failed to update client config. check your internet connection or maybe client config update url is blocked by your ISP!");
+                        addTextLog("Failed to update client config. check your internet connection or maybe client config url is blocked by your ISP!");
                     }
                 }
 
