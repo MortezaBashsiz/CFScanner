@@ -89,13 +89,13 @@
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scanASingleIPAddressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.checkForUpdateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.mnuResultsActions = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.exportResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteResultsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.checkForUpdateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.mnuListView.SuspendLayout();
@@ -121,7 +121,7 @@
             this.txtLog.Name = "txtLog";
             this.txtLog.ReadOnly = true;
             this.txtLog.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLog.Size = new System.Drawing.Size(780, 186);
+            this.txtLog.Size = new System.Drawing.Size(723, 186);
             this.txtLog.TabIndex = 1;
             this.txtLog.Text = "Welcome to Cloudflare IP Scanner.\r\n";
             // 
@@ -169,7 +169,7 @@
             this.groupBox1.Location = new System.Drawing.Point(12, 21);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Padding = new System.Windows.Forms.Padding(3, 0, 3, 3);
-            this.groupBox1.Size = new System.Drawing.Size(780, 120);
+            this.groupBox1.Size = new System.Drawing.Size(723, 120);
             this.groupBox1.TabIndex = 3;
             this.groupBox1.TabStop = false;
             // 
@@ -193,7 +193,7 @@
             this.toolStrip1.Location = new System.Drawing.Point(3, 16);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.toolStrip1.Size = new System.Drawing.Size(774, 33);
+            this.toolStrip1.Size = new System.Drawing.Size(717, 33);
             this.toolStrip1.TabIndex = 16;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -333,7 +333,7 @@
             this.lblDebugMode.BackColor = System.Drawing.SystemColors.Control;
             this.lblDebugMode.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.lblDebugMode.ForeColor = System.Drawing.Color.Red;
-            this.lblDebugMode.Location = new System.Drawing.Point(550, 91);
+            this.lblDebugMode.Location = new System.Drawing.Point(493, 91);
             this.lblDebugMode.Name = "lblDebugMode";
             this.lblDebugMode.Size = new System.Drawing.Size(143, 15);
             this.lblDebugMode.TabIndex = 13;
@@ -347,7 +347,7 @@
             this.linkGithub.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.linkGithub.Image = global::WinCFScan.Properties.Resources.github_mark24;
             this.linkGithub.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.linkGithub.Location = new System.Drawing.Point(699, 88);
+            this.linkGithub.Location = new System.Drawing.Point(642, 88);
             this.linkGithub.Name = "linkGithub";
             this.linkGithub.Size = new System.Drawing.Size(71, 23);
             this.linkGithub.TabIndex = 12;
@@ -360,10 +360,10 @@
             // btnCopyFastestIP
             // 
             this.btnCopyFastestIP.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCopyFastestIP.Location = new System.Drawing.Point(623, 55);
+            this.btnCopyFastestIP.Location = new System.Drawing.Point(566, 55);
             this.btnCopyFastestIP.Name = "btnCopyFastestIP";
             this.btnCopyFastestIP.Size = new System.Drawing.Size(151, 25);
-            this.btnCopyFastestIP.TabIndex = 11;
+            this.btnCopyFastestIP.TabIndex = 10;
             this.btnCopyFastestIP.Text = "Copy fastest IP";
             this.btnCopyFastestIP.UseVisualStyleBackColor = true;
             this.btnCopyFastestIP.Click += new System.EventHandler(this.btnCopyFastestIP_Click);
@@ -374,11 +374,12 @@
             this.txtFastestIP.BackColor = System.Drawing.Color.White;
             this.txtFastestIP.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.txtFastestIP.ForeColor = System.Drawing.Color.Green;
-            this.txtFastestIP.Location = new System.Drawing.Point(409, 57);
+            this.txtFastestIP.Location = new System.Drawing.Point(352, 57);
             this.txtFastestIP.Name = "txtFastestIP";
+            this.txtFastestIP.PlaceholderText = "Fastest IP";
             this.txtFastestIP.ReadOnly = true;
             this.txtFastestIP.Size = new System.Drawing.Size(208, 23);
-            this.txtFastestIP.TabIndex = 10;
+            this.txtFastestIP.TabIndex = 11;
             // 
             // lblTotalWorkingIPs
             // 
@@ -414,7 +415,7 @@
             // btnLoadIPRanges
             // 
             this.btnLoadIPRanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnLoadIPRanges.Location = new System.Drawing.Point(481, 8);
+            this.btnLoadIPRanges.Location = new System.Drawing.Point(424, 8);
             this.btnLoadIPRanges.Name = "btnLoadIPRanges";
             this.btnLoadIPRanges.Size = new System.Drawing.Size(94, 23);
             this.btnLoadIPRanges.TabIndex = 4;
@@ -435,7 +436,7 @@
             this.listResults.GridLines = true;
             this.listResults.Location = new System.Drawing.Point(0, 40);
             this.listResults.Name = "listResults";
-            this.listResults.Size = new System.Drawing.Size(772, 186);
+            this.listResults.Size = new System.Drawing.Size(715, 186);
             this.listResults.TabIndex = 4;
             this.listResults.UseCompatibleStateImageBehavior = false;
             this.listResults.View = System.Windows.Forms.View.Details;
@@ -491,7 +492,7 @@
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.txtLog);
-            this.splitContainer1.Size = new System.Drawing.Size(780, 444);
+            this.splitContainer1.Size = new System.Drawing.Size(723, 444);
             this.splitContainer1.SplitterDistance = 254;
             this.splitContainer1.TabIndex = 7;
             // 
@@ -503,7 +504,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(780, 254);
+            this.tabControl1.Size = new System.Drawing.Size(723, 254);
             this.tabControl1.TabIndex = 9;
             // 
             // tabPageCFRanges
@@ -516,7 +517,7 @@
             this.tabPageCFRanges.Location = new System.Drawing.Point(4, 24);
             this.tabPageCFRanges.Name = "tabPageCFRanges";
             this.tabPageCFRanges.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageCFRanges.Size = new System.Drawing.Size(772, 226);
+            this.tabPageCFRanges.Size = new System.Drawing.Size(715, 226);
             this.tabPageCFRanges.TabIndex = 1;
             this.tabPageCFRanges.Text = "Cloudflare IP ranges";
             this.tabPageCFRanges.UseVisualStyleBackColor = true;
@@ -533,7 +534,7 @@
             // btnSelectNoneIPRanges
             // 
             this.btnSelectNoneIPRanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSelectNoneIPRanges.Location = new System.Drawing.Point(581, 9);
+            this.btnSelectNoneIPRanges.Location = new System.Drawing.Point(524, 9);
             this.btnSelectNoneIPRanges.Name = "btnSelectNoneIPRanges";
             this.btnSelectNoneIPRanges.Size = new System.Drawing.Size(88, 23);
             this.btnSelectNoneIPRanges.TabIndex = 2;
@@ -544,7 +545,7 @@
             // btnSelectAllIPRanges
             // 
             this.btnSelectAllIPRanges.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSelectAllIPRanges.Location = new System.Drawing.Point(678, 9);
+            this.btnSelectAllIPRanges.Location = new System.Drawing.Point(621, 9);
             this.btnSelectAllIPRanges.Name = "btnSelectAllIPRanges";
             this.btnSelectAllIPRanges.Size = new System.Drawing.Size(88, 23);
             this.btnSelectAllIPRanges.TabIndex = 1;
@@ -563,7 +564,7 @@
             this.headTotalIPs});
             this.listCFIPList.Location = new System.Drawing.Point(0, 38);
             this.listCFIPList.Name = "listCFIPList";
-            this.listCFIPList.Size = new System.Drawing.Size(772, 188);
+            this.listCFIPList.Size = new System.Drawing.Size(715, 188);
             this.listCFIPList.TabIndex = 0;
             this.listCFIPList.UseCompatibleStateImageBehavior = false;
             this.listCFIPList.View = System.Windows.Forms.View.Details;
@@ -591,7 +592,7 @@
             this.tabPageResults.Location = new System.Drawing.Point(4, 24);
             this.tabPageResults.Name = "tabPageResults";
             this.tabPageResults.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageResults.Size = new System.Drawing.Size(772, 226);
+            this.tabPageResults.Size = new System.Drawing.Size(715, 226);
             this.tabPageResults.TabIndex = 0;
             this.tabPageResults.Text = "Scan Results";
             this.tabPageResults.UseVisualStyleBackColor = true;
@@ -631,7 +632,7 @@
             this.toolsToolStripMenuItem});
             this.mnuMain.Location = new System.Drawing.Point(0, 0);
             this.mnuMain.Name = "mnuMain";
-            this.mnuMain.Size = new System.Drawing.Size(804, 24);
+            this.mnuMain.Size = new System.Drawing.Size(747, 24);
             this.mnuMain.TabIndex = 8;
             this.mnuMain.Text = "menuStrip1";
             // 
@@ -702,6 +703,13 @@
             this.scanASingleIPAddressToolStripMenuItem.Text = "Test a single IP address";
             this.scanASingleIPAddressToolStripMenuItem.Click += new System.EventHandler(this.scanASingleIPAddressToolStripMenuItem_Click);
             // 
+            // checkForUpdateToolStripMenuItem
+            // 
+            this.checkForUpdateToolStripMenuItem.Name = "checkForUpdateToolStripMenuItem";
+            this.checkForUpdateToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.checkForUpdateToolStripMenuItem.Text = "Check for update";
+            this.checkForUpdateToolStripMenuItem.Click += new System.EventHandler(this.checkForUpdateToolStripMenuItem_Click);
+            // 
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
@@ -743,22 +751,15 @@
             this.deleteResultsToolStripMenuItem.Text = "Delete results";
             this.deleteResultsToolStripMenuItem.Click += new System.EventHandler(this.deleteResultsToolStripMenuItem_Click);
             // 
-            // checkForUpdateToolStripMenuItem
-            // 
-            this.checkForUpdateToolStripMenuItem.Name = "checkForUpdateToolStripMenuItem";
-            this.checkForUpdateToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
-            this.checkForUpdateToolStripMenuItem.Text = "Check for update";
-            this.checkForUpdateToolStripMenuItem.Click += new System.EventHandler(this.checkForUpdateToolStripMenuItem_Click);
-            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(804, 599);
+            this.ClientSize = new System.Drawing.Size(747, 599);
             this.Controls.Add(this.mnuMain);
             this.Controls.Add(this.splitContainer1);
             this.Controls.Add(this.groupBox1);
-            this.MinimumSize = new System.Drawing.Size(820, 480);
+            this.MinimumSize = new System.Drawing.Size(760, 480);
             this.Name = "frmMain";
             this.Text = "Cloudflare Scan";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmMain_FormClosing);
