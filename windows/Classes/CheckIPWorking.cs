@@ -17,12 +17,14 @@ namespace WinCFScan.Classes
         private string port;
         private string v2rayConfigPath;
         public long downloadDuration { get; private set; }
+        private ScanSpeed targetSpeed;
 
-        public CheckIPWorking(string ip)
+        public CheckIPWorking(string ip, ScanSpeed targetSpeed)
         {
             this.ip = ip;
             this.port = getPortByIP();
             v2rayConfigPath = $"v2ray-config/generated/config.{ip}.json";
+            this.targetSpeed = targetSpeed;
         }
 
         public CheckIPWorking()
@@ -116,19 +118,20 @@ namespace WinCFScan.Classes
                 Proxy = proxy
             };
 
+            int timeout = 2;
             var client = new HttpClient(handler);
-            client.Timeout = TimeSpan.FromSeconds(2); // 2 seconds
-            Tools.logStep($"Start check dl speed, proxy port: {port}, timeout: {client.Timeout.TotalSeconds} sec");
+            client.Timeout = TimeSpan.FromSeconds(timeout); // 2 seconds
+            Tools.logStep($"Start check dl speed, proxy port: {port}, timeout: {timeout} sec, target speed: {targetSpeed.getTargetSpeed():n0} b/s");
             Stopwatch sw =  new Stopwatch();
             try
             {
                 sw.Start();
-                string dlUrl = "https://" + ConfigManager.Instance.getAppConfig().scanDomain + "/data.100k";
+                string dlUrl = "https://" + ConfigManager.Instance.getAppConfig().scanDomain + targetSpeed.getTargetFileSize(timeout);
                 Tools.logStep($"Starting dl url: {dlUrl}");
                 var data = client.GetStringAsync(dlUrl).Result;
                 Tools.logStep($"*** Download success in {sw.ElapsedMilliseconds:n0} ms, dl size: {data.Length:n0} bytes for IP {ip}");
 
-                return data.Length > 90_000;
+                return data.Length == targetSpeed.getTargetSpeed() * timeout;
             }
             catch (Exception ex)
             {
@@ -148,16 +151,16 @@ namespace WinCFScan.Classes
             try
             {
                 var configTemplate = ConfigManager.Instance.v2rayConfigTemplate;
-                RealConfig realConfig = ConfigManager.Instance.getRealConfig();
+                ClientConfig clientConfig = ConfigManager.Instance.getClientConfig();
 
                 configTemplate = configTemplate
-                    .Replace("IDID", realConfig.id)
+                    .Replace("IDID", clientConfig.id)
                     .Replace("PORTPORT", port)
-                    .Replace("HOSTHOST", realConfig.host)
-                    .Replace("CFPORTCFPORT", realConfig.port)
-                    .Replace("RANDOMHOST", realConfig.serverName)
+                    .Replace("HOSTHOST", clientConfig.host)
+                    .Replace("CFPORTCFPORT", clientConfig.port)
+                    .Replace("RANDOMHOST", clientConfig.serverName)
                     .Replace("IP.IP.IP.IP", this.ip)
-                    .Replace("ENDPOINTENDPOINT", realConfig.path);
+                    .Replace("ENDPOINTENDPOINT", clientConfig.path);
 
                 File.WriteAllText(v2rayConfigPath, configTemplate);
 
@@ -197,6 +200,13 @@ namespace WinCFScan.Classes
             Thread.Sleep(1500);
             bool wasSuccess = process.Responding && !process.HasExited;
             Tools.logStep($"v2ray.exe executed success:  {wasSuccess}");
+
+            // log error
+            if (!wasSuccess)
+            {
+                Tools.logStep($"v2ray.exe Error: {process.StandardError.ReadToEnd()}");
+            }
+
             return wasSuccess;
         }
 

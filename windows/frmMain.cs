@@ -25,6 +25,7 @@ namespace WinCFScan
         private ListViewColumnSorter listResultsColumnSorter;
         private ListViewColumnSorter listCFIPsColumnSorter;
         private Version appVersion;
+        private AppUpdateChecker appUpdateChecker;
 
         public frmMain()
         {
@@ -53,12 +54,16 @@ namespace WinCFScan
             scanEngine = new ScanEngine();
 
             loadLastResultsComboList();
+            comboTargetSpeed.SelectedIndex = 2;
 
-            appVersion = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+            appVersion = AppUpdateChecker.getCurrentVersion();
+
             DateTime buildDate = new DateTime(2000, 1, 1)
                                     .AddDays(appVersion.Build).AddSeconds(appVersion.Revision * 2);
             string displayableVersion = $" - {appVersion}";
             this.Text += displayableVersion;
+
+            appUpdateChecker = new AppUpdateChecker();
 
             // is debug mode enable? this line should be at bottom line
             checkEnableDebugMode();
@@ -66,14 +71,17 @@ namespace WinCFScan
 
         private void checkEnableDebugMode()
         {
-            if(configManager.enableDebug)
+            if (configManager.enableDebug)
             {
                 comboConcurrent.Text = "1";
                 comboConcurrent.Enabled = false;
                 lblDebugMode.Visible = true;
                 addTextLog("Debug mode is enabled. In this mode concurrent process is set to 1 and you can see scan debug data in 'debug.txt' file in the app directory.");
-                addTextLog("To exit debug mode delete 'enable-debug' file from the app directory and re-open the app.");
-                Tools.logStep($"\n\nApp started. Version: {appVersion}");
+                addTextLog("To exit debug mode delete 'enable-debug' file from the app directory and then re-open the app.");
+                
+                string systemInfo = $"OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription} {System.Runtime.InteropServices.RuntimeInformation.OSArchitecture}, " +
+                    $"Cpu Arch: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}, Framework: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}";
+                Tools.logStep($"\n\nApp started. Version: {appVersion}\n{systemInfo}");
             }
         }
 
@@ -106,7 +114,7 @@ namespace WinCFScan
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            startStopScan(false);
+            
         }
 
         private void startStopScan(bool inPrevResult = false)
@@ -120,6 +128,7 @@ namespace WinCFScan
             if (isScanRunning())
             {
                 // stop scan
+                btnStart.Enabled= false;
                 waitUntilScannerStoped();
                 updateUIControlls(false);
             }
@@ -152,6 +161,7 @@ namespace WinCFScan
 
                 updateUIControlls(true);
                 scanEngine.workingIPsFromPrevScan = inPrevResult ? currentScanResults : null;
+                 scanEngine.targetSpeed = getTargetSpeed(); // set target speed
                 var scanType = inPrevResult ? ScanType.SCAN_IN_PERV_RESULTS : ScanType.SCAN_CLOUDFLARE_IPS;
 
                 // start scan job in new thread
@@ -177,6 +187,7 @@ namespace WinCFScan
                 btnScanInPrevResults.Enabled = false;
                 btnResultsActions.Enabled = false;
                 comboConcurrent.Enabled = false;
+                comboTargetSpeed.Enabled = false;
                 timerProgress.Enabled = true;
                 btnSkipCurRange.Enabled = true;
                 comboResults.Enabled = false;
@@ -185,6 +196,7 @@ namespace WinCFScan
             else
             {   // is stopping
                 btnStart.Text = "Start Scan";
+                btnStart.Enabled = true;
                 btnScanInPrevResults.Enabled = true;
                 btnResultsActions.Enabled = true;
                 timerProgress.Enabled = false;
@@ -194,6 +206,7 @@ namespace WinCFScan
                 {
                     comboConcurrent.Enabled = true;
                 }
+                comboTargetSpeed.Enabled = true;
                 tabPageCFRanges.Enabled = true;
 
                 // save result file if found working IPs
@@ -218,8 +231,6 @@ namespace WinCFScan
                 listResultsColumnSorter.Order = SortOrder.Ascending;
                 listResultsColumnSorter.SortColumn = 0;
                 listResults.Sort();
-
-
             }
         }
 
@@ -233,7 +244,6 @@ namespace WinCFScan
                 updateUIControlls(false);
             }
         }
-
 
         private void timerProgress_Tick(object sender, EventArgs e)
         {
@@ -261,8 +271,6 @@ namespace WinCFScan
                 fetchWorkingIPResults();
                 pInf.scanResults.autoSave();
             }
-
-
         }
 
         // fetch new woriking ips and add to the list view while scanning
@@ -349,23 +357,24 @@ namespace WinCFScan
             {
                 //Load cf ip ranges
                 loadCFIPListView();
+               
 
-                // check if config real file is exists and update
-                if (configManager.getRealConfig() != null && configManager.getRealConfig().isConfigRealOld())
+                // check if client config file is exists and update
+                if (configManager.getClientConfig() != null && configManager.getClientConfig().isClientConfigOld())
                 {
-                    addTextLog("Updating real config from remote...");
-                    bool result = configManager.getRealConfig().remoteUpdateConfigReal();
+                    addTextLog("Updating client config from remote...");
+                    bool result = configManager.getClientConfig().remoteUpdateClientConfig();
                     if (result)
                     {
-                        addTextLog("'real config' is successfully updated.");
-                        if (!configManager.getRealConfig().isConfigValid())
+                        addTextLog("'client config' is successfully updated.");
+                        if (!configManager.getClientConfig().isConfigValid())
                         {
-                            addTextLog("'real config' data is not valid!");
+                            addTextLog("'client config' data is not valid!");
                         }
                     }
                     else
                     {
-                        addTextLog("Failed to update real config. check your internet connection or maybe real config update url is blocked by your ISP!");
+                        addTextLog("Failed to update client config. check your internet connection or maybe client config url is blocked by your ISP!");
                     }
                 }
 
@@ -379,8 +388,35 @@ namespace WinCFScan
                     }
                 });
 
+                // check for updates
+                if (appUpdateChecker.shouldCheck())
+                {
+                    checkForUpdate();
+                }
+
                 oneTimeChecked = true;
             }
+        }
+
+        // check for update
+        private void checkForUpdate(bool logNoNewVersion = false)
+        {
+            Task.Factory.StartNew(() => { appUpdateChecker.check(); })
+            .ContinueWith(done =>
+            {
+                if (appUpdateChecker.isFoundNewVersion())
+                {
+                    addTextLog($"There is a new version available ({appUpdateChecker.getUpdateVersion()}) Download it from here: {ourGitHubUrl}/releases");
+                }
+                else if(appUpdateChecker.updateCheckResult == UpdateCheckResult.HasError)
+                {
+                    addTextLog("Something went wrong while checking for update!");
+                }
+                else if(logNoNewVersion)
+                {
+                    addTextLog("Everything is up to date.");
+                }
+            });
         }
 
         private void comboConcurrent_TextChanged(object sender, EventArgs e)
@@ -550,12 +586,18 @@ namespace WinCFScan
         private void testSingleIP(string IPAddress)
         {
             addTextLog($"Testing {IPAddress} ...");
-            var checker = new CheckIPWorking(IPAddress);
+            var checker = new CheckIPWorking(IPAddress, getTargetSpeed());
             var success = checker.check();
             if (success)
                 addTextLog($"{IPAddress} is working. Delay: {checker.downloadDuration:n0} ms.");
             else
                 addTextLog($"{IPAddress} is NOT working.");
+        }
+
+        private ScanSpeed getTargetSpeed()
+        {
+            int speed = int.Parse(comboTargetSpeed.SelectedItem.ToString().Replace(" KB/s", ""));
+            return new ScanSpeed(speed);
         }
 
         private string? getSelectedIPAddress()
@@ -819,9 +861,25 @@ namespace WinCFScan
             importResults();
         }
 
-        private void btnResultsActions_Click(object sender, EventArgs e)
+        private void comboTargetSpeed_SelectedIndexChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void mnuPauseScan_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnStart_ButtonClick(object sender, EventArgs e)
+        {
+            startStopScan(false);
+        }
+
+        private void checkForUpdateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            addTextLog("Checking for new version...");
+            checkForUpdate(true);
         }
     }
 }

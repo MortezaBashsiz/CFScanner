@@ -20,7 +20,7 @@
     "settings": {
       "vnext": [{
         "address": "IP.IP.IP.IP", 
-        "port": 443,
+        "port": CFPORTCFPORT,
         "users": [{"id": "IDID" }]
       }]
     },
@@ -35,7 +35,11 @@
         },
         "tlsSettings": {
             "serverName": "RANDOMHOST",
-            "allowInsecure": false
+            "allowInsecure": false,
+			"fingerprint": "chrome",
+			"alpn": [
+			"http/1.1"
+			]
         }
     }
 	}],

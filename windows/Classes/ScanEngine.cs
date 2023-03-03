@@ -23,6 +23,7 @@ namespace WinCFScan.Classes
         private CancellationTokenSource cts;
         public List<ResultItem>? workingIPsFromPrevScan { get; set; }
         public int concurrentProcess = 4;
+        public ScanSpeed targetSpeed;
 
         public ScanEngine()
         {
@@ -135,7 +136,7 @@ namespace WinCFScan.Classes
             {
                 Parallel.ForEach(ipRange, po, (ip) =>
                 {
-                    var checker = new CheckIPWorking(ip);
+                    var checker = new CheckIPWorking(ip, targetSpeed);
                     bool isOK = checker.check();
                     
                     progressInfo.lastCheckedIP = ip;
@@ -187,11 +188,16 @@ namespace WinCFScan.Classes
 
         internal void stop()
         {
-            if(progressInfo.isScanRunning)
+            try
             {
-                progressInfo.stopRequested = true;
-                cts.Cancel();
+                if (progressInfo.isScanRunning)
+                {
+                    progressInfo.stopRequested = true;
+                    cts.Cancel();
+                }
             }
+            catch (Exception)
+            {}
         }
 
         public void skipCurrentIPRange() {
