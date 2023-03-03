@@ -54,6 +54,7 @@ namespace WinCFScan
             scanEngine = new ScanEngine();
 
             loadLastResultsComboList();
+            comboTargetSpeed.SelectedIndex = 2;
 
             appVersion = AppUpdateChecker.getCurrentVersion();
 
@@ -110,7 +111,7 @@ namespace WinCFScan
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            startStopScan(false);
+            
         }
 
         private void startStopScan(bool inPrevResult = false)
@@ -832,9 +833,19 @@ namespace WinCFScan
             importResults();
         }
 
-        private void btnResultsActions_Click(object sender, EventArgs e)
+        private void comboTargetSpeed_SelectedIndexChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void mnuPauseScan_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnStart_ButtonClick(object sender, EventArgs e)
+        {
+            startStopScan(false);
         }
     }
 }
