@@ -473,14 +473,14 @@ usage()
                  [ -t|--test-type  DOWN/UP ]
 		 [ -thr|--thread <int> ]
 		 [ -try|--tryCount <int> ]
-		 [ -c|--config <configgile> ]
+		 [ -c|--config <configfile> ]
 		 [ -s|--speed <int> ] 
-		 [ -f|--custom-subnet-file <custome-ip-file> (if you chose IP mode)]\n"
+		 [ -f|--file <custome-ip-file> (if you chose IP mode)]\n"
   exit 2
 }
 
-PARSED_ARGUMENTS=$(getopt -a -n  cfScanner -o m:t:thr:try:c:s:f: --long mode:,test-type:,thread:,tryCount:,config:,speed:,custom-subnet-file: -- "$@")
-VALID_ARGUMENTS=$?
+parsedArguments=$(getopt -a -n  cfScanner -o m:t:thr:try:c:s:f: --long mode:,test-type:,thread:,tryCount:,config:,speed:,custom-subnet-file: -- "$@")
+validArguments=$?
 if [ "$VALID_ARGUMENTS" != "0" ]; then
   echo "error validate"
   exist 2
@@ -497,7 +497,7 @@ do
 	-try | --tryCount)    tryCount="$2"  ; shift 2  ;;
 	-c | --config) config="$2"  ; shift 2  ;;
 	-s | --speed)    speed="$2" ; shift 2  ;;
-	-f | --custom-subnet-file)    subnetIPFile="$2"  ; shift 2  ;;
+	-f | --file)    subnetIPFile="$2"  ; shift 2  ;;
 	-h | --help) usage;;
 
     --) shift; break ;;
