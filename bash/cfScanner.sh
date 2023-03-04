@@ -143,6 +143,8 @@ function fncCheckIPList {
 	v2rayCommand="${12}"
 	tryCount="${13}"
 	downloadOrUpload="${14}"
+	uploadFile="$scriptDir/../files/upload_file"
+	echo "$uploadFile" >> /tmp/adas
 	binDir="$scriptDir/../bin"
 	configDir="$scriptDir/../config"
 	configPath=$(echo "$configPath" | sed 's/\//\\\//g')
