@@ -583,17 +583,17 @@ else
 	echo ""
 fi
 
-fileSize="0"
-if [[ "$downloadOrUpload" == "DOWN" ]] || [[  "$downloadOrUpload" == "BOTH" ]]
+fileSize="$(( 2*speed*1024 ))"
+if [[ "$downloadOrUpload" == "DOWN" || "$downloadOrUpload" == "BOTH" ]]
 then
-	fileSize="$(( 2*speed*1024 ))"
 	echo "You are testing download"
-elif [[ "$downloadOrUpload" == "UP" ]] || [[  "$downloadOrUpload" == "BOTH" ]]
+fi
+if [[ "$downloadOrUpload" == "UP" || "$downloadOrUpload" == "BOTH" ]]
 then
-	fileSize="$(( 2*speed ))"
 	echo "You are testing upload"
 	echo "making upload file by size $fileSize KB in $uploadFile"
-	dd if=/dev/random of="$uploadFile" bs=1024 count="$fileSize" > /dev/null 2>&1
+	ddSize="$(( 2*speed ))"
+	dd if=/dev/random of="$uploadFile" bs=1024 count="$ddSize" > /dev/null 2>&1
 else
 	echo "$downloadOrUpload is not correct choose one DOWN or UP"
 	exit 1
