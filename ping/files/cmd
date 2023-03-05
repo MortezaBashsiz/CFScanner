@@ -1,0 +1,2 @@
+finalResult="$timeMil,$provider,$ip"
+curlResult=$(curl -s -XPOST http://bot.sudoer.net:8452/cfiran/a50ced64-6eba-4ab8-a30d-3a1f166a5135/"$provider"/"$finalResult")
