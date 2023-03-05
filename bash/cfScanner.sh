@@ -14,7 +14,7 @@
 #        AUTHOR: Morteza Bashsiz (mb), morteza.bashsiz@gmail.com
 #  ORGANIZATION: Linux
 #       CREATED: 01/24/2023 07:36:57 PM
-#      REVISION: nomadzzz, armgham, beh-rouz, amini8  
+#      REVISION: nomadzzz, armgham, beh-rouz, amini8, mahdibahramih 
 #===============================================================================
 
 # Function fncLongIntToStr
@@ -144,7 +144,6 @@ function fncCheckIPList {
 	tryCount="${13}"
 	downloadOrUpload="${14}"
 	uploadFile="$scriptDir/../files/upload_file"
-	echo "$uploadFile" >> /tmp/adas
 	binDir="$scriptDir/../bin"
 	configDir="$scriptDir/../config"
 	configPath=$(echo "$configPath" | sed 's/\//\\\//g')
@@ -465,18 +464,52 @@ function fncMainCFFindIP {
 # End of Function fncMainCFFindIP
 
 clientConfigFile="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/ClientConfig.json"
-
-subnetOrIP="$1"
-downloadOrUpload="$2"
-threads="$3"
-tryCount="$4"
-config="$5"
-speed="$6"
 subnetIPFile="NULL"
 
-if [[ "$7" ]]
+
+
+
+usage()
+{
+  echo -e "Usage: cfScanner [ -m|--mode  SUBNET/IP ] 
+     [ -t|--test-type  DOWN/UP ]
+		 [ -thr|--thread <int> ]
+		 [ -try|--tryCount <int> ]
+		 [ -c|--config <configfile> ]
+		 [ -s|--speed <int> ] 
+		 [ -f|--file <custome-ip-file> (if you chose IP mode)]\n"
+  exit 2
+}
+
+parsedArguments=$(getopt -a -n  cfScanner -o m:t:thr:try:c:s:f: --long mode:,test-type:,thread:,tryCount:,config:,speed:,file: -- "$@")
+validArguments=$?
+if [ "$validArguments" != "0" ]; then
+  echo "error validate"
+  exit 2
+fi
+
+
+eval set -- "$parsedArguments"
+while :
+do
+  case "$1" in
+		-m | --mode)    subnetOrIP="$2" ; shift 2  ;;
+		-t | --test-type)   downloadOrUpload="$2" ; shift 2  ;;
+		-thr | --thread)    threads="$2"  ; shift 2  ;;
+		-try | --tryCount)    tryCount="$2"  ; shift 2  ;;
+		-c | --config) config="$2"  ; shift 2  ;;
+		-s | --speed)    speed="$2" ; shift 2  ;;
+		-f | --file)    subnetIPFile="$2"  ; shift 2  ;;
+		-h | --help) usage;;
+    --) shift; break ;;
+    *) echo "Unexpected option: $1 - this should not happen."
+       usage ;;
+  esac
+done
+
+if [[ "$subnetIPFile" != "NULL" ]]
 then
-	subnetIPFile="$7"
+
 	if ! [[ -f "$subnetIPFile" ]]
 	then
 		echo "file does not exists: $subnetIPFile"
