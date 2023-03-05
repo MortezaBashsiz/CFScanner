@@ -1,6 +1,6 @@
 config/
 result/
-files/upload_file
+files/
 bash/config.real
 bash/subnets.list
 windows/*.rsuser
