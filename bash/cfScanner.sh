@@ -240,7 +240,7 @@ function fncCheckIPList {
 					then
 						if [[ "$downRealTime" && "$downRealTime" -gt 100 ]]
 						then
-							echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime${NC}" 
+							echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr${NC}" 
 							echo "$downRealTime, $downAvgStr DOWN FOR IP $ip" >> "$resultFile"
 						fi
 						if [[ "$upRealTime" && "$upRealTime" -gt 100 ]]
