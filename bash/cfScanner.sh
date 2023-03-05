@@ -212,7 +212,12 @@ function fncCheckIPList {
 							timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" "https://speed.cloudflare.com/__down?bytes=$fileSize" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
 						elif [[ "$downloadOrUpload" == "UP" ]]
 						then
-							timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" -X POST --data "@$uploadFile" https://speed.cloudflare.com/__up --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
+							result=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "\nTIME: %{time_total}\n" --data "@$uploadFile" https://speed.cloudflare.com/__up)
+              resultAnswer="$(echo "$result" | grep -v "TIME")"
+              if [[ "$resultAnswer" ]]
+              then
+								timeMil="$(echo "$result" | grep -i "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc)"
+              fi
 						fi
 						avgTime=$(( avgTime+timeMil ))
 						avgStr="$avgStr $timeMil"
@@ -575,14 +580,14 @@ fi
 fileSize="0"
 if [[ "$downloadOrUpload" == "DOWN" ]]
 then
-	fileSize="$(( 2*speed ))000"
+	fileSize="$(( 2*speed*1024 ))"
 	echo "You are testing download"
 elif [[ "$downloadOrUpload" == "UP" ]]
 then
 	fileSize="$(( 2*speed ))"
 	echo "You are testing upload"
-	echo "making upload file by size $fileSize bytes in $uploadFile"
-	dd if=/dev/zero of="$uploadFile" bs=1024 count="$fileSize" > /dev/null 2>&1
+	echo "making upload file by size $fileSize KB in $uploadFile"
+	dd if=/dev/random of="$uploadFile" bs=1024 count="$fileSize" > /dev/null 2>&1
 else
 	echo "$downloadOrUpload is not correct choose one DOWN or UP"
 	exit 1
