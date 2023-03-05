@@ -575,13 +575,13 @@ fi
 fileSize="0"
 if [[ "$downloadOrUpload" == "DOWN" ]]
 then
-	fileSize="$(( 2*speed ))000"
+	fileSize="$(( 2*speed*1024 ))"
 	echo "You are testing download"
 elif [[ "$downloadOrUpload" == "UP" ]]
 then
 	fileSize="$(( 2*speed ))"
 	echo "You are testing upload"
-	echo "making upload file by size $fileSize bytes in $uploadFile"
+	echo "making upload file by size $fileSize KB in $uploadFile"
 	dd if=/dev/zero of="$uploadFile" bs=1024 count="$fileSize" > /dev/null 2>&1
 else
 	echo "$downloadOrUpload is not correct choose one DOWN or UP"
