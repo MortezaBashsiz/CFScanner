@@ -1,6 +1,5 @@
 config/
 result/
-files/
 files/upload_file
 bash/config.real
 bash/subnets.list
