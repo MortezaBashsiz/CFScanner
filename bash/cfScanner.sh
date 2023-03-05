@@ -144,7 +144,6 @@ function fncCheckIPList {
 	tryCount="${13}"
 	downloadOrUpload="${14}"
 	uploadFile="$scriptDir/../files/upload_file"
-	echo "$uploadFile" >> /tmp/adas
 	binDir="$scriptDir/../bin"
 	configDir="$scriptDir/../config"
 	configPath=$(echo "$configPath" | sed 's/\//\\\//g')
@@ -473,7 +472,7 @@ subnetIPFile="NULL"
 usage()
 {
   echo -e "Usage: cfScanner [ -m|--mode  SUBNET/IP ] 
-                 [ -t|--test-type  DOWN/UP ]
+     [ -t|--test-type  DOWN/UP ]
 		 [ -thr|--thread <int> ]
 		 [ -try|--tryCount <int> ]
 		 [ -c|--config <configfile> ]
@@ -482,38 +481,31 @@ usage()
   exit 2
 }
 
-parsedArguments=$(getopt -a -n  cfScanner -o m:t:thr:try:c:s:f: --long mode:,test-type:,thread:,tryCount:,config:,speed:,custom-subnet-file: -- "$@")
+parsedArguments=$(getopt -a -n  cfScanner -o m:t:thr:try:c:s:f: --long mode:,test-type:,thread:,tryCount:,config:,speed:,file: -- "$@")
 validArguments=$?
-if [ "$VALID_ARGUMENTS" != "0" ]; then
+if [ "$validArguments" != "0" ]; then
   echo "error validate"
-  exist 2
+  exit 2
 fi
 
 
-eval set -- "$PARSED_ARGUMENTS"
+eval set -- "$parsedArguments"
 while :
 do
   case "$1" in
-    -m | --mode)    subnetOrIP="$2" ; shift 2  ;;
-	-t | --test-type)   downloadOrUpload="$2" ; shift 2  ;;
-	-thr | --thread)    threads="$2"  ; shift 2  ;;
-	-try | --tryCount)    tryCount="$2"  ; shift 2  ;;
-	-c | --config) config="$2"  ; shift 2  ;;
-	-s | --speed)    speed="$2" ; shift 2  ;;
-	-f | --file)    subnetIPFile="$2"  ; shift 2  ;;
-	-h | --help) usage;;
-
+		-m | --mode)    subnetOrIP="$2" ; shift 2  ;;
+		-t | --test-type)   downloadOrUpload="$2" ; shift 2  ;;
+		-thr | --thread)    threads="$2"  ; shift 2  ;;
+		-try | --tryCount)    tryCount="$2"  ; shift 2  ;;
+		-c | --config) config="$2"  ; shift 2  ;;
+		-s | --speed)    speed="$2" ; shift 2  ;;
+		-f | --file)    subnetIPFile="$2"  ; shift 2  ;;
+		-h | --help) usage;;
     --) shift; break ;;
     *) echo "Unexpected option: $1 - this should not happen."
        usage ;;
   esac
 done
-
-
-
-
-
-
 
 if [[ "$subnetIPFile" != "NULL" ]]
 then

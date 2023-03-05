@@ -93,7 +93,7 @@ Which the `custom.subnets` is like as follows. You can edit this file and add yo
 #### EXAMPLE: with custom ip file
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh --mode IP --thread 8 --tryCount 1 --config config.real --speed 100 --file ip.list
+[~/CFScanner/bash]>$ bash cfScanner.sh --mode IP --test-type DOWN --thread 8 --tryCount 1 --config config.real --speed 100 --file ip.list
 ```
 
 Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
