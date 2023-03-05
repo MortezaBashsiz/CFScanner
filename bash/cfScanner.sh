@@ -238,8 +238,16 @@ function fncCheckIPList {
 					fi
 					if [[ "$downRealTime" && "$downRealTime" -gt 100 ]] || [[ "$upRealTime" && "$upRealTime" -gt 100 ]]
 					then
-						echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime, $downAvgStr UP: $upRealTime, $upAvgStr${NC}" 
-						echo "$downRealTime, $downAvgStr UP: $upRealTime, $upAvgStr IP $ip" >> "$resultFile"
+						if [[ "$downRealTime" && "$downRealTime" -gt 100 ]]
+						then
+							echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime${NC}" 
+							echo "$downRealTime, $downAvgStr DOWN FOR IP $ip" >> "$resultFile"
+						fi
+						if [[ "$upRealTime" && "$upRealTime" -gt 100 ]]
+						then
+							echo -e "${GREEN}OK${NC} $ip ${BLUE}UP: $upRealTime, $upAvgStr${NC}" 
+							echo "$upRealTime, $upAvgStr UP FOR IP $ip" >> "$resultFile"
+						fi
 					else
 						echo -e "${YELLOW}FAILED${NC} $ip"
 					fi
