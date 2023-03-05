@@ -37,8 +37,7 @@ In the config file the variables are
 	"Port": "Port which you are using behind Cloudflare on your origin server",
 	"path": "Websocket endpoint like api20",
 	"serverName": "SNI",
-	"frontDomain": "fronting domain check",
-	"scanDomain": "scan domain which is behind CF for download test"
+   	"subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/cf.local.iplist"
 }
 ```
 
@@ -46,11 +45,11 @@ NOTE: If you want to use your custom config DO NOT use it as config.real since s
 
 ### 4. Execute it
 
-At following command pay attention to the arguments **SUBNET or IP** **DOWN or UP or BOTH** **threads**, **tryCount**, **speed** and **Custom Subnet File**.
+At following command pay attention to the arguments **SUBNET or IP** **DOWN or UP or BOTH**, **threads**, **tryCount**, **speed** and **Custom Subnet File**.
 
 --mode: SUBNET or IP, Choose one of them for scanning subnets or single IPs
 
---test-type: DOWN or UP, Choos one of them for download and upload test
+--test-type: DOWN or UP or BOTH, Choos one of them for download and upload test
 
 --thread: This is an integer number that defines the parallel threads count
 
