@@ -604,11 +604,6 @@ then
 	ddSize="$(( 2*speed ))"
 	dd if=/dev/random of="$uploadFile" bs=1024 count="$ddSize" > /dev/null 2>&1
 fi
-if [[ "$downloadOrUpload" != "DOWN" || "$downloadOrUpload" != "BOTH" ]]
-then
-	echo "$downloadOrUpload is not correct choose one DOWN or UP"
-	exit 1
-fi
 
 fncValidateConfig "$config"
 
