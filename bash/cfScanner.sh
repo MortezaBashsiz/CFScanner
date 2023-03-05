@@ -200,39 +200,45 @@ function fncCheckIPList {
 					then
 						kill -9 "$pid" > /dev/null 2>&1
 					fi
-					avgTime=0
-					avgStr=""
-					timeMil=0
+					downAvgTime=0
+					upAvgTime=0
+					downAvgStr=""
+					upAvgStr=""
+					downTimeMil=0
+					upTimeMil=0
 					nohup "$binDir"/"$v2rayCommand" -c "$ipConfigFile" > /dev/null &
 					sleep 2
 					for i in $(seq 1 "$tryCount");
 					do
-						if [[ "$downloadOrUpload" == "DOWN" ]]
+						if [[ "$downloadOrUpload" == "DOWN" ]] || [[  "$downloadOrUpload" == "BOTH" ]]
 						then
-							timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" "https://speed.cloudflare.com/__down?bytes=$fileSize" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
-						elif [[ "$downloadOrUpload" == "UP" ]]
+							downTimeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" "https://speed.cloudflare.com/__down?bytes=$fileSize" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
+						elif [[ "$downloadOrUpload" == "UP" ]] || [[  "$downloadOrUpload" == "BOTH" ]]
 						then
 							result=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "\nTIME: %{time_total}\n" --data "@$uploadFile" https://speed.cloudflare.com/__up)
               resultAnswer="$(echo "$result" | grep -v "TIME")"
               if [[ "$resultAnswer" ]]
               then
-								timeMil="$(echo "$result" | grep -i "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc)"
+								upTimeMil="$(echo "$result" | grep -i "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc)"
               fi
 						fi
-						avgTime=$(( avgTime+timeMil ))
-						avgStr="$avgStr $timeMil"
+						downAvgTime=$(( downAvgTime+downTimeMil ))
+						upAvgTime=$(( upAvgTime+upTimeMil ))
+						downAvgStr="$downAvgStr $downTimeMil"
+						upAvgStr="$upAvgStr $upTimeMil"
 					done
-					realTime=$(( avgTime/tryCount ))
+					downRealTime=$(( downAvgTime/tryCount ))
+					upRealTime=$(( upAvgTime/tryCount ))
 					# shellcheck disable=SC2009
 					pid=$(ps aux | grep config.json."$ip" | grep -v grep | awk '{ print $2 }')
 					if [[ "$pid" ]]
 					then
 						kill -9 "$pid" > /dev/null 2>&1
 					fi
-					if [[ "$realTime" ]] && [[ "$realTime" != 0 ]]
+					if [[ "$downRealTime" && "$downRealTime" -gt 100 ]] || [[ "$upRealTime" && "$upRealTime" -gt 100 ]]
 					then
-						echo -e "${GREEN}OK${NC} $ip ${BLUE}AverageTime $realTime  StringTime$avgStr${NC}" 
-						echo "$realTime StringTime $avgStr  IP $ip" >> "$resultFile"
+						echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime, $downAvgStr UP: $upRealTime, $upAvgStr${NC}" 
+						echo "$downRealTime, $downAvgStr UP: $upRealTime, $upAvgStr IP $ip" >> "$resultFile"
 					else
 						echo -e "${YELLOW}FAILED${NC} $ip"
 					fi
@@ -477,7 +483,7 @@ subnetIPFile="NULL"
 usage()
 {
   echo -e "Usage: cfScanner [ -m|--mode  SUBNET/IP ] 
-     [ -t|--test-type  DOWN/UP ]
+     [ -t|--test-type  DOWN/UP/BOTH ]
 		 [ -thr|--thread <int> ]
 		 [ -try|--tryCount <int> ]
 		 [ -c|--config <configfile> ]
@@ -578,11 +584,11 @@ else
 fi
 
 fileSize="0"
-if [[ "$downloadOrUpload" == "DOWN" ]]
+if [[ "$downloadOrUpload" == "DOWN" ]] || [[  "$downloadOrUpload" == "BOTH" ]]
 then
 	fileSize="$(( 2*speed*1024 ))"
 	echo "You are testing download"
-elif [[ "$downloadOrUpload" == "UP" ]]
+elif [[ "$downloadOrUpload" == "UP" ]] || [[  "$downloadOrUpload" == "BOTH" ]]
 then
 	fileSize="$(( 2*speed ))"
 	echo "You are testing upload"
