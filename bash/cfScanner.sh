@@ -581,7 +581,7 @@ elif [[ "$downloadOrUpload" == "UP" ]]
 then
 	echo "You are testing upload"
 	echo "making upload file by size $fileSize bytes in $uploadFile"
-	dd if=/dev/zero of="$uploadFile" bs=1b count="$fileSize" > /dev/null 2>&1
+	dd if=/dev/zero of="$uploadFile" bs=1 count="$fileSize" > /dev/null 2>&1
 else
 	echo "$downloadOrUpload is not correct choose one DOWN or UP"
 	exit 1
