@@ -238,8 +238,16 @@ function fncCheckIPList {
 					fi
 					if [[ "$downRealTime" && "$downRealTime" -gt 100 ]] || [[ "$upRealTime" && "$upRealTime" -gt 100 ]]
 					then
-						echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime, $downAvgStr UP: $upRealTime, $upAvgStr${NC}" 
-						echo "$downRealTime, $downAvgStr UP: $upRealTime, $upAvgStr IP $ip" >> "$resultFile"
+						if [[ "$downRealTime" && "$downRealTime" -gt 100 ]]
+						then
+							echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr${NC}" 
+							echo "$downRealTime, $downAvgStr DOWN FOR IP $ip" >> "$resultFile"
+						fi
+						if [[ "$upRealTime" && "$upRealTime" -gt 100 ]]
+						then
+							echo -e "${GREEN}OK${NC} $ip ${BLUE}UP: $upRealTime, $upAvgStr${NC}" 
+							echo "$upRealTime, $upAvgStr UP FOR IP $ip" >> "$resultFile"
+						fi
 					else
 						echo -e "${YELLOW}FAILED${NC} $ip"
 					fi
@@ -595,9 +603,6 @@ then
 	echo "making upload file by size $fileSize KB in $uploadFile"
 	ddSize="$(( 2*speed ))"
 	dd if=/dev/random of="$uploadFile" bs=1024 count="$ddSize" > /dev/null 2>&1
-else
-	echo "$downloadOrUpload is not correct choose one DOWN or UP"
-	exit 1
 fi
 
 fncValidateConfig "$config"
