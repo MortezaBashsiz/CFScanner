@@ -465,18 +465,59 @@ function fncMainCFFindIP {
 # End of Function fncMainCFFindIP
 
 clientConfigFile="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/ClientConfig.json"
-
-subnetOrIP="$1"
-downloadOrUpload="$2"
-threads="$3"
-tryCount="$4"
-config="$5"
-speed="$6"
 subnetIPFile="NULL"
 
-if [[ "$7" ]]
+
+
+
+usage()
+{
+  echo -e "Usage: cfScanner [ -m|--mode  SUBNET/IP ] 
+                 [ -t|--test-type  DOWN/UP ]
+		 [ -thr|--thread <int> ]
+		 [ -try|--tryCount <int> ]
+		 [ -c|--config <configfile> ]
+		 [ -s|--speed <int> ] 
+		 [ -f|--file <custome-ip-file> (if you chose IP mode)]\n"
+  exit 2
+}
+
+parsedArguments=$(getopt -a -n  cfScanner -o m:t:thr:try:c:s:f: --long mode:,test-type:,thread:,tryCount:,config:,speed:,custom-subnet-file: -- "$@")
+validArguments=$?
+if [ "$VALID_ARGUMENTS" != "0" ]; then
+  echo "error validate"
+  exist 2
+fi
+
+
+eval set -- "$PARSED_ARGUMENTS"
+while :
+do
+  case "$1" in
+    -m | --mode)    subnetOrIP="$2" ; shift 2  ;;
+	-t | --test-type)   downloadOrUpload="$2" ; shift 2  ;;
+	-thr | --thread)    threads="$2"  ; shift 2  ;;
+	-try | --tryCount)    tryCount="$2"  ; shift 2  ;;
+	-c | --config) config="$2"  ; shift 2  ;;
+	-s | --speed)    speed="$2" ; shift 2  ;;
+	-f | --file)    subnetIPFile="$2"  ; shift 2  ;;
+	-h | --help) usage;;
+
+    --) shift; break ;;
+    *) echo "Unexpected option: $1 - this should not happen."
+       usage ;;
+  esac
+done
+
+
+
+
+
+
+
+if [[ "$subnetIPFile" != "NULL" ]]
 then
-	subnetIPFile="$7"
+
 	if ! [[ -f "$subnetIPFile" ]]
 	then
 		echo "file does not exists: $subnetIPFile"
