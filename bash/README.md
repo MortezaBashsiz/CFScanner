@@ -46,7 +46,7 @@ NOTE: If you want to use your custom config DO NOT use it as config.real since s
 
 ### 4. Execute it
 
-At following command pay attention to the arguments **SUBNET or IP** **DOWN or UP** **threads**, **tryCount**, **speed** and **Custom Subnet File**.
+At following command pay attention to the arguments **SUBNET or IP** **DOWN or UP or BOTH** **threads**, **tryCount**, **speed** and **Custom Subnet File**.
 
 --mode: SUBNET or IP, Choose one of them for scanning subnets or single IPs
 
@@ -61,7 +61,7 @@ At following command pay attention to the arguments **SUBNET or IP** **DOWN or U
 --file: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh  --mode <SUBNET/IP> --test-type <DOWN/UP> --thread <int> --tryCount <int> --config <config file> --speed <int> [--file <Custome Subnet File> ]
+[~/CFScanner/bash]>$ bash cfScanner.sh  --mode <SUBNET/IP> --test-type <DOWN/UP/BOTH> --thread <int> --tryCount <int> --config <config file> --speed <int> [--file <Custome Subnet File> ]
 ```
 
 #### EXAMPLE: without custom subnet download
@@ -75,6 +75,13 @@ At following command pay attention to the arguments **SUBNET or IP** **DOWN or U
 ```shell
 [~/CFScanner/bash]>$ bash cfScanner.sh --mode SUBNET --test-type UP --thread 8 --tryCount 1 --config config.real --speed 100
 ```
+
+#### EXAMPLE: without custom subnet upload and download
+
+```shell
+[~/CFScanner/bash]>$ bash cfScanner.sh --mode SUBNET --test-type BOTH --thread 8 --tryCount 1 --config config.real --speed 100
+```
+
 
 #### EXAMPLE: with custom subnet
 
