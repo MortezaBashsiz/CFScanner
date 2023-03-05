@@ -1,6 +1,7 @@
 ## Requirements
 You have to install the following packages:
 
+[getopt](https://linux.die.net/man/3/getopt)<br>
 [jq](https://stedolan.github.io/jq/)<br>
 [git](https://git-scm.com/)<br>
 [tput](https://command-not-found.com/tput)<br>
