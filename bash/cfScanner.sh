@@ -14,7 +14,7 @@
 #        AUTHOR: Morteza Bashsiz (mb), morteza.bashsiz@gmail.com
 #  ORGANIZATION: Linux
 #       CREATED: 01/24/2023 07:36:57 PM
-#      REVISION: nomadzzz, armgham, beh-rouz, amini8, mahdibahramih 
+#      REVISION: nomadzzz, armgham, beh-rouz, amini8, mahdibahramih, armineslami 
 #===============================================================================
 
 # Function fncLongIntToStr
@@ -489,25 +489,44 @@ subnetIPFile="NULL"
 
 
 
-usage()
-{
-  echo -e "Usage: cfScanner [ -m|--mode  SUBNET/IP ] 
-     [ -t|--test-type  DOWN/UP/BOTH ]
-		 [ -thr|--thread <int> ]
-		 [ -try|--tryCount <int> ]
-		 [ -c|--config <configfile> ]
-		 [ -s|--speed <int> ] 
-		 [ -f|--file <custome-ip-file> (if you chose IP mode)]\n"
-  exit 2
+# Function fncUsage
+# usage function
+function fncUsage {
+	if [[ $OSTYPE == darwin* ]]
+	then 
+		echo -e "Usage: cfScanner [ -m SUBNET/IP ] 
+			[ -t DOWN/UP/BOTH ]
+			[ -thr <int> ]
+			[ -try <int> ]
+			[ -c <configfile> ]
+			[ -s <int> ] 
+			[ -f <custome-ip-file> (if you chose IP mode)]\n"
+		exit 2
+	else
+		echo -e "Usage: cfScanner [ -m|--mode  SUBNET/IP ] 
+			[ -t|--test-type  DOWN/UP/BOTH ]
+			[ -thr|--thread <int> ]
+			[ -try|--tryCount <int> ]
+			[ -c|--config <configfile> ]
+			[ -s|--speed <int> ] 
+			[ -f|--file <custome-ip-file> (if you chose IP mode)]\n"
+		 exit 2
+	fi
 }
+# End of Function fncUsage
 
-parsedArguments=$(getopt -a -n  cfScanner -o m:t:thr:try:c:s:f: --long mode:,test-type:,thread:,tryCount:,config:,speed:,file: -- "$@")
+if [[ $OSTYPE == darwin* ]]
+then
+	parsedArguments=$(getopt m:t:thr:try:c:s:f: "$*")
+else
+	parsedArguments=$(getopt -a -n  cfScanner -o m:t:thr:try:c:s:f: --long mode:,test-type:,thread:,tryCount:,config:,speed:,file: -- "$@")
+fi
+
 validArguments=$?
 if [ "$validArguments" != "0" ]; then
   echo "error validate"
   exit 2
 fi
-
 
 eval set -- "$parsedArguments"
 while :
@@ -520,10 +539,10 @@ do
 		-c | --config) config="$2"  ; shift 2  ;;
 		-s | --speed)    speed="$2" ; shift 2  ;;
 		-f | --file)    subnetIPFile="$2"  ; shift 2  ;;
-		-h | --help) usage;;
+		-h | --help) fncUsage ;;
     --) shift; break ;;
     *) echo "Unexpected option: $1 - this should not happen."
-       usage ;;
+       fncUsage ;;
   esac
 done
 
