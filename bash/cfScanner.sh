@@ -491,17 +491,35 @@ subnetIPFile="NULL"
 
 usage()
 {
-  echo -e "Usage: cfScanner [ -m|--mode  SUBNET/IP ] 
+	if [[ $OSTYPE == darwin* ]]
+	then 
+		echo -e "Usage: cfScanner [ -m SUBNET/IP ] 
+    	[ -t DOWN/UP/BOTH ]
+	[ -thr <int> ]
+	[ -try <int> ]
+	[ -c <configfile> ]
+	[ -s <int> ] 
+	[ -f <custome-ip-file> (if you chose IP mode)]\n"
+		exit 2
+	else
+		echo -e "Usage: cfScanner [ -m|--mode  SUBNET/IP ] 
      [ -t|--test-type  DOWN/UP/BOTH ]
 		 [ -thr|--thread <int> ]
 		 [ -try|--tryCount <int> ]
 		 [ -c|--config <configfile> ]
 		 [ -s|--speed <int> ] 
 		 [ -f|--file <custome-ip-file> (if you chose IP mode)]\n"
-  exit 2
+		 exit 2
+	fi
 }
 
-parsedArguments=$(getopt -a -n  cfScanner -o m:t:thr:try:c:s:f: --long mode:,test-type:,thread:,tryCount:,config:,speed:,file: -- "$@")
+if [[ $OSTYPE == darwin* ]]
+then
+	parsedArguments=$(getopt m:t:thr:try:c:s:f: "$*")
+else
+	parsedArguments=$(getopt -a -n  cfScanner -o m:t:thr:try:c:s:f: --long mode:,test-type:,thread:,tryCount:,config:,speed:,file: -- "$@")
+fi
+
 validArguments=$?
 if [ "$validArguments" != "0" ]; then
   echo "error validate"
