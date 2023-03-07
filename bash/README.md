@@ -1,6 +1,7 @@
 ## Requirements
 You have to install the following packages:
 
+[getopt](https://linux.die.net/man/3/getopt)<br>
 [jq](https://stedolan.github.io/jq/)<br>
 [git](https://git-scm.com/)<br>
 [tput](https://command-not-found.com/tput)<br>
@@ -36,8 +37,7 @@ In the config file the variables are
 	"Port": "Port which you are using behind Cloudflare on your origin server",
 	"path": "Websocket endpoint like api20",
 	"serverName": "SNI",
-	"frontDomain": "fronting domain check",
-	"scanDomain": "scan domain which is behind CF for download test"
+   	"subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/cf.local.iplist"
 }
 ```
 
@@ -45,40 +45,47 @@ NOTE: If you want to use your custom config DO NOT use it as config.real since s
 
 ### 4. Execute it
 
-At following command pay attention to the arguments **SUBNET or IP** **DOWN or UP** **threads**, **tryCount**, **speed** and **Custom Subnet File**.
+At following command pay attention to the arguments **SUBNET or IP** **DOWN or UP or BOTH**, **threads**, **tryCount**, **speed** and **Custom Subnet File**.
 
-SUBNET or IP: Choose one of them for scanning subnets or single IPs
+--mode: SUBNET or IP, Choose one of them for scanning subnets or single IPs
 
-DOWN or UP: Choos one of them for download and upload test
+--test-type: DOWN or UP or BOTH, Choos one of them for download and upload test
 
-Threads: This is an integer number that defines the parallel threads count
+--thread: This is an integer number that defines the parallel threads count
 
-tryCount: This is an integer to define how many times you like to check an IP
+--tryCount: This is an integer to define how many times you like to check an IP
 
-Speed: This is the filter that you can define to list the IPs based on download speed. The value is in KBPS (Kilo Bytes Per Second). For example, if you set it to 50, it means that you will only list the IPs which have a download speed of more than 50 KB/S.
+--speed: This is the filter that you can define to list the IPs based on download speed. The value is in KBPS (Kilo Bytes Per Second). For example, if you set it to 50, it means that you will only list the IPs which have a download speed of more than 50 KB/S.
 
-Custom Subnet File: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
+--file: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET DOWN threads tryCount config.real speed [Custome Subnet File]
+[~/CFScanner/bash]>$ bash cfScanner.sh  --mode <SUBNET/IP> --test-type <DOWN/UP/BOTH> --thread <int> --tryCount <int> --config <config file> --speed <int> [--file <Custome Subnet File> ]
 ```
 
 #### EXAMPLE: without custom subnet download
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET DOWN 8 1 config.real 100
+[~/CFScanner/bash]>$ bash cfScanner.sh --mode SUBNET --test-type DOWN --thread 8 --tryCount 1 --config config.real --speed 100
 ```
 
 #### EXAMPLE: without custom subnet upload
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET UP 8 1 config.real 100
+[~/CFScanner/bash]>$ bash cfScanner.sh --mode SUBNET --test-type UP --thread 8 --tryCount 1 --config config.real --speed 100
 ```
+
+#### EXAMPLE: without custom subnet upload and download
+
+```shell
+[~/CFScanner/bash]>$ bash cfScanner.sh --mode SUBNET --test-type BOTH --thread 8 --tryCount 1 --config config.real --speed 100
+```
+
 
 #### EXAMPLE: with custom subnet
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh SUBNET DOWN 8 1 config.real 100 custom.subnets
+[~/CFScanner/bash]>$ bash cfScanner.sh --mode SUBNET --test-type DOWN --thread 8 --tryCount 1 --config config.real --speed 100 --file custom.subnets
 ```
 
 Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
@@ -93,7 +100,7 @@ Which the `custom.subnets` is like as follows. You can edit this file and add yo
 #### EXAMPLE: with custom ip file
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh IP 8 1 config.real 100 ip.list
+[~/CFScanner/bash]>$ bash cfScanner.sh --mode IP --test-type DOWN --thread 8 --tryCount 1 --config config.real --speed 100 --file ip.list
 ```
 
 Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.

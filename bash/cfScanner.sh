@@ -14,7 +14,7 @@
 #        AUTHOR: Morteza Bashsiz (mb), morteza.bashsiz@gmail.com
 #  ORGANIZATION: Linux
 #       CREATED: 01/24/2023 07:36:57 PM
-#      REVISION: nomadzzz, armgham, beh-rouz, amini8  
+#      REVISION: nomadzzz, armgham, beh-rouz, amini8, mahdibahramih, armineslami 
 #===============================================================================
 
 # Function fncLongIntToStr
@@ -143,6 +143,7 @@ function fncCheckIPList {
 	v2rayCommand="${12}"
 	tryCount="${13}"
 	downloadOrUpload="${14}"
+	uploadFile="$scriptDir/../files/upload_file"
 	binDir="$scriptDir/../bin"
 	configDir="$scriptDir/../config"
 	configPath=$(echo "$configPath" | sed 's/\//\\\//g')
@@ -199,34 +200,54 @@ function fncCheckIPList {
 					then
 						kill -9 "$pid" > /dev/null 2>&1
 					fi
-					avgTime=0
-					avgStr=""
-					timeMil=0
+					downAvgTime=0
+					upAvgTime=0
+					downAvgStr=""
+					upAvgStr=""
+					downTimeMil=0
+					upTimeMil=0
 					nohup "$binDir"/"$v2rayCommand" -c "$ipConfigFile" > /dev/null &
 					sleep 2
 					for i in $(seq 1 "$tryCount");
 					do
-						if [[ "$downloadOrUpload" == "DOWN" ]]
+						if [[ "$downloadOrUpload" == "DOWN" ]] || [[  "$downloadOrUpload" == "BOTH" ]]
 						then
-							timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" "https://speed.cloudflare.com/__down?bytes=$fileSize" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
-						elif [[ "$downloadOrUpload" == "UP" ]]
-						then
-							timeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" -X POST --data "@$uploadFile" https://speed.cloudflare.com/__up --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
+							downTimeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" "https://speed.cloudflare.com/__down?bytes=$fileSize" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
 						fi
-						avgTime=$(( avgTime+timeMil ))
-						avgStr="$avgStr $timeMil"
+						if [[ "$downloadOrUpload" == "UP" ]] || [[  "$downloadOrUpload" == "BOTH" ]]
+						then
+							result=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "\nTIME: %{time_total}\n" --data "@$uploadFile" https://speed.cloudflare.com/__up)
+              resultAnswer="$(echo "$result" | grep -v "TIME")"
+              if [[ "$resultAnswer" ]]
+              then
+								upTimeMil="$(echo "$result" | grep -i "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc)"
+              fi
+						fi
+						downAvgTime=$(( downAvgTime+downTimeMil ))
+						upAvgTime=$(( upAvgTime+upTimeMil ))
+						downAvgStr="$downAvgStr $downTimeMil"
+						upAvgStr="$upAvgStr $upTimeMil"
 					done
-					realTime=$(( avgTime/tryCount ))
+					downRealTime=$(( downAvgTime/tryCount ))
+					upRealTime=$(( upAvgTime/tryCount ))
 					# shellcheck disable=SC2009
 					pid=$(ps aux | grep config.json."$ip" | grep -v grep | awk '{ print $2 }')
 					if [[ "$pid" ]]
 					then
 						kill -9 "$pid" > /dev/null 2>&1
 					fi
-					if [[ "$realTime" ]] && [[ "$realTime" != 0 ]]
+					if [[ "$downRealTime" && "$downRealTime" -gt 100 ]] || [[ "$upRealTime" && "$upRealTime" -gt 100 ]]
 					then
-						echo -e "${GREEN}OK${NC} $ip ${BLUE}AverageTime $realTime  StringTime$avgStr${NC}" 
-						echo "$realTime StringTime $avgStr  IP $ip" >> "$resultFile"
+						if [[ "$downRealTime" && "$downRealTime" -gt 100 ]]
+						then
+							echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr${NC}" 
+							echo "$downRealTime, $downAvgStr DOWN FOR IP $ip" >> "$resultFile"
+						fi
+						if [[ "$upRealTime" && "$upRealTime" -gt 100 ]]
+						then
+							echo -e "${GREEN}OK${NC} $ip ${BLUE}UP: $upRealTime, $upAvgStr${NC}" 
+							echo "$upRealTime, $upAvgStr UP FOR IP $ip" >> "$resultFile"
+						fi
 					else
 						echo -e "${YELLOW}FAILED${NC} $ip"
 					fi
@@ -463,18 +484,71 @@ function fncMainCFFindIP {
 # End of Function fncMainCFFindIP
 
 clientConfigFile="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/ClientConfig.json"
-
-subnetOrIP="$1"
-downloadOrUpload="$2"
-threads="$3"
-tryCount="$4"
-config="$5"
-speed="$6"
 subnetIPFile="NULL"
 
-if [[ "$7" ]]
+
+
+
+# Function fncUsage
+# usage function
+function fncUsage {
+	if [[ $OSTYPE == darwin* ]]
+	then 
+		echo -e "Usage: cfScanner [ -m SUBNET/IP ] 
+			[ -t DOWN/UP/BOTH ]
+			[ -thr <int> ]
+			[ -try <int> ]
+			[ -c <configfile> ]
+			[ -s <int> ] 
+			[ -f <custome-ip-file> (if you chose IP mode)]\n"
+		exit 2
+	else
+		echo -e "Usage: cfScanner [ -m|--mode  SUBNET/IP ] 
+			[ -t|--test-type  DOWN/UP/BOTH ]
+			[ -thr|--thread <int> ]
+			[ -try|--tryCount <int> ]
+			[ -c|--config <configfile> ]
+			[ -s|--speed <int> ] 
+			[ -f|--file <custome-ip-file> (if you chose IP mode)]\n"
+		 exit 2
+	fi
+}
+# End of Function fncUsage
+
+if [[ $OSTYPE == darwin* ]]
 then
-	subnetIPFile="$7"
+	parsedArguments=$(getopt m:t:thr:try:c:s:f: "$*")
+else
+	parsedArguments=$(getopt -a -n  cfScanner -o m:t:thr:try:c:s:f: --long mode:,test-type:,thread:,tryCount:,config:,speed:,file: -- "$@")
+fi
+
+validArguments=$?
+if [ "$validArguments" != "0" ]; then
+  echo "error validate"
+  exit 2
+fi
+
+eval set -- "$parsedArguments"
+while :
+do
+  case "$1" in
+		-m | --mode)    subnetOrIP="$2" ; shift 2  ;;
+		-t | --test-type)   downloadOrUpload="$2" ; shift 2  ;;
+		-thr | --thread)    threads="$2"  ; shift 2  ;;
+		-try | --tryCount)    tryCount="$2"  ; shift 2  ;;
+		-c | --config) config="$2"  ; shift 2  ;;
+		-s | --speed)    speed="$2" ; shift 2  ;;
+		-f | --file)    subnetIPFile="$2"  ; shift 2  ;;
+		-h | --help) fncUsage ;;
+    --) shift; break ;;
+    *) echo "Unexpected option: $1 - this should not happen."
+       fncUsage ;;
+  esac
+done
+
+if [[ "$subnetIPFile" != "NULL" ]]
+then
+
 	if ! [[ -f "$subnetIPFile" ]]
 	then
 		echo "file does not exists: $subnetIPFile"
@@ -537,19 +611,17 @@ else
 	echo ""
 fi
 
-fileSize="$(( 2*speed ))000"
-
-if [[ "$downloadOrUpload" == "DOWN" ]]
+fileSize="$(( 2*speed*1024 ))"
+if [[ "$downloadOrUpload" == "DOWN" || "$downloadOrUpload" == "BOTH" ]]
 then
 	echo "You are testing download"
-elif [[ "$downloadOrUpload" == "UP" ]]
+fi
+if [[ "$downloadOrUpload" == "UP" || "$downloadOrUpload" == "BOTH" ]]
 then
 	echo "You are testing upload"
-	echo "making upload file by size $fileSize bytes in $uploadFile"
-	dd if=/dev/zero of="$uploadFile" bs=1B count="$fileSize" > /dev/null 2>&1
-else
-	echo "$downloadOrUpload is not correct choose one DOWN or UP"
-	exit 1
+	echo "making upload file by size $fileSize KB in $uploadFile"
+	ddSize="$(( 2*speed ))"
+	dd if=/dev/random of="$uploadFile" bs=1024 count="$ddSize" > /dev/null 2>&1
 fi
 
 fncValidateConfig "$config"
