@@ -12,8 +12,8 @@ namespace WinCFScan.Classes.Config
     {
         protected string v2rayTemplateConfigFileName = "v2ray-config/config.json.template";
         protected string enableDebugFileName = "enable-debug"; // debug enabler file
-        public string? v2rayConfigTemplate { get; private set; }
-        protected string[] mandatoryDirectories = { "v2ray-config", "v2ray-config/generated", "results" }; //this dirs must be existed
+        public string? v2rayConfigTemplateText { get; private set; }
+        protected string[] mandatoryDirectories = { "v2ray-config", "v2ray-config/generated", "v2ray-config/custom-configs", "results" }; //this dirs must be existed
 
         protected AppConfig? appConfig;
         protected ClientConfig? clientConfig;
@@ -23,6 +23,7 @@ namespace WinCFScan.Classes.Config
 
         public static ConfigManager? Instance { get; private set; }
         public bool enableDebug = false;
+        public CustomConfigs customConfigs { get; set; }
 
         public ConfigManager()
         {
@@ -30,6 +31,8 @@ namespace WinCFScan.Classes.Config
             {
                 clientConfig = (new ClientConfig(appConfig)).getLoadedInstance();
             }
+
+            customConfigs = new CustomConfigs();
 
             // set static instance for later access of this instance
             Instance = this;
@@ -63,7 +66,7 @@ namespace WinCFScan.Classes.Config
                     return false;
                 }
 
-                v2rayConfigTemplate = File.ReadAllText(v2rayTemplateConfigFileName);
+                v2rayConfigTemplateText = File.ReadAllText(v2rayTemplateConfigFileName);
 
                 // check existance of v2ray.exe
                 if (!File.Exists("v2ray.exe"))
@@ -88,7 +91,7 @@ namespace WinCFScan.Classes.Config
         {
             if(
                 appConfig != null && appConfig.isConfigValid() && 
-                v2rayConfigTemplate != null && loadedOK && 
+                v2rayConfigTemplateText != null && loadedOK && 
                 clientConfig != null && clientConfig.isConfigValid()
                 )
             {

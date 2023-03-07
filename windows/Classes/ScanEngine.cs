@@ -24,6 +24,8 @@ namespace WinCFScan.Classes
         public List<ResultItem>? workingIPsFromPrevScan { get; set; }
         public int concurrentProcess = 4;
         public ScanSpeed targetSpeed;
+        public CustomConfigInfo scanConfig;
+        public int downloadTimeout = 2;
 
         public ScanEngine()
         {
@@ -136,7 +138,7 @@ namespace WinCFScan.Classes
             {
                 Parallel.ForEach(ipRange, po, (ip) =>
                 {
-                    var checker = new CheckIPWorking(ip, targetSpeed);
+                    var checker = new CheckIPWorking(ip, targetSpeed, scanConfig, downloadTimeout);
                     bool isOK = checker.check();
                     
                     progressInfo.lastCheckedIP = ip;
@@ -151,6 +153,17 @@ namespace WinCFScan.Classes
                         progressInfo.scanResults.addIPResult(checker.downloadDuration, ip);
                         //bag.Add(ip);
                     }
+
+                    // monitoring excpetions rate
+                    if(checker.downloadException != "")
+                        progressInfo.downloadExceptions.addError(checker.downloadException);
+                    else
+                        progressInfo.downloadExceptions.addScuccess();
+
+                    if (checker.frontingException != "")
+                        progressInfo.frontingExceptions.addError(checker.frontingException);
+                    else
+                        progressInfo.frontingExceptions.addScuccess();
                 }
                 );
             }

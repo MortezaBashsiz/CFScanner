@@ -9,7 +9,12 @@
     <AssemblyVersion>1.0.*</AssemblyVersion>
 	<Deterministic>false</Deterministic>
 	<Platforms>AnyCPU;x86</Platforms>
+	<ApplicationIcon>WinCFScan.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="WinCFScan.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">

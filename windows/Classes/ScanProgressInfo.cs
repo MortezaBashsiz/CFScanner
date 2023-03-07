@@ -22,5 +22,7 @@ namespace WinCFScan.Classes
         internal int currentIPRangeTotalIPs = 0;
         internal int totalCheckedIPInCurIPRange = 0;
         internal int totalCheckedIP = 0;
+        internal ExceptionMonitor downloadExceptions = new("Download Errors");
+        internal ExceptionMonitor frontingExceptions = new("Fronting Errors");
     }
 }
