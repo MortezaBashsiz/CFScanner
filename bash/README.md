@@ -47,45 +47,45 @@ NOTE: If you want to use your custom config DO NOT use it as config.real since s
 
 At following command pay attention to the arguments **SUBNET or IP** **DOWN or UP or BOTH**, **threads**, **tryCount**, **speed** and **Custom Subnet File**.
 
---mode: SUBNET or IP, Choose one of them for scanning subnets or single IPs
+-m: SUBNET or IP, Choose one of them for scanning subnets or single IPs
 
---test-type: DOWN or UP or BOTH, Choos one of them for download and upload test
+-t: DOWN or UP or BOTH, Choos one of them for download and upload test
 
---thread: This is an integer number that defines the parallel threads count
+-thr: This is an integer number that defines the parallel threads count
 
---tryCount: This is an integer to define how many times you like to check an IP
+-try: This is an integer to define how many times you like to check an IP
 
---speed: This is the filter that you can define to list the IPs based on download speed. The value is in KBPS (Kilo Bytes Per Second). For example, if you set it to 50, it means that you will only list the IPs which have a download speed of more than 50 KB/S.
+-s: This is the filter that you can define to list the IPs based on download speed. The value is in KBPS (Kilo Bytes Per Second). For example, if you set it to 50, it means that you will only list the IPs which have a download speed of more than 50 KB/S.
 
---file: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
+-f: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh  --mode <SUBNET/IP> --test-type <DOWN/UP/BOTH> --thread <int> --tryCount <int> --config <config file> --speed <int> [--file <Custome Subnet File> ]
+[~/CFScanner/bash]>$ bash cfScanner.sh  -m <SUBNET/IP> -t <DOWN/UP/BOTH> -thr <int> -try <int> -c <config file> -s <int> [-f <Custome Subnet File> ]
 ```
 
 #### EXAMPLE: without custom subnet download
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh --mode SUBNET --test-type DOWN --thread 8 --tryCount 1 --config config.real --speed 100
+[~/CFScanner/bash]>$ bash cfScanner.sh -m SUBNET -t DOWN -thr 8 -try 1 -c config.real -s 100
 ```
 
 #### EXAMPLE: without custom subnet upload
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh --mode SUBNET --test-type UP --thread 8 --tryCount 1 --config config.real --speed 100
+[~/CFScanner/bash]>$ bash cfScanner.sh -m SUBNET -t UP -thr 8 -try 1 -c config.real -s 100
 ```
 
 #### EXAMPLE: without custom subnet upload and download
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh --mode SUBNET --test-type BOTH --thread 8 --tryCount 1 --config config.real --speed 100
+[~/CFScanner/bash]>$ bash cfScanner.sh -m SUBNET -t BOTH -thr 8 -try 1 -c config.real -s 100
 ```
 
 
 #### EXAMPLE: with custom subnet
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh --mode SUBNET --test-type DOWN --thread 8 --tryCount 1 --config config.real --speed 100 --file custom.subnets
+[~/CFScanner/bash]>$ bash cfScanner.sh -m SUBNET -t DOWN -thr 8 -try 1 -c config.real -s 100 -f custom.subnets
 ```
 
 Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
@@ -100,7 +100,7 @@ Which the `custom.subnets` is like as follows. You can edit this file and add yo
 #### EXAMPLE: with custom ip file
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh --mode IP --test-type DOWN --thread 8 --tryCount 1 --config config.real --speed 100 --file ip.list
+[~/CFScanner/bash]>$ bash cfScanner.sh -m IP -t DOWN -thr 8 -try 1 -c config.real -s 100 -f ip.list
 ```
 
 Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
