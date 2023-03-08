@@ -15,6 +15,7 @@ namespace WinCFScan
     public partial class frmMain : Form
     {
         private const string ourGitHubUrl = "https://github.com/MortezaBashsiz/CFScanner";
+        private const string helpCustomConfigUrl = "https://github.com/MortezaBashsiz/CFScanner/discussions/210";
         ConfigManager configManager;
         bool oneTimeChecked = false; // config checked once?
         ScanEngine scanEngine;
@@ -243,7 +244,7 @@ namespace WinCFScan
                 comboTargetSpeed.Enabled = false;
                 comboConfigs.Enabled = false;
                 timerProgress.Enabled = true;
-                btnSkipCurRange.Enabled = true;
+                //btnSkipCurRange.Enabled = true;
                 comboResults.Enabled = false;
                 tabPageCFRanges.Enabled = false;
             }
@@ -254,7 +255,7 @@ namespace WinCFScan
                 btnScanInPrevResults.Enabled = true;
                 btnResultsActions.Enabled = true;
                 timerProgress.Enabled = false;
-                btnSkipCurRange.Enabled = false;
+                //btnSkipCurRange.Enabled = false;
                 comboResults.Enabled = true;
                 if (!configManager.enableDebug)
                 {
@@ -323,8 +324,12 @@ namespace WinCFScan
 
                 prgCurRange.Maximum = pInf.currentIPRangeTotalIPs;
                 prgCurRange.Value = pInf.totalCheckedIPInCurIPRange;
+                prgCurRange.ToolTipText = $"Current IP range progress: {pInf.getCurrentRangePercentIsDone():f1}%";
+
                 fetchWorkingIPResults();
                 pInf.scanResults.autoSave();
+
+                fetchScanEngineLogMessages();
 
                 // exception rate
                 pInf.frontingExceptions.setControlColorStyles(btnFrontingErrors);
@@ -336,16 +341,20 @@ namespace WinCFScan
             }
         }
 
+        private void fetchScanEngineLogMessages()
+        {
+            var messages = scanEngine.fetchLogMessages();
+            foreach (var message in messages)
+            {
+                addTextLog(message);
+            }
+        }
+
         // fetch new woriking ips and add to the list view while scanning
         private void fetchWorkingIPResults()
         {
             List<ResultItem> scanResults = scanEngine.progressInfo.scanResults.fetchWorkingIPs();
             addResulItemsToListView(scanResults);
-        }
-
-        private void btnSkipCurRange_Click(object sender, EventArgs e)
-        {
-            scanEngine.skipCurrentIPRange();
         }
 
         private void loadLastResultsComboList()
@@ -772,15 +781,19 @@ namespace WinCFScan
 
         private void linkGithub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
+            openUrl(ourGitHubUrl);
+        }
+
+        private void openUrl(string url)
+        {
             try
             {
-                ProcessStartInfo sInfo = new ProcessStartInfo(ourGitHubUrl) { UseShellExecute = true };
+                ProcessStartInfo sInfo = new ProcessStartInfo(url) { UseShellExecute = true };
                 Process.Start(sInfo);
             }
             catch (Exception)
             {
-                addTextLog($"Visit us on {ourGitHubUrl}");
-                throw;
+                addTextLog($"Open this url in your browser: {url}");
             }
         }
 
@@ -1042,10 +1055,125 @@ namespace WinCFScan
         {
             int timeout = getDownloadTimeout();
 
-            if(timeout > 2)
+            if (timeout > 2)
             {
-                addTextLog($"Download timeout is set to {timeout} seconds. Only use higher timeout values if your 2vray server responce is slow.");
+                addTextLog($"Download timeout is set to {timeout} seconds. Only use higher timeout values if your v2ray server's responce is slow.");
             }
+        }
+
+        private void btnSkipCurRange_ButtonClick(object sender, EventArgs e)
+        {
+            if (scanEngine.progressInfo.isScanRunning)
+                scanEngine.skipCurrentIPRange();
+
+        }
+
+        private void mnuSkipAfterFoundIPs_Click(object sender, EventArgs e)
+        {
+            setAutoSkip(mnuSkipAfterFoundIPs.Checked, "Auto skip current IP range after founding 5 working IPs is");
+            scanEngine.setSkipAfterFoundIPs(mnuSkipAfterFoundIPs.Checked);
+            setAutoSkipStatus();
+        }
+
+        private void mnuSkipAfterAWhile_Click(object sender, EventArgs e)
+        {
+            setAutoSkip(mnuSkipAfterAWhile.Checked, "Auto skip current IP range after 3 minutes of scanning is");
+            scanEngine.setSkipAfterAWhile(mnuSkipAfterAWhile.Checked);
+            setAutoSkipStatus();
+        }
+
+        private void mnuSkipAfter10Percent_Click(object sender, EventArgs e)
+        {
+            skipAfterPercent(mnuSkipAfter10Percent);
+        }
+
+        private void mnuSkipAfter30Percent_Click(object sender, EventArgs e)
+        {
+            skipAfterPercent(mnuSkipAfter30Percent);
+        }
+
+        private void mnuSkipAfter50Percent_Click(object sender, EventArgs e)
+        {
+            skipAfterPercent(mnuSkipAfter50Percent);
+        }
+
+        private void setAutoSkipStatus()
+        {
+            lblAutoSkipStatus.Visible = mnuSkipAfter10Percent.Checked || mnuSkipAfter30Percent.Checked || mnuSkipAfter50Percent.Checked ||
+                mnuSkipAfterAWhile.Checked || mnuSkipAfterFoundIPs.Checked;
+        }
+
+        private void skipAfterPercent(ToolStripMenuItem menu)
+        {
+            // note: menu must have Tag
+            if (menu.Checked)
+                selectMinimumPercentOfAutoSkipMenu(menu.Tag.ToString());
+
+            int minPercent = getMinimumPercentOfAutoSkip();
+
+            if (minPercent == -1)
+            {
+                setAutoSkip(false, $"Auto skip current IP range after specific percentage is");
+            }
+            else
+            {
+                setAutoSkip(true, $"Auto skip current IP range after {minPercent}% is");
+            }
+
+            scanEngine.setSkipAfterScanPercent(minPercent != -1, minPercent);
+            setAutoSkipStatus();
+
+        }
+
+        private void selectMinimumPercentOfAutoSkipMenu(string selectedMenu)
+        {
+            switch (selectedMenu)
+            {
+                case "10":
+                    mnuSkipAfter30Percent.Checked = mnuSkipAfter50Percent.Checked = false;
+                    break;
+                case "30":
+                    mnuSkipAfter10Percent.Checked = mnuSkipAfter50Percent.Checked = false;
+                    break;
+                case "50":
+                    mnuSkipAfter10Percent.Checked = mnuSkipAfter30Percent.Checked = false;
+                    break;
+            }
+        }
+
+        private int getMinimumPercentOfAutoSkip()
+        {
+            if (mnuSkipAfter10Percent.Checked)
+            {
+                return 10;
+            }
+            else if (mnuSkipAfter30Percent.Checked)
+            {
+                return 30;
+            }
+            else if (mnuSkipAfter50Percent.Checked)
+            {
+                return 50;
+            }
+
+            return -1;
+        }
+
+        private void setAutoSkip(bool enabled, string message)
+        {
+            string enabledStatus = enabled ? "enabled" : "disbaled";
+            addTextLog($"{message} {enabledStatus}.");
+
+        }
+
+        private void mnuHelpCustomConfig_Click(object sender, EventArgs e)
+        {
+            openUrl(helpCustomConfigUrl);
+        }
+
+        private void mnuHelpOurGitHub_Click(object sender, EventArgs e)
+        {
+            openUrl(ourGitHubUrl);
         }
     }
 }

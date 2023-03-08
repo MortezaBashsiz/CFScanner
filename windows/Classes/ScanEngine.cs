@@ -26,6 +26,12 @@ namespace WinCFScan.Classes
         public ScanSpeed targetSpeed;
         public CustomConfigInfo scanConfig;
         public int downloadTimeout = 2;
+        private bool skipAfterFoundIPsEnabled;
+        private bool skipAfterAWhileEnabled;
+        private Stopwatch curRangeTimer;
+        private List<string> logMessages = new List<string>();
+        private bool skipAfterPercentDone;
+        private int skipMinPercent;
 
         public ScanEngine()
         {
@@ -93,6 +99,7 @@ namespace WinCFScan.Classes
                 }
 
                 progressInfo.totalCheckedIPInCurIPRange = 0;
+                progressInfo.scanResults.totalFoundWorkingIPsCurrentRange = 0;
 
                 if (isValidIPRange(cfIP))
                 {
@@ -100,9 +107,10 @@ namespace WinCFScan.Classes
                     progressInfo.currentIPRange = cfIP;
                     progressInfo.currentIPRangeTotalIPs = ipRange.Count();
                     LogControl.Write(String.Format("Start scanning {0} ip in {1}", ipRange.Count, cfIP));
-                    Stopwatch sw = Stopwatch.StartNew();
+                    logMessages.Add($"Starting {cfIP} ...");
+                    curRangeTimer = Stopwatch.StartNew();
                     parallelScan(ipRange);
-                    LogControl.Write(String.Format("End of scanning {0} {1} ip in {2} sec\n\n", cfIP, ipRange.Count, sw.Elapsed.TotalSeconds));
+                    LogControl.Write(String.Format("End of scanning {0} {1} ip in {2} sec\n\n", cfIP, ipRange.Count, curRangeTimer.Elapsed.TotalSeconds));
 
                     progressInfo.currentIPRangesNumber++;
 
@@ -140,7 +148,7 @@ namespace WinCFScan.Classes
                 {
                     var checker = new CheckIPWorking(ip, targetSpeed, scanConfig, downloadTimeout);
                     bool isOK = checker.check();
-                    
+
                     progressInfo.lastCheckedIP = ip;
                     progressInfo.totalCheckedIPInCurIPRange++;
                     progressInfo.totalCheckedIP++;
@@ -151,19 +159,13 @@ namespace WinCFScan.Classes
                     if (isOK)
                     {
                         progressInfo.scanResults.addIPResult(checker.downloadDuration, ip);
-                        //bag.Add(ip);
                     }
 
-                    // monitoring excpetions rate
-                    if(checker.downloadException != "")
-                        progressInfo.downloadExceptions.addError(checker.downloadException);
-                    else
-                        progressInfo.downloadExceptions.addScuccess();
+                    // should we auto skip?
+                    checkForAutoSkips();
 
-                    if (checker.frontingException != "")
-                        progressInfo.frontingExceptions.addError(checker.frontingException);
-                    else
-                        progressInfo.frontingExceptions.addScuccess();
+                    // monitoring excpetions rate
+                    monitoExceptions(checker);
                 }
                 );
             }
@@ -177,9 +179,70 @@ namespace WinCFScan.Classes
             }
         }
 
+        private void monitoExceptions(CheckIPWorking checker)
+        {
+            // monitoring excpetions rate
+            if (checker.downloadException != "")
+                progressInfo.downloadExceptions.addError(checker.downloadException);
+            else
+                progressInfo.downloadExceptions.addScuccess();
+
+            if (checker.frontingException != "")
+                progressInfo.frontingExceptions.addError(checker.frontingException);
+            else
+                progressInfo.frontingExceptions.addScuccess();
+        }
+
+        private void checkForAutoSkips()
+        {
+            
+            // skip after 2 minute
+            if (skipAfterAWhileEnabled)
+            {
+                if(curRangeTimer.Elapsed.TotalMinutes >= 3)
+                {
+                    if (!progressInfo.skipCurrentIPRange)
+                        logMessages.Add($"Auto skipping {progressInfo.currentIPRange} after founding 3 minutes of scanning.");
+
+                    skipCurrentIPRange();
+                }
+            }
+
+            // skip after 5 minute
+            if (skipAfterFoundIPsEnabled)
+            {
+                if (progressInfo.scanResults.totalFoundWorkingIPsCurrentRange >= 5)
+                {
+                    if(!progressInfo.skipCurrentIPRange)
+                        logMessages.Add($"Auto skipping {progressInfo.currentIPRange} after founding 5 working IPs.");
+
+                    skipCurrentIPRange();
+                }
+            }
+
+            // skip after percent done
+            if (skipAfterPercentDone && skipMinPercent > 0)
+            {
+                if (progressInfo.getCurrentRangePercentIsDone() >= skipMinPercent)
+                {
+                    if (!progressInfo.skipCurrentIPRange)
+                        logMessages.Add($"Auto skipping {progressInfo.currentIPRange} after {skipMinPercent}% of range is scanned.");
+
+                    skipCurrentIPRange();
+                }
+            }
+        }
+
         protected void resetProgressInfo()
         {
             progressInfo = new ScanProgressInfo();
+        }
+
+        public List<string> fetchLogMessages()
+        {
+            List<string> curLogMessages = logMessages;
+            logMessages = new();
+            return curLogMessages;
         }
 
 
@@ -216,6 +279,22 @@ namespace WinCFScan.Classes
         public void skipCurrentIPRange() {
             progressInfo.skipCurrentIPRange = true;
             cts.Cancel();
+        }
+
+        internal void setSkipAfterFoundIPs(bool enabled)
+        {
+            this.skipAfterFoundIPsEnabled = enabled;
+        }
+
+        internal void setSkipAfterAWhile(bool enabled)
+        {
+            this.skipAfterAWhileEnabled = enabled;
+        }
+
+        internal void setSkipAfterScanPercent(bool enabled, int minPercent)
+        {
+            this.skipAfterPercentDone = enabled;
+            this.skipMinPercent = minPercent;
         }
     }
 

@@ -24,5 +24,13 @@ namespace WinCFScan.Classes
         internal int totalCheckedIP = 0;
         internal ExceptionMonitor downloadExceptions = new("Download Errors");
         internal ExceptionMonitor frontingExceptions = new("Fronting Errors");
+
+        public float getCurrentRangePercentIsDone()
+        {
+            if (currentIPRangeTotalIPs == 0)
+                return 0;
+
+            return ((float)totalCheckedIPInCurIPRange / currentIPRangeTotalIPs) * 100;
+        }
     }
 }

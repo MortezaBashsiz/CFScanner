@@ -17,6 +17,7 @@ namespace WinCFScan.Classes.Config
         public DateTime startDate { get; set; }
         public DateTime endDate { get; set; }        
         public int totalFoundWorkingIPs { get; set; }
+        public int totalFoundWorkingIPsCurrentRange { get; set; }
         public ResultItem fastestIP;
         public List<ResultItem> workingIPs { get; set; }
 
@@ -161,6 +162,7 @@ namespace WinCFScan.Classes.Config
             unFetchedWorkingIPs.Add(new ResultItem(delay, ip));
             thereIsNewWorkingIPs = true;
             totalFoundWorkingIPs++;
+            totalFoundWorkingIPsCurrentRange++;
             totalUnsavedWorkingIPs++;
             if (fastestIP == null || resultItem.delay < fastestIP.delay)
             {

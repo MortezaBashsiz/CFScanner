@@ -49,7 +49,12 @@
             toolStripSeparator1 = new ToolStripSeparator();
             prgOveral = new ToolStripProgressBar();
             toolStripLabel1 = new ToolStripLabel();
-            btnSkipCurRange = new ToolStripButton();
+            btnSkipCurRange = new ToolStripSplitButton();
+            mnuSkipAfterFoundIPs = new ToolStripMenuItem();
+            mnuSkipAfterAWhile = new ToolStripMenuItem();
+            mnuSkipAfter10Percent = new ToolStripMenuItem();
+            mnuSkipAfter30Percent = new ToolStripMenuItem();
+            mnuSkipAfter50Percent = new ToolStripMenuItem();
             prgCurRange = new ToolStripProgressBar();
             toolStripLabel2 = new ToolStripLabel();
             lblDebugMode = new Label();
@@ -94,6 +99,9 @@
             downloadTimeoutToolStripMenuItem = new ToolStripMenuItem();
             comboDownloadTimeout = new ToolStripComboBox();
             checkForUpdateToolStripMenuItem = new ToolStripMenuItem();
+            helpToolStripMenuItem = new ToolStripMenuItem();
+            mnuHelpCustomConfig = new ToolStripMenuItem();
+            mnuHelpOurGitHub = new ToolStripMenuItem();
             openFileDialog1 = new OpenFileDialog();
             saveFileDialog1 = new SaveFileDialog();
             mnuResultsActions = new ContextMenuStrip(components);
@@ -106,6 +114,8 @@
             toolStripSeparator3 = new ToolStripSeparator();
             btnDownloadErrors = new ToolStripSplitButton();
             mnuCopyDownloadErrors = new ToolStripMenuItem();
+            lblAutoSkipStatus = new ToolStripLabel();
+            toolStripSeparator4 = new ToolStripSeparator();
             groupBox1.SuspendLayout();
             toolStrip1.SuspendLayout();
             mnuListView.SuspendLayout();
@@ -132,7 +142,7 @@
             txtLog.Name = "txtLog";
             txtLog.ReadOnly = true;
             txtLog.ScrollBars = ScrollBars.Vertical;
-            txtLog.Size = new Size(830, 178);
+            txtLog.Size = new Size(840, 178);
             txtLog.TabIndex = 1;
             txtLog.Text = "Welcome to Cloudflare IP Scanner.\r\n";
             // 
@@ -179,7 +189,7 @@
             groupBox1.Location = new Point(12, 21);
             groupBox1.Name = "groupBox1";
             groupBox1.Padding = new Padding(3, 0, 3, 3);
-            groupBox1.Size = new Size(830, 120);
+            groupBox1.Size = new Size(840, 120);
             groupBox1.TabIndex = 3;
             groupBox1.TabStop = false;
             // 
@@ -190,7 +200,7 @@
             toolStrip1.Location = new Point(3, 16);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.RightToLeft = RightToLeft.Yes;
-            toolStrip1.Size = new Size(824, 33);
+            toolStrip1.Size = new Size(834, 33);
             toolStrip1.TabIndex = 16;
             toolStrip1.Text = "toolStrip1";
             // 
@@ -303,14 +313,58 @@
             // 
             btnSkipCurRange.AutoSize = false;
             btnSkipCurRange.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            btnSkipCurRange.Enabled = false;
+            btnSkipCurRange.DropDownItems.AddRange(new ToolStripItem[] { mnuSkipAfterFoundIPs, mnuSkipAfterAWhile, mnuSkipAfter10Percent, mnuSkipAfter30Percent, mnuSkipAfter50Percent });
             btnSkipCurRange.Image = (Image)resources.GetObject("btnSkipCurRange.Image");
             btnSkipCurRange.ImageTransparentColor = Color.Magenta;
             btnSkipCurRange.Name = "btnSkipCurRange";
-            btnSkipCurRange.Size = new Size(33, 23);
+            btnSkipCurRange.RightToLeft = RightToLeft.No;
+            btnSkipCurRange.Size = new Size(45, 23);
             btnSkipCurRange.Text = "Skip";
             btnSkipCurRange.ToolTipText = "Skip curent IP range";
-            btnSkipCurRange.Click += btnSkipCurRange_Click;
+            btnSkipCurRange.ButtonClick += btnSkipCurRange_ButtonClick;
+            // 
+            // mnuSkipAfterFoundIPs
+            // 
+            mnuSkipAfterFoundIPs.CheckOnClick = true;
+            mnuSkipAfterFoundIPs.Name = "mnuSkipAfterFoundIPs";
+            mnuSkipAfterFoundIPs.Size = new Size(287, 22);
+            mnuSkipAfterFoundIPs.Text = "Auto skip after found 5 working IPs";
+            mnuSkipAfterFoundIPs.Click += mnuSkipAfterFoundIPs_Click;
+            // 
+            // mnuSkipAfterAWhile
+            // 
+            mnuSkipAfterAWhile.CheckOnClick = true;
+            mnuSkipAfterAWhile.Name = "mnuSkipAfterAWhile";
+            mnuSkipAfterAWhile.Size = new Size(287, 22);
+            mnuSkipAfterAWhile.Text = "Auto skip after 3 minutes of scanning";
+            mnuSkipAfterAWhile.Click += mnuSkipAfterAWhile_Click;
+            // 
+            // mnuSkipAfter10Percent
+            // 
+            mnuSkipAfter10Percent.CheckOnClick = true;
+            mnuSkipAfter10Percent.Name = "mnuSkipAfter10Percent";
+            mnuSkipAfter10Percent.Size = new Size(287, 22);
+            mnuSkipAfter10Percent.Tag = "10";
+            mnuSkipAfter10Percent.Text = "Auto skip after scanning 10% of IP range";
+            mnuSkipAfter10Percent.Click += mnuSkipAfter10Percent_Click;
+            // 
+            // mnuSkipAfter30Percent
+            // 
+            mnuSkipAfter30Percent.CheckOnClick = true;
+            mnuSkipAfter30Percent.Name = "mnuSkipAfter30Percent";
+            mnuSkipAfter30Percent.Size = new Size(287, 22);
+            mnuSkipAfter30Percent.Tag = "30";
+            mnuSkipAfter30Percent.Text = "Auto skip after scanning 30% of IP range";
+            mnuSkipAfter30Percent.Click += mnuSkipAfter30Percent_Click;
+            // 
+            // mnuSkipAfter50Percent
+            // 
+            mnuSkipAfter50Percent.CheckOnClick = true;
+            mnuSkipAfter50Percent.Name = "mnuSkipAfter50Percent";
+            mnuSkipAfter50Percent.Size = new Size(287, 22);
+            mnuSkipAfter50Percent.Tag = "50";
+            mnuSkipAfter50Percent.Text = "Auto skip after scanning 50% of IP range";
+            mnuSkipAfter50Percent.Click += mnuSkipAfter50Percent_Click;
             // 
             // prgCurRange
             // 
@@ -332,7 +386,7 @@
             lblDebugMode.BackColor = SystemColors.Control;
             lblDebugMode.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
             lblDebugMode.ForeColor = Color.Red;
-            lblDebugMode.Location = new Point(600, 91);
+            lblDebugMode.Location = new Point(610, 91);
             lblDebugMode.Name = "lblDebugMode";
             lblDebugMode.Size = new Size(143, 15);
             lblDebugMode.TabIndex = 13;
@@ -345,7 +399,7 @@
             linkGithub.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             linkGithub.Image = Properties.Resources.github_mark24;
             linkGithub.ImageAlign = ContentAlignment.MiddleLeft;
-            linkGithub.Location = new Point(749, 88);
+            linkGithub.Location = new Point(759, 88);
             linkGithub.Name = "linkGithub";
             linkGithub.Size = new Size(71, 23);
             linkGithub.TabIndex = 12;
@@ -358,7 +412,7 @@
             // btnCopyFastestIP
             // 
             btnCopyFastestIP.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnCopyFastestIP.Location = new Point(673, 55);
+            btnCopyFastestIP.Location = new Point(683, 55);
             btnCopyFastestIP.Name = "btnCopyFastestIP";
             btnCopyFastestIP.Size = new Size(151, 25);
             btnCopyFastestIP.TabIndex = 10;
@@ -372,11 +426,11 @@
             txtFastestIP.BackColor = Color.White;
             txtFastestIP.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
             txtFastestIP.ForeColor = Color.Green;
-            txtFastestIP.Location = new Point(459, 57);
+            txtFastestIP.Location = new Point(474, 57);
             txtFastestIP.Name = "txtFastestIP";
             txtFastestIP.PlaceholderText = "Fastest IP";
             txtFastestIP.ReadOnly = true;
-            txtFastestIP.Size = new Size(208, 23);
+            txtFastestIP.Size = new Size(203, 23);
             txtFastestIP.TabIndex = 11;
             // 
             // lblTotalWorkingIPs
@@ -392,9 +446,9 @@
             // 
             comboResults.DropDownStyle = ComboBoxStyle.DropDownList;
             comboResults.FormattingEnabled = true;
-            comboResults.Location = new Point(128, 10);
+            comboResults.Location = new Point(131, 10);
             comboResults.Name = "comboResults";
-            comboResults.Size = new Size(215, 23);
+            comboResults.Size = new Size(212, 23);
             comboResults.TabIndex = 5;
             toolTip1.SetToolTip(comboResults, "List of last scan results");
             comboResults.SelectedIndexChanged += comboResults_SelectedIndexChanged;
@@ -415,7 +469,7 @@
             btnLoadIPRanges.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnLoadIPRanges.Location = new Point(531, 8);
             btnLoadIPRanges.Name = "btnLoadIPRanges";
-            btnLoadIPRanges.Size = new Size(94, 23);
+            btnLoadIPRanges.Size = new Size(104, 23);
             btnLoadIPRanges.TabIndex = 4;
             btnLoadIPRanges.Text = "Load IP ranges";
             toolTip1.SetToolTip(btnLoadIPRanges, "Load your custom IP ranges");
@@ -430,7 +484,7 @@
             listResults.GridLines = true;
             listResults.Location = new Point(0, 40);
             listResults.Name = "listResults";
-            listResults.Size = new Size(822, 174);
+            listResults.Size = new Size(830, 174);
             listResults.TabIndex = 4;
             listResults.UseCompatibleStateImageBehavior = false;
             listResults.View = View.Details;
@@ -482,7 +536,7 @@
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(txtLog);
-            splitContainer1.Size = new Size(830, 424);
+            splitContainer1.Size = new Size(840, 424);
             splitContainer1.SplitterDistance = 242;
             splitContainer1.TabIndex = 7;
             // 
@@ -494,7 +548,7 @@
             tabControl1.Location = new Point(0, 0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(830, 242);
+            tabControl1.Size = new Size(840, 242);
             tabControl1.TabIndex = 9;
             // 
             // tabPageCFRanges
@@ -507,7 +561,7 @@
             tabPageCFRanges.Location = new Point(4, 24);
             tabPageCFRanges.Name = "tabPageCFRanges";
             tabPageCFRanges.Padding = new Padding(3);
-            tabPageCFRanges.Size = new Size(822, 214);
+            tabPageCFRanges.Size = new Size(832, 214);
             tabPageCFRanges.TabIndex = 1;
             tabPageCFRanges.Text = "Cloudflare IP ranges";
             tabPageCFRanges.UseVisualStyleBackColor = true;
@@ -524,7 +578,7 @@
             // btnSelectNoneIPRanges
             // 
             btnSelectNoneIPRanges.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnSelectNoneIPRanges.Location = new Point(631, 9);
+            btnSelectNoneIPRanges.Location = new Point(641, 9);
             btnSelectNoneIPRanges.Name = "btnSelectNoneIPRanges";
             btnSelectNoneIPRanges.Size = new Size(88, 23);
             btnSelectNoneIPRanges.TabIndex = 2;
@@ -535,7 +589,7 @@
             // btnSelectAllIPRanges
             // 
             btnSelectAllIPRanges.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnSelectAllIPRanges.Location = new Point(728, 9);
+            btnSelectAllIPRanges.Location = new Point(738, 9);
             btnSelectAllIPRanges.Name = "btnSelectAllIPRanges";
             btnSelectAllIPRanges.Size = new Size(88, 23);
             btnSelectAllIPRanges.TabIndex = 1;
@@ -550,7 +604,7 @@
             listCFIPList.Columns.AddRange(new ColumnHeader[] { headIPRange, headTotalIPs });
             listCFIPList.Location = new Point(0, 38);
             listCFIPList.Name = "listCFIPList";
-            listCFIPList.Size = new Size(822, 210);
+            listCFIPList.Size = new Size(832, 210);
             listCFIPList.TabIndex = 0;
             listCFIPList.UseCompatibleStateImageBehavior = false;
             listCFIPList.View = View.Details;
@@ -578,7 +632,7 @@
             tabPageResults.Location = new Point(4, 24);
             tabPageResults.Name = "tabPageResults";
             tabPageResults.Padding = new Padding(3);
-            tabPageResults.Size = new Size(822, 214);
+            tabPageResults.Size = new Size(830, 214);
             tabPageResults.TabIndex = 0;
             tabPageResults.Text = "Scan Results";
             tabPageResults.UseVisualStyleBackColor = true;
@@ -613,10 +667,10 @@
             // 
             // mnuMain
             // 
-            mnuMain.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, toolsToolStripMenuItem });
+            mnuMain.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, toolsToolStripMenuItem, helpToolStripMenuItem });
             mnuMain.Location = new Point(0, 0);
             mnuMain.Name = "mnuMain";
-            mnuMain.Size = new Size(854, 24);
+            mnuMain.Size = new Size(864, 24);
             mnuMain.TabIndex = 8;
             mnuMain.Text = "menuStrip1";
             // 
@@ -709,6 +763,27 @@
             checkForUpdateToolStripMenuItem.Text = "Check for updates";
             checkForUpdateToolStripMenuItem.Click += checkForUpdateToolStripMenuItem_Click;
             // 
+            // helpToolStripMenuItem
+            // 
+            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { mnuHelpCustomConfig, mnuHelpOurGitHub });
+            helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+            helpToolStripMenuItem.Size = new Size(44, 20);
+            helpToolStripMenuItem.Text = "Help";
+            // 
+            // mnuHelpCustomConfig
+            // 
+            mnuHelpCustomConfig.Name = "mnuHelpCustomConfig";
+            mnuHelpCustomConfig.Size = new Size(252, 22);
+            mnuHelpCustomConfig.Text = "How to add custom v2ray configs";
+            mnuHelpCustomConfig.Click += mnuHelpCustomConfig_Click;
+            // 
+            // mnuHelpOurGitHub
+            // 
+            mnuHelpOurGitHub.Name = "mnuHelpOurGitHub";
+            mnuHelpOurGitHub.Size = new Size(252, 22);
+            mnuHelpOurGitHub.Text = "Our GitHub";
+            mnuHelpOurGitHub.Click += mnuHelpOurGitHub_Click;
+            // 
             // openFileDialog1
             // 
             openFileDialog1.FileName = "openFileDialog1";
@@ -750,10 +825,10 @@
             // toolStripBottom
             // 
             toolStripBottom.Dock = DockStyle.Bottom;
-            toolStripBottom.Items.AddRange(new ToolStripItem[] { btnFrontingErrors, toolStripSeparator3, btnDownloadErrors });
+            toolStripBottom.Items.AddRange(new ToolStripItem[] { btnFrontingErrors, toolStripSeparator3, btnDownloadErrors, toolStripSeparator4, lblAutoSkipStatus });
             toolStripBottom.Location = new Point(0, 574);
             toolStripBottom.Name = "toolStripBottom";
-            toolStripBottom.Size = new Size(854, 25);
+            toolStripBottom.Size = new Size(864, 25);
             toolStripBottom.TabIndex = 9;
             toolStripBottom.Text = "toolStrip2";
             // 
@@ -767,7 +842,7 @@
             btnFrontingErrors.ImageTransparentColor = Color.Magenta;
             btnFrontingErrors.Name = "btnFrontingErrors";
             btnFrontingErrors.Size = new Size(123, 22);
-            btnFrontingErrors.Text = "Fronting Errors: 0%";
+            btnFrontingErrors.Text = "Fronting errors: 0%";
             btnFrontingErrors.ButtonClick += btnFrontingErrors_ButtonClick;
             // 
             // mnuCopyFrontingErrors
@@ -792,7 +867,7 @@
             btnDownloadErrors.ImageTransparentColor = Color.Magenta;
             btnDownloadErrors.Name = "btnDownloadErrors";
             btnDownloadErrors.Size = new Size(132, 22);
-            btnDownloadErrors.Text = "Download Errors: 0%";
+            btnDownloadErrors.Text = "Download errors: 0%";
             btnDownloadErrors.ButtonClick += btnDownloadErrors_ButtonClick;
             // 
             // mnuCopyDownloadErrors
@@ -802,17 +877,31 @@
             mnuCopyDownloadErrors.Text = "Copy download errors";
             mnuCopyDownloadErrors.Click += mnuCopyDownloadErrors_Click;
             // 
+            // lblAutoSkipStatus
+            // 
+            lblAutoSkipStatus.ForeColor = SystemColors.ControlDarkDark;
+            lblAutoSkipStatus.Name = "lblAutoSkipStatus";
+            lblAutoSkipStatus.Size = new Size(58, 22);
+            lblAutoSkipStatus.Text = "Auto Skip";
+            lblAutoSkipStatus.ToolTipText = "Auto Skip is enabled";
+            lblAutoSkipStatus.Visible = false;
+            // 
+            // toolStripSeparator4
+            // 
+            toolStripSeparator4.Name = "toolStripSeparator4";
+            toolStripSeparator4.Size = new Size(6, 25);
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(854, 599);
+            ClientSize = new Size(864, 599);
             Controls.Add(toolStripBottom);
             Controls.Add(mnuMain);
             Controls.Add(splitContainer1);
             Controls.Add(groupBox1);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            MinimumSize = new Size(870, 480);
+            MinimumSize = new Size(880, 480);
             Name = "frmMain";
             Text = "Cloudflare Scan";
             FormClosing += frmMain_FormClosing;
@@ -904,7 +993,7 @@
         private ToolStripSeparator toolStripSeparator1;
         private ToolStripSplitButton btnStart;
         private ToolStripMenuItem mnuPauseScan;
-        private ToolStripButton btnSkipCurRange;
+        private ToolStripSplitButton btnSkipCurRange;
         private ToolStripMenuItem checkForUpdateToolStripMenuItem;
         private ToolStripComboBox comboConfigs;
         private ToolStripLabel toolStripLabel3;
@@ -917,5 +1006,15 @@
         private ToolStripMenuItem mnuCopyFrontingErrors;
         private ToolStripMenuItem downloadTimeoutToolStripMenuItem;
         private ToolStripComboBox comboDownloadTimeout;
+        private ToolStripMenuItem mnuSkipAfterFoundIPs;
+        private ToolStripMenuItem mnuSkipAfterAWhile;
+        private ToolStripMenuItem mnuSkipAfter10Percent;
+        private ToolStripMenuItem mnuSkipAfter30Percent;
+        private ToolStripMenuItem mnuSkipAfter50Percent;
+        private ToolStripMenuItem helpToolStripMenuItem;
+        private ToolStripMenuItem mnuHelpCustomConfig;
+        private ToolStripMenuItem mnuHelpOurGitHub;
+        private ToolStripLabel lblAutoSkipStatus;
+        private ToolStripSeparator toolStripSeparator4;
     }
 }
