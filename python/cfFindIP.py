@@ -563,7 +563,7 @@ def parse_args(args=sys.argv[1:]):
     parser.add_argument(
         "--download-speed", "-ds",
         help="Minimum acceptable download speed in kilobytes per second",
-        type=float,
+        type=int,
         dest="min_dl_speed",
         default=50,
         required=False
@@ -571,7 +571,7 @@ def parse_args(args=sys.argv[1:]):
     parser.add_argument(
         "--upload-speed", "-us",
         help="Maximum acceptable upload speed in kilobytes per second",
-        type=float,
+        type=int,
         dest="min_ul_speed",
         default=50,
         required=False
@@ -579,7 +579,7 @@ def parse_args(args=sys.argv[1:]):
     parser.add_argument(
         "--download-time", "-dt",
         help="Maximum (effective, excluding http time) time to spend for each download",
-        type=float,
+        type=int,
         dest="max_dl_time",
         default=2,
         required=False
@@ -588,7 +588,7 @@ def parse_args(args=sys.argv[1:]):
         "--upload-time", "-ut",
         metavar="max-upload-time",
         help="Maximum (effective, excluding http time) time to spend for each upload",
-        type=float,
+        type=int,
         dest="max_ul_time",
         default=2,
         required=False
@@ -606,7 +606,7 @@ def parse_args(args=sys.argv[1:]):
         "--download-latency",
         help="Maximum allowed latency for download",
         metavar="max-upload-latency",
-        type=float,
+        type=int,
         dest="max_dl_latency",
         default=2,
         required=False
@@ -614,7 +614,7 @@ def parse_args(args=sys.argv[1:]):
     parser.add_argument(
         "--upload-latency",
         help="Maximum allowed latency for download",
-        type=float,
+        type=int,
         metavar="max-upload-latency",
         dest="max_ul_latency",
         default=2,
