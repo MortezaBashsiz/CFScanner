@@ -45,7 +45,9 @@ NOTE: If you want to use your custom config DO NOT use it as config.real since s
 
 ### 4. Execute it
 
-At following command pay attention to the arguments **SUBNET or IP** **DOWN or UP or BOTH**, **threads**, **tryCount**, **speed** and **Custom Subnet File**.
+At following command pay attention to the arguments **vpn** **SUBNET or IP** **DOWN or UP or BOTH**, **threads**, **tryCount**, **speed** and **Custom Subnet File**.
+
+-vpn: YES or NO, you are able to define for script to test with your vmess or not
 
 -m: SUBNET or IP, Choose one of them for scanning subnets or single IPs
 
@@ -60,32 +62,32 @@ At following command pay attention to the arguments **SUBNET or IP** **DOWN or U
 -f: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh  -m <SUBNET/IP> -t <DOWN/UP/BOTH> -thr <int> -try <int> -c <config file> -s <int> [-f <Custome Subnet File> ]
+[~/CFScanner/bash]>$ bash cfScanner.sh -vpn <YES/NO>  -m <SUBNET/IP> -t <DOWN/UP/BOTH> -thr <int> -try <int> -c <config file> -s <int> [-f <Custome Subnet File> ]
 ```
 
 #### EXAMPLE: without custom subnet download
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh -m SUBNET -t DOWN -thr 8 -try 1 -c config.real -s 100
+[~/CFScanner/bash]>$ bash cfScanner.sh -vpn YES -m SUBNET -t DOWN -thr 8 -try 1 -c config.real -s 100
 ```
 
 #### EXAMPLE: without custom subnet upload
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh -m SUBNET -t UP -thr 8 -try 1 -c config.real -s 100
+[~/CFScanner/bash]>$ bash cfScanner.sh -vpn YES -m SUBNET -t UP -thr 8 -try 1 -c config.real -s 100
 ```
 
 #### EXAMPLE: without custom subnet upload and download
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh -m SUBNET -t BOTH -thr 8 -try 1 -c config.real -s 100
+[~/CFScanner/bash]>$ bash cfScanner.sh -vpn YES -m SUBNET -t BOTH -thr 8 -try 1 -c config.real -s 100
 ```
 
 
 #### EXAMPLE: with custom subnet
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh -m SUBNET -t DOWN -thr 8 -try 1 -c config.real -s 100 -f custom.subnets
+[~/CFScanner/bash]>$ bash cfScanner.sh -vpn YES -m SUBNET -t DOWN -thr 8 -try 1 -c config.real -s 100 -f custom.subnets
 ```
 
 Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
@@ -100,7 +102,7 @@ Which the `custom.subnets` is like as follows. You can edit this file and add yo
 #### EXAMPLE: with custom ip file
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh -m IP -t DOWN -thr 8 -try 1 -c config.real -s 100 -f ip.list
+[~/CFScanner/bash]>$ bash cfScanner.sh -vpn YES -m IP -t DOWN -thr 8 -try 1 -c config.real -s 100 -f ip.list
 ```
 
 Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
