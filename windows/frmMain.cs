@@ -75,8 +75,11 @@ namespace WinCFScan
         private void loadCustomConfigsComboList(string selectedConfigFileName = "")
         {
             if (!configManager.isConfigValid() || configManager.customConfigs.customConfigInfos.Count == 0)
+            {
+                comboConfigs.SelectedIndex = 0;
                 return;
-
+            }
+                
             comboConfigs.Items.Clear();
             comboConfigs.Items.Add(new CustomConfigInfo("Default", "Default"));
 
