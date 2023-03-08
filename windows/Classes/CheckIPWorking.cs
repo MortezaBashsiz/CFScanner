@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using WinCFScan.Classes.Config;
 using WinCFScan.Classes.HTTPRequest;
 
@@ -18,13 +19,19 @@ namespace WinCFScan.Classes
         private string v2rayConfigPath;
         public long downloadDuration { get; private set; }
         private ScanSpeed targetSpeed;
+        private readonly CustomConfigInfo scanConfig;
+        private readonly int downloadTimeout;
+        public string downloadException = "";
+        public string frontingException = "";
 
-        public CheckIPWorking(string ip, ScanSpeed targetSpeed)
+        public CheckIPWorking(string ip, ScanSpeed targetSpeed, CustomConfigInfo scanConfig, int downloadTimeout)
         {
             this.ip = ip;
             this.port = getPortByIP();
             v2rayConfigPath = $"v2ray-config/generated/config.{ip}.json";
             this.targetSpeed = targetSpeed;
+            this.scanConfig = scanConfig;
+            this.downloadTimeout = downloadTimeout;
         }
 
         public CheckIPWorking()
@@ -63,7 +70,8 @@ namespace WinCFScan.Classes
                         // speed was enough
                         success = true;
                     };
-                    process.Kill();
+
+                    process?.Kill();
                 }
             }
             return success;
@@ -99,7 +107,13 @@ namespace WinCFScan.Classes
             }
             catch (Exception ex)
             {
-                Tools.logStep($"Fronting check had exception: {ex.Message}");
+                string message = ex.Message;
+                Tools.logStep($"Fronting check had exception: {message}");
+
+                // monitor exceptions
+                if (!message.Contains("A task was canceled."))
+                    frontingException = message;
+
                 return false;
             }
             finally
@@ -118,11 +132,14 @@ namespace WinCFScan.Classes
                 Proxy = proxy
             };
 
-            int timeout = 2;
+            int timeout = this.downloadTimeout;
+
             var client = new HttpClient(handler);
             client.Timeout = TimeSpan.FromSeconds(timeout); // 2 seconds
             Tools.logStep($"Start check dl speed, proxy port: {port}, timeout: {timeout} sec, target speed: {targetSpeed.getTargetSpeed():n0} b/s");
             Stopwatch sw =  new Stopwatch();
+            //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls;
+
             try
             {
                 sw.Start();
@@ -135,7 +152,17 @@ namespace WinCFScan.Classes
             }
             catch (Exception ex)
             {
-                Tools.logStep($"dl had exception: {ex.Message}");
+                string message = ex.Message;
+                Tools.logStep($"dl had exception: {message}");
+
+                // monitor exceptions
+                if (!message.Contains("A task was canceled."))
+                    downloadException = message;
+
+                if (ex.InnerException != null && ex.InnerException?.Message != "" &&  ! ex.Message.Contains(ex.InnerException?.Message))
+                {
+                    Tools.logStep($"Inner exception: {ex.InnerException?.Message}");
+                }
                 return false;
             }
             finally
@@ -150,17 +177,29 @@ namespace WinCFScan.Classes
         {
             try
             {
-                var configTemplate = ConfigManager.Instance.v2rayConfigTemplate;
-                ClientConfig clientConfig = ConfigManager.Instance.getClientConfig();
+                string configTemplate;
 
-                configTemplate = configTemplate
-                    .Replace("IDID", clientConfig.id)
-                    .Replace("PORTPORT", port)
-                    .Replace("HOSTHOST", clientConfig.host)
-                    .Replace("CFPORTCFPORT", clientConfig.port)
-                    .Replace("RANDOMHOST", clientConfig.serverName)
-                    .Replace("IP.IP.IP.IP", this.ip)
-                    .Replace("ENDPOINTENDPOINT", clientConfig.path);
+                // using default config or custom v2ray config?
+                if (scanConfig.isDefaultConfig())
+                {
+                    ClientConfig clientConfig = ConfigManager.Instance.getClientConfig();
+                    configTemplate = ConfigManager.Instance.v2rayConfigTemplateText;
+                    configTemplate = configTemplate
+                        .Replace("IDID", clientConfig.id)
+                        .Replace("PORTPORT", port)
+                        .Replace("HOSTHOST", clientConfig.host)
+                        .Replace("CFPORTCFPORT", clientConfig.port)
+                        .Replace("RANDOMHOST", clientConfig.serverName)
+                        .Replace("IP.IP.IP.IP", this.ip)
+                        .Replace("ENDPOINTENDPOINT", clientConfig.path);
+                }
+                else
+                { // just replace port and ip for custom v2ray configs
+                    configTemplate = scanConfig.content;
+                    configTemplate = configTemplate
+                        .Replace("PORTPORT", port)
+                        .Replace("IP.IP.IP.IP", this.ip);
+                }
 
                 File.WriteAllText(v2rayConfigPath, configTemplate);
 
@@ -189,22 +228,38 @@ namespace WinCFScan.Classes
         {
             ProcessStartInfo startInfo = new ProcessStartInfo();
             startInfo.FileName = "v2ray.exe";
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
+            //if (!ConfigManager.Instance.enableDebug)
+            //{
+                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                startInfo.RedirectStandardOutput = true;
+                startInfo.RedirectStandardError = true;
+                startInfo.CreateNoWindow = true;
+            //}
             startInfo.UseShellExecute = false;
-            startInfo.CreateNoWindow = true;
             startInfo.Arguments = $"run -config=\"{v2rayConfigPath}\"";
             Tools.logStep($"Starting v2ray.exe with arg: {startInfo.Arguments}");
-            process = Process.Start(startInfo);
-            Thread.Sleep(1500);
-            bool wasSuccess = process.Responding && !process.HasExited;
-            Tools.logStep($"v2ray.exe executed success:  {wasSuccess}");
-
+            bool wasSuccess = false;
+            try
+            {
+                process = Process.Start(startInfo);
+                Thread.Sleep(1500);
+                wasSuccess = process.Responding && !process.HasExited;
+                Tools.logStep($"v2ray.exe executed success:  {wasSuccess}");
+            }
+            catch (Exception ex)
+            {
+                Tools.logStep($"v2ray.exe execution had exception:  {ex.Message}");
+            }
+            
             // log error
             if (!wasSuccess)
             {
-                Tools.logStep($"v2ray.exe Error: {process.StandardError.ReadToEnd()}");
+                try
+                {
+                    string err = process.StandardError.ReadToEnd();
+                    Tools.logStep($"v2ray.exe Error: {err}");
+                }
+                catch (Exception) {}
             }
 
             return wasSuccess;

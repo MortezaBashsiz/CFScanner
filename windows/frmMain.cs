@@ -15,6 +15,7 @@ namespace WinCFScan
     public partial class frmMain : Form
     {
         private const string ourGitHubUrl = "https://github.com/MortezaBashsiz/CFScanner";
+        private const string helpCustomConfigUrl = "https://github.com/MortezaBashsiz/CFScanner/discussions/210";
         ConfigManager configManager;
         bool oneTimeChecked = false; // config checked once?
         ScanEngine scanEngine;
@@ -54,7 +55,9 @@ namespace WinCFScan
             scanEngine = new ScanEngine();
 
             loadLastResultsComboList();
-            comboTargetSpeed.SelectedIndex = 2;
+            comboTargetSpeed.SelectedIndex = 2; // 100kb/s
+            comboDownloadTimeout.SelectedIndex = 0; //2 seconds timeout
+            loadCustomConfigsComboList();
 
             appVersion = AppUpdateChecker.getCurrentVersion();
 
@@ -69,6 +72,42 @@ namespace WinCFScan
             checkEnableDebugMode();
         }
 
+        private void loadCustomConfigsComboList(string selectedConfigFileName = "")
+        {
+            if (!configManager.isConfigValid() || configManager.customConfigs.customConfigInfos.Count == 0)
+            {
+                comboConfigs.SelectedIndex = 0;
+                return;
+            }
+                
+            comboConfigs.Items.Clear();
+            comboConfigs.Items.Add(new CustomConfigInfo("Default", "Default"));
+
+            foreach (var customConfig in configManager.customConfigs.customConfigInfos)
+            {
+                comboConfigs.Items.Add(customConfig);
+            }
+
+            int selectedIndex = 0;
+            if (selectedConfigFileName != "")
+            {
+                selectedIndex = comboConfigs.FindStringExact(selectedConfigFileName);
+            }
+
+            comboConfigs.SelectedIndex = selectedIndex;
+        }
+
+        public CustomConfigInfo getSelectedV2rayConfig()
+        {
+            if (comboConfigs.SelectedItem is not null and not (object)"Default")
+            {
+                return (CustomConfigInfo)comboConfigs.SelectedItem;
+            }
+
+            // return defualt config if nothing is selected
+            return new CustomConfigInfo("Default", "Default");
+        }
+
         private void checkEnableDebugMode()
         {
             if (configManager.enableDebug)
@@ -78,7 +117,7 @@ namespace WinCFScan
                 lblDebugMode.Visible = true;
                 addTextLog("Debug mode is enabled. In this mode concurrent process is set to 1 and you can see scan debug data in 'debug.txt' file in the app directory.");
                 addTextLog("To exit debug mode delete 'enable-debug' file from the app directory and then re-open the app.");
-                
+
                 string systemInfo = $"OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription} {System.Runtime.InteropServices.RuntimeInformation.OSArchitecture}, " +
                     $"Cpu Arch: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}, Framework: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}";
                 Tools.logStep($"\n\nApp started. Version: {appVersion}\n{systemInfo}");
@@ -114,7 +153,7 @@ namespace WinCFScan
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         private void startStopScan(bool inPrevResult = false)
@@ -128,7 +167,7 @@ namespace WinCFScan
             if (isScanRunning())
             {
                 // stop scan
-                btnStart.Enabled= false;
+                btnStart.Enabled = false;
                 waitUntilScannerStoped();
                 updateUIControlls(false);
             }
@@ -161,7 +200,15 @@ namespace WinCFScan
 
                 updateUIControlls(true);
                 scanEngine.workingIPsFromPrevScan = inPrevResult ? currentScanResults : null;
-                 scanEngine.targetSpeed = getTargetSpeed(); // set target speed
+                scanEngine.targetSpeed = getTargetSpeed(); // set target speed
+                scanEngine.scanConfig = getSelectedV2rayConfig(); // set scan config
+                scanEngine.downloadTimeout = getDownloadTimeout(); // set download timeout
+                string scanConfigContent = scanEngine.scanConfig.content;
+
+                Tools.logStep($"Starting scan engine with target speed: {scanEngine.targetSpeed.getTargetSpeed()}, dl timeout: {scanEngine.downloadTimeout}, " +
+                    $"config: '{scanEngine.scanConfig}' => " +
+                    $"{scanConfigContent.Substring(0, Math.Min(150, scanConfigContent.Length))}...");
+
                 var scanType = inPrevResult ? ScanType.SCAN_IN_PERV_RESULTS : ScanType.SCAN_CLOUDFLARE_IPS;
 
                 // start scan job in new thread
@@ -177,6 +224,16 @@ namespace WinCFScan
             }
         }
 
+        private int getDownloadTimeout()
+        {
+            string timeoutStr = comboDownloadTimeout.SelectedItem.ToString().Replace(" Seconds", "");
+
+            if (int.TryParse(timeoutStr, out int downloadTimeout))
+                return downloadTimeout;
+            else
+                return 2;
+        }
+
         private void updateUIControlls(bool isStarting)
         {
             if (isStarting)
@@ -188,8 +245,9 @@ namespace WinCFScan
                 btnResultsActions.Enabled = false;
                 comboConcurrent.Enabled = false;
                 comboTargetSpeed.Enabled = false;
+                comboConfigs.Enabled = false;
                 timerProgress.Enabled = true;
-                btnSkipCurRange.Enabled = true;
+                //btnSkipCurRange.Enabled = true;
                 comboResults.Enabled = false;
                 tabPageCFRanges.Enabled = false;
             }
@@ -200,13 +258,14 @@ namespace WinCFScan
                 btnScanInPrevResults.Enabled = true;
                 btnResultsActions.Enabled = true;
                 timerProgress.Enabled = false;
-                btnSkipCurRange.Enabled = false;
+                //btnSkipCurRange.Enabled = false;
                 comboResults.Enabled = true;
                 if (!configManager.enableDebug)
                 {
                     comboConcurrent.Enabled = true;
                 }
                 comboTargetSpeed.Enabled = true;
+                comboConfigs.Enabled = true;
                 tabPageCFRanges.Enabled = true;
 
                 // save result file if found working IPs
@@ -268,8 +327,29 @@ namespace WinCFScan
 
                 prgCurRange.Maximum = pInf.currentIPRangeTotalIPs;
                 prgCurRange.Value = pInf.totalCheckedIPInCurIPRange;
+                prgCurRange.ToolTipText = $"Current IP range progress: {pInf.getCurrentRangePercentIsDone():f1}%";
+
                 fetchWorkingIPResults();
                 pInf.scanResults.autoSave();
+
+                fetchScanEngineLogMessages();
+
+                // exception rate
+                pInf.frontingExceptions.setControlColorStyles(btnFrontingErrors);
+                pInf.downloadExceptions.setControlColorStyles(btnDownloadErrors);
+                btnFrontingErrors.Text = $"Fronting Errors : {pInf.frontingExceptions.getErrorRate():f1}%";
+                btnDownloadErrors.Text = $"Download Errors : {pInf.downloadExceptions.getErrorRate():f1}%";
+                btnFrontingErrors.ToolTipText = $"Total errors: {pInf.downloadExceptions.getTotalErros()}";
+                btnDownloadErrors.ToolTipText = $"Total errors: {pInf.frontingExceptions.getTotalErros()}";
+            }
+        }
+
+        private void fetchScanEngineLogMessages()
+        {
+            var messages = scanEngine.fetchLogMessages();
+            foreach (var message in messages)
+            {
+                addTextLog(message);
             }
         }
 
@@ -278,11 +358,6 @@ namespace WinCFScan
         {
             List<ResultItem> scanResults = scanEngine.progressInfo.scanResults.fetchWorkingIPs();
             addResulItemsToListView(scanResults);
-        }
-
-        private void btnSkipCurRange_Click(object sender, EventArgs e)
-        {
-            scanEngine.skipCurrentIPRange();
         }
 
         private void loadLastResultsComboList()
@@ -342,10 +417,16 @@ namespace WinCFScan
         {
             if (workingIPs != null)
             {
+                int index = 0;
+                listResults.BeginUpdate();
+                listResults.ListViewItemSorter = null;
                 foreach (ResultItem resultItem in workingIPs)
                 {
+                    index++;
                     listResults.Items.Add(new ListViewItem(new string[] { resultItem.delay.ToString(), resultItem.ip }));
                 }
+                listResults.EndUpdate();
+                listResults.ListViewItemSorter = listResultsColumnSorter;
                 lblPrevListTotalIPs.Text = $"{listResults.Items.Count:n0} IPs";
             }
         }
@@ -357,7 +438,7 @@ namespace WinCFScan
             {
                 //Load cf ip ranges
                 loadCFIPListView();
-               
+
 
                 // check if client config file is exists and update
                 if (configManager.getClientConfig() != null && configManager.getClientConfig().isClientConfigOld())
@@ -408,11 +489,11 @@ namespace WinCFScan
                 {
                     addTextLog($"There is a new version available ({appUpdateChecker.getUpdateVersion()}) Download it from here: {ourGitHubUrl}/releases");
                 }
-                else if(appUpdateChecker.updateCheckResult == UpdateCheckResult.HasError)
+                else if (appUpdateChecker.updateCheckResult == UpdateCheckResult.HasError)
                 {
                     addTextLog("Something went wrong while checking for update!");
                 }
-                else if(logNoNewVersion)
+                else if (logNoNewVersion)
                 {
                     addTextLog("Everything is up to date.");
                 }
@@ -440,20 +521,28 @@ namespace WinCFScan
 
         private void btnCopyFastestIP_Click(object sender, EventArgs e)
         {
+            if (scanEngine.progressInfo.scanResults?.fastestIP != null)
+            {
+                setClipboard(scanEngine.progressInfo.scanResults.fastestIP.ip);
+            }
+        }
+
+        private bool setClipboard(string text)
+        {
             try
             {
-                if (scanEngine.progressInfo.scanResults?.fastestIP != null)
-                {
-                    Clipboard.SetText(scanEngine.progressInfo.scanResults.fastestIP.ip);
-                }
+                Clipboard.SetText(text);
+                return true;
             }
             catch (Exception ex) { }
+
+            return false;
         }
 
         // results actions
         private void btnResultsActions_MouseClick(object sender, MouseEventArgs e)
         {
-           mnuResultsActions.Show(this, btnResultsActions.Left + 5 , splitContainer1.Top +  btnResultsActions.Top + btnResultsActions.Height+ 25);
+            mnuResultsActions.Show(this, btnResultsActions.Left + 5, splitContainer1.Top + btnResultsActions.Top + btnResultsActions.Height + 25);
         }
 
         private void deleteResultsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -483,7 +572,7 @@ namespace WinCFScan
             {
                 fillResultsListView(openFileDialog1.FileName, true);
                 tabControl1.SelectedIndex = 1;
-           };
+            };
 
         }
 
@@ -555,7 +644,7 @@ namespace WinCFScan
                 lblCFIPListStatus.ForeColor = Color.Black;
             }
 
-            listCFIPList.Items.Clear(); 
+            listCFIPList.Items.Clear();
             listCFIPList.BeginUpdate();
             isUpdatinglistCFIP = true;
             uint totalIPs = 0;
@@ -564,7 +653,7 @@ namespace WinCFScan
             foreach (var ipRange in scanEngine.ipListLoader.validIPRanges)
             {
                 var lvwItem = listCFIPList.Items.Add(new ListViewItem(new string[] { ipRange.rangeText, $"{ipRange.totalIps:n0}" }));
-                lvwItem.Checked= true;
+                lvwItem.Checked = true;
             }
 
             listCFIPList.EndUpdate();
@@ -586,7 +675,7 @@ namespace WinCFScan
         private void testSingleIP(string IPAddress)
         {
             addTextLog($"Testing {IPAddress} ...");
-            var checker = new CheckIPWorking(IPAddress, getTargetSpeed());
+            var checker = new CheckIPWorking(IPAddress, getTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
             var success = checker.check();
             if (success)
                 addTextLog($"{IPAddress} is working. Delay: {checker.downloadDuration:n0} ms.");
@@ -682,27 +771,32 @@ namespace WinCFScan
             if (isScanRunning())
             {
                 // stop scan
+                var sw = new Stopwatch();
                 scanEngine.stop();
                 do
                 {
                     System.Windows.Forms.Application.DoEvents();
                     Thread.Sleep(100);
-                } while (isScanRunning());
+                } while (isScanRunning() && sw.Elapsed.TotalSeconds < 7);
 
             }
         }
 
         private void linkGithub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
+            openUrl(ourGitHubUrl);
+        }
+
+        private void openUrl(string url)
+        {
             try
             {
-                ProcessStartInfo sInfo = new ProcessStartInfo(ourGitHubUrl) { UseShellExecute = true };
+                ProcessStartInfo sInfo = new ProcessStartInfo(url) { UseShellExecute = true };
                 Process.Start(sInfo);
             }
             catch (Exception)
             {
-                addTextLog($"Visit us on {ourGitHubUrl}");
-                throw;
+                addTextLog($"Open this url in your browser: {url}");
             }
         }
 
@@ -750,16 +844,16 @@ namespace WinCFScan
         {
             string input = Tools.ShowDialog("Enter a valid IP address:", "Test Sigle IP Address");
 
-            if(input == "" || input == null) { return; }
+            if (input == "" || input == null) { return; }
 
-            if(! IPAddressExtensions.isValidIPAddress(input))
+            if (!IPAddressExtensions.isValidIPAddress(input))
             {
                 // msg
                 MessageBox.Show("Invalid IP address is entered!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-           testSingleIP(input);
+            testSingleIP(input);
         }
 
         private void mnuListViewCopyIP_Click(object sender, EventArgs e)
@@ -771,7 +865,8 @@ namespace WinCFScan
                 {
                     Clipboard.SetText(IPAddr);
                 }
-                catch (Exception ex) {
+                catch (Exception ex)
+                {
                     addTextLog("Could not copy to clipboard!");
                 }
             }
@@ -880,6 +975,208 @@ namespace WinCFScan
         {
             addTextLog("Checking for new version...");
             checkForUpdate(true);
+        }
+
+        private void comboConfigs_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            CustomConfigInfo customConfigInfo = getSelectedV2rayConfig();
+            if (!customConfigInfo.isDefaultConfig())
+            {
+                addTextLog($"Custom v2ray config is selected: '{customConfigInfo.fileName}'");
+            }
+        }
+
+        private void addCustomV2rayConfigToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (isScanRunning())
+                return;
+
+            openFileDialog1.Title = "Add custom v2ray config file";
+            openFileDialog1.Filter = "Json files (*.json)|*.json";
+            var result = openFileDialog1.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                bool isDone = CustomConfigs.addNewConfigFile(openFileDialog1.FileName, out string errorMessage);
+                if (isDone)
+                {
+                    configManager.customConfigs.loadCustomConfigs();
+                    loadCustomConfigsComboList(Path.GetFileName(openFileDialog1.FileName));
+                    addTextLog("New custom v2ray config is added.");
+                }
+                else
+                {
+                    addTextLog($"Adding custom config is failed: {errorMessage}");
+                }
+            };
+        }
+
+        // Monitoring exceptions:
+        private void btnFrontingErrors_ButtonClick(object sender, EventArgs e)
+        {
+            ExceptionMonitor frontingExceptions = scanEngine.progressInfo.frontingExceptions;
+            if (frontingExceptions.hasException())
+            {
+                addTextLog(frontingExceptions.getTopExceptions());
+            }
+        }
+
+        private void btnDownloadErrors_ButtonClick(object sender, EventArgs e)
+        {
+            ExceptionMonitor downloadExceptions = scanEngine.progressInfo.downloadExceptions;
+            if (downloadExceptions.hasException())
+            {
+                addTextLog(downloadExceptions.getTopExceptions());
+            }
+        }
+
+        private void mnuCopyDownloadErrors_Click(object sender, EventArgs e)
+        {
+            if (setClipboard(scanEngine.progressInfo.downloadExceptions.getTopExceptions(7)))
+            {
+                addTextLog("Errors coppied to the clipboard.");
+            }
+            else
+            {
+                addTextLog("Could not copy to the clipboard!");
+            }
+        }
+
+        private void mnuCopyFrontingErrors_Click(object sender, EventArgs e)
+        {
+            if (setClipboard(scanEngine.progressInfo.frontingExceptions.getTopExceptions(7)))
+            {
+                addTextLog("Errors coppied to the clipboard.");
+            }
+            else
+            {
+                addTextLog("Could not copy to the clipboard!");
+            }
+        }
+
+        private void comboDownloadTimeout_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            int timeout = getDownloadTimeout();
+
+            if (timeout > 2)
+            {
+                addTextLog($"Download timeout is set to {timeout} seconds. Only use higher timeout values if your v2ray server's responce is slow.");
+            }
+        }
+
+        private void btnSkipCurRange_ButtonClick(object sender, EventArgs e)
+        {
+            if (scanEngine.progressInfo.isScanRunning)
+                scanEngine.skipCurrentIPRange();
+
+        }
+
+        private void mnuSkipAfterFoundIPs_Click(object sender, EventArgs e)
+        {
+            setAutoSkip(mnuSkipAfterFoundIPs.Checked, "Auto skip current IP range after founding 5 working IPs is");
+            scanEngine.setSkipAfterFoundIPs(mnuSkipAfterFoundIPs.Checked);
+            setAutoSkipStatus();
+        }
+
+        private void mnuSkipAfterAWhile_Click(object sender, EventArgs e)
+        {
+            setAutoSkip(mnuSkipAfterAWhile.Checked, "Auto skip current IP range after 3 minutes of scanning is");
+            scanEngine.setSkipAfterAWhile(mnuSkipAfterAWhile.Checked);
+            setAutoSkipStatus();
+        }
+
+        private void mnuSkipAfter10Percent_Click(object sender, EventArgs e)
+        {
+            skipAfterPercent(mnuSkipAfter10Percent);
+        }
+
+        private void mnuSkipAfter30Percent_Click(object sender, EventArgs e)
+        {
+            skipAfterPercent(mnuSkipAfter30Percent);
+        }
+
+        private void mnuSkipAfter50Percent_Click(object sender, EventArgs e)
+        {
+            skipAfterPercent(mnuSkipAfter50Percent);
+        }
+
+        private void setAutoSkipStatus()
+        {
+            lblAutoSkipStatus.Visible = mnuSkipAfter10Percent.Checked || mnuSkipAfter30Percent.Checked || mnuSkipAfter50Percent.Checked ||
+                mnuSkipAfterAWhile.Checked || mnuSkipAfterFoundIPs.Checked;
+        }
+
+        private void skipAfterPercent(ToolStripMenuItem menu)
+        {
+            // note: menu must have Tag
+            if (menu.Checked)
+                selectMinimumPercentOfAutoSkipMenu(menu.Tag.ToString());
+
+            int minPercent = getMinimumPercentOfAutoSkip();
+
+            if (minPercent == -1)
+            {
+                setAutoSkip(false, $"Auto skip current IP range after specific percentage is");
+            }
+            else
+            {
+                setAutoSkip(true, $"Auto skip current IP range after {minPercent}% is");
+            }
+
+            scanEngine.setSkipAfterScanPercent(minPercent != -1, minPercent);
+            setAutoSkipStatus();
+
+        }
+
+        private void selectMinimumPercentOfAutoSkipMenu(string selectedMenu)
+        {
+            switch (selectedMenu)
+            {
+                case "10":
+                    mnuSkipAfter30Percent.Checked = mnuSkipAfter50Percent.Checked = false;
+                    break;
+                case "30":
+                    mnuSkipAfter10Percent.Checked = mnuSkipAfter50Percent.Checked = false;
+                    break;
+                case "50":
+                    mnuSkipAfter10Percent.Checked = mnuSkipAfter30Percent.Checked = false;
+                    break;
+            }
+        }
+
+        private int getMinimumPercentOfAutoSkip()
+        {
+            if (mnuSkipAfter10Percent.Checked)
+            {
+                return 10;
+            }
+            else if (mnuSkipAfter30Percent.Checked)
+            {
+                return 30;
+            }
+            else if (mnuSkipAfter50Percent.Checked)
+            {
+                return 50;
+            }
+
+            return -1;
+        }
+
+        private void setAutoSkip(bool enabled, string message)
+        {
+            string enabledStatus = enabled ? "enabled" : "disbaled";
+            addTextLog($"{message} {enabledStatus}.");
+
+        }
+
+        private void mnuHelpCustomConfig_Click(object sender, EventArgs e)
+        {
+            openUrl(helpCustomConfigUrl);
+        }
+
+        private void mnuHelpOurGitHub_Click(object sender, EventArgs e)
+        {
+            openUrl(ourGitHubUrl);
         }
     }
 }
