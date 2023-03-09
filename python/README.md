@@ -2,10 +2,6 @@
 
 The script is designed to scan Cloudflare's edge IPs and locate ones that are viable for use with v2ray/xray. It aims to identify edge IPs that are accessible and not blocked.
 
-<!-- ## Description
-
-An in-depth paragraph about your project and overview of use. -->
-
 # Dependencies
 
 * Linux
@@ -14,11 +10,11 @@ An in-depth paragraph about your project and overview of use. -->
     - requests
     - pysocks
 
-# Installing
+# Installings
 
 * Install prerequisites
 ```bash
-sudo apt update && sudo apt install python3-pip python3-venv git -y
+sudo apt update && sudo apt install python3-pip git -y
 ```
 * Clone the project
 ```bash
@@ -35,12 +31,11 @@ pip install -r ./requirements.txt
 * create a config json file (e.g., myconfig.json) with the following content. replace the values with your own!
 ```json
 {
-	"id": "User's UUID",
-	"Host": "Host address which is behind Cloudflare",
-	"Port": "Port which you are using behind Cloudflare on your origin server",
-	"path": "Websocket endpoint like api20",
-	"serverName": "SNI",
-   	"subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/cf.local.iplist"
+	"id": "248ecb72-89cf-5be7-923f-b790fca681c5",
+	"host": "scherehtzhel01.sudoer.net",
+	"port": "443",
+	"path": "api01",
+	"serverName": "248ecb72-89cf-5be7-923f-b790fca681c5.sudoer.net"
 }
 ```
 
@@ -80,42 +75,44 @@ Each line of the subnets file must be a Cloudflare subnets in CIDR notation or a
 ...
 ```
 
-<!-- ## **positional arguments:**
-* **threads**: Number of threads to use for parallel computing
-* **config-path**: The path to the config file. For confg file example, see [config.sample](https://github.com/tempookian/CFScanner/blob/python/python/config.sample)
-* **subnets-path**: (optional) The path to the custom subnets file. each line should be in the form of ip.ip.ip.ip/subnet_mask. If not provided, the program will read the cidrs from asn lookup
-
-## **keyword arguments:**
-* **--min-dl-speed**: Minimum acceptable download speed in KBps (default = 50)
+## **Arguments:**
+**--threads|-thr**: Number of threads to use for parallel computing<br>
+**--config|-c**: The path to the config file. For confg file example, see [ClientConfig.json](https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/ClientConfig.json)<br>
+**--subnets|-sn**: The path to the custom subnets file. each line<br> should be in the form of ip.ip.ip.ip/subnet_mask. If not provided, the program will read the cidrs from asn lookup <br>
+**--tries**: Number of times to try each IP. An IP is marked as OK if **all** tries are successful. <br>
+**--download-speed**: Minimum acceptable download speed in kilobytes per second <br>
+**--upload-test**: If True, upload test will be conducted as well <br>
+**--upload-speed**: Mimimum Maximum acceptable upload speed in kilobytes per second <br>
+**--download-time**: Maximum (effective, excluding latency) time to spend for each download. <br> 
+**--upload-time**: Maximum (effective, excluding latency) time to spend for each upload <br>
+**--download-latency**: Maximum allowed latency (seconds) for download <br>
+**--upload-latency**: Maximum allowed latency (seconds) for upload <br>
 
 ---
 
-## **Results:**
-The results will be stored in the results directory. Each line of the results files includes a Cloudflare edge ip together with the respective response time in milliseconds, e.g., 
+## Remarks
+* In the current version, an IP is marked "OK", only if it passes all tries of the experiment
+* The size of the file for download is determined based on the arguments ``download-speed`` and ``download-time`` (similar for upload as well). Therefore, it is recommended to choose these parameters carefully based on your expectations, internet speed and the number of threads being used
 
-```
-153 104.16.126.37
-154 104.21.47.40
-154 104.18.38.111
-157 104.18.38.38
-159 104.16.126.42
-159 104.17.223.179
-...
-```
-
-Two files are stored for each (complete) run of the script
-* interim results file (e.g., ``20230226_180502_interim_result.txt``)
-    - Includes the unsorted intermediate results. Useful in case the run is not complete.  
-* final results file (e.g., ``20230226_180502_final_result.txt``)
-  * Includes the final sorted results. The results are sorted ascendingly based on the response time of the edge ips.  -->
+# **Results**
+The results will be stored in the ``results`` directory. Each line of the generated **csv** file includes a Cloudflare edge ip together with the following values:
+* ``avg_download_speed
+``: Average download speed in mbps
+* ``avg_upload_speed``: Average upload speed in mbps
+* ``avg_download_latency``: Average download latency in ms
+* ``avg_upload_latency``: Average upload latency in ms
+* ``avg_download_jitter``: Average jitter during downloads in ms
+* ``avg_upload_jitter``: Average jitter during uploads in ms
+* ``download_speed_1,...,n_tries``: Values of download speeds in mbps for each download 
+* ``upload_speed_1,...,n_ties``: Values of download speeds in mbps for each upload
+* ``download_latency_1,...,n_tries``: Values of download latencies in ms
+* ``download_latency_1,..._n_tries``: Values of upload latencies in ms
 
 
-<!-- ## Help
+---
 
-Any advise for common problems or issues.
-```
-command to run if program contains helper info
-``` -->
+For each time running the code, a result file is generated in the result folder with the datetime string to avoid overwriting (e.g, ``20230226_180502_result.csv``)
+
 
 # Authors
 
@@ -132,12 +129,4 @@ Contributors names and contact info
 # License
 
 
-<!-- ## Acknowledgments
-
-Inspiration, code snippets, etc.
-* [awesome-readme](https://github.com/matiassingers/awesome-readme)
-* [PurpleBooth](https://gist.github.com/PurpleBooth/109311bb0361f32d87a2)
-* [dbader](https://github.com/dbader/readme-template)
-* [zenorocha](https://gist.github.com/zenorocha/4526327)
-* [fvcproductions](https://gist.github.com/fvcproductions/1bfc2d4aecb01a834b46) -->
 
