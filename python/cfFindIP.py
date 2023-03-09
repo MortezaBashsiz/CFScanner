@@ -14,7 +14,6 @@ import subprocess
 import sys
 import time
 import traceback
-from dataclasses import dataclass
 from datetime import datetime
 from functools import partial
 from typing import Tuple
@@ -164,7 +163,7 @@ def wait_for_port(
             time.sleep(0.01)
             if time.perf_counter() - start_time >= timeout:
                 raise TimeoutError(
-                    f'Waited too long for the port {port} on host {host} to start accepting connections.'
+                    f'Timeout exceeded for the port {port} on host {host} to start accepting connections.'
                 ) from ex
 
 
@@ -734,7 +733,7 @@ if __name__ == "__main__":
     # create empty result file
     with open(INTERIM_RESULTS_PATH, "w") as emptyfile:
         titles = [
-            "avg_download_speed", "avg_upload_speed",
+            "ip", "avg_download_speed", "avg_upload_speed",
             "avg_download_latency", "avg_upload_latency",
             "avg_download_jitter", "avg_upload_jitter"
         ]
@@ -788,7 +787,7 @@ if __name__ == "__main__":
 
                 with open(INTERIM_RESULTS_PATH, "a") as outfile:
                     res_parts = [
-                        mean_down_speed, mean_up_speed,
+                        res["ip"], mean_down_speed, mean_up_speed,
                         mean_down_latency, mean_up_latency,
                         down_mean_jitter, up_mean_jitter
                     ]
