@@ -330,7 +330,7 @@ func downloadSpeedTest(nBytes int, timeout time.Duration) (float64, float64, err
 	return downloadSpeed, downloadTime, nil
 }
 
-func uploadSpeedTest(nBytes int, proxies map[string]string, timeout int) (float64, float64, error) {
+func uploadSpeedTest(nBytes int, proxies map[string]string, timeout time.Duration) (float64, float64, error) {
 	startTime := time.Now()
 	req, err := http.NewRequest("POST", "https://speed.cloudflare.com/__up", strings.NewReader(strings.Repeat("0", nBytes)))
 	if err != nil {
@@ -339,7 +339,7 @@ func uploadSpeedTest(nBytes int, proxies map[string]string, timeout int) (float6
 	for k, v := range proxies {
 		req.Header.Set(k, v)
 	}
-	client := &http.Client{Timeout: time.Duration(timeout) * time.Second}
+	client := &http.Client{Timeout: timeout * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return 0, 0, err
@@ -358,8 +358,9 @@ func uploadSpeedTest(nBytes int, proxies map[string]string, timeout int) (float6
 	}
 	latency := totalTime - cfTime.Seconds()
 	mb := float64(nBytes*8) / (10 * 10 * 10 * 10 * 10 * 10)
-	uploadSpeed := mb / cfTime.Seconds()
+	uploadSpeed := mb / latency
 
+	fmt.Println("Upload :", uploadSpeed)
 	return uploadSpeed, latency, nil
 }
 
@@ -413,7 +414,12 @@ func uploadSpeedTest(nBytes int, proxies map[string]string, timeout int) (float6
 // 	return v2rayCmd, proxies, nil
 // }
 
-func checkip(ip string, testConfig ConfigStruct) map[string]interface{} {
+func checkip(ip string, Config ConfigStruct) map[string]interface{} {
+	var dlSpeed float64
+	var dlLatency float64
+	var upSpeed float64
+	var upLatency float64
+
 	result := map[string]interface{}{
 		"ip": ip,
 		"download": map[string]interface{}{
@@ -427,10 +433,10 @@ func checkip(ip string, testConfig ConfigStruct) map[string]interface{} {
 	}
 	// fmt.Println(result)
 	// var proc fakeProcess
-	// v2ray_config_path := createV2rayConfig(ip, testConfig)
+	// v2ray_config_path := createV2rayConfig(ip, Config)
 
-	// for tryIdx := 0; tryIdx < testConfig.n_tries; tryIdx++ {
-	// 	if !frontingTest(ip, time.Duration(testConfig.fronting_timeout)) {
+	// for tryIdx := 0; tryIdx < Config.n_tries; tryIdx++ {
+	// 	if !frontingTest(ip, time.Duration(Config.fronting_timeout)) {
 	// 		return nil
 	// 	}
 	// }
@@ -440,7 +446,7 @@ func checkip(ip string, testConfig ConfigStruct) map[string]interface{} {
 
 	// var process *exec.Cmd
 	// var err error
-	// process, proxies, err = startV2RayService(v2ray_config_path, testConfig.startprocess_timeout)
+	// process, proxies, err = startV2RayService(v2ray_config_path, Config.startprocess_timeout)
 	// // fmt.Println(proxies)
 	// if err != nil {
 	// 	fmt.Printf("%vERROR - %vCould not start v2ray service%v\n",
@@ -448,11 +454,12 @@ func checkip(ip string, testConfig ConfigStruct) map[string]interface{} {
 	// 	log.Fatal(err)
 	// 	return nil
 	// }
-	for tryIdx := 0; tryIdx < testConfig.n_tries; tryIdx++ {
+
+	for tryIdx := 0; tryIdx < Config.n_tries; tryIdx++ {
 		// check download speed
-		var timed time.Duration = 10000000
-		nBytes := testConfig.min_dl_speed * 1000 * testConfig.max_dl_time
-		dlSpeed, dlLatency, err := downloadSpeedTest(int(nBytes), timed)
+		var err error
+		nBytes := Config.min_dl_speed * 1000 * Config.max_dl_time
+		dlSpeed, dlLatency, err = downloadSpeedTest(int(nBytes), time.Duration(Config.max_dl_time))
 		if err != nil {
 			if strings.Contains(strings.ToLower(err.Error()), "download/upload too slow") {
 				fmt.Printf("%vNO %v%15s download too slow\n",
@@ -469,91 +476,62 @@ func checkip(ip string, testConfig ConfigStruct) map[string]interface{} {
 
 		}
 
-		if dlLatency <= testConfig.max_dl_latency {
+		if dlLatency <= Config.max_dl_latency {
 			dlSpeedKBps := dlSpeed / 8 * 1000
-			if dlSpeedKBps >= testConfig.min_dl_speed {
-				result["download"].(map[string]interface{})["speed"] = append(result["download"].(map[string]interface{})["speed"].([]float64), dlSpeed)
-				result["download"].(map[string]interface{})["latency"] = append(result["download"].(map[string]interface{})["latency"].([]int), int(math.Round(dlLatency*1000)))
+			if dlSpeedKBps >= Config.min_dl_speed {
+				result["download"].(map[string]interface{})["speed"] =
+					append(result["download"].(map[string]interface{})["speed"].([]float64), dlSpeed)
+				result["download"].(map[string]interface{})["latency"] =
+					append(result["download"].(map[string]interface{})["latency"].([]int), int(math.Round(dlLatency)))
+
 			} else {
 				fmt.Printf("%vNO %v%15s download too slow %.4f kBps < %.4f kBps%v\n",
-					colors.FAIL, colors.WARNING, ip, dlSpeedKBps, testConfig.min_dl_speed, colors.ENDC)
+					colors.FAIL, colors.WARNING, ip, dlSpeedKBps, Config.min_dl_speed, colors.ENDC)
 				// process.Process.Kill()
 				return nil
 			}
 		} else {
 			fmt.Printf("%vNO %v%15s high download latency %.4f s > %.4f s%v\n",
-				colors.FAIL, colors.WARNING, ip, dlLatency, testConfig.max_dl_latency, colors.ENDC)
+				colors.FAIL, colors.WARNING, ip, dlLatency, Config.max_dl_latency, colors.ENDC)
 			// process.Process.Kill()
 			return nil
 		}
-
-		var upSpeed float64
-		var upLatency float64
 		// upload speed test
-		if testConfig.do_upload_test {
+		if Config.do_upload_test {
 			var err error
-			nBytes := testConfig.min_ul_speed * 1000 * testConfig.max_ul_time
-			upSpeed, upLatency, err = uploadSpeedTest(int(nBytes), proxies, int(testConfig.min_ul_speed)+int(testConfig.max_ul_time))
+			nBytes := Config.min_ul_speed * 1000 * Config.max_ul_time
+			upSpeed, upLatency, err = uploadSpeedTest(int(nBytes), proxies, time.Duration(Config.max_ul_time))
 			fmt.Println(upLatency, upSpeed)
 			if err != nil {
 				fmt.Printf("%sNO %supload unknown error%s\n", colors.FAIL, colors.WARNING, colors.ENDC)
-				log.Fatal(err)
+				// log.Fatal(err)
 				// process.Process.Kill()
-				// return nil
+				return nil
 			}
-		} else {
-			if upLatency <= testConfig.max_ul_latency {
+			if upLatency <= Config.max_ul_latency {
 				upSpeedKbps := upSpeed / 8 * 1000
-				if upSpeedKbps >= testConfig.min_ul_speed {
-					result["upload"] = map[string]interface{}{
-						"speed":   append(result["upload"].(map[string]interface{})["speed"].([]float64), upSpeed),
-						"latency": append(result["upload"].(map[string]interface{})["latency"].([]int), int(math.Round(upLatency*1000))),
-					}
+				if upSpeedKbps >= Config.min_ul_speed {
+					result["upload"].(map[string]interface{})["speed"] =
+						append(result["upload"].(map[string]interface{})["speed"].([]float64), upSpeed)
+					result["upload"].(map[string]interface{})["latency"] =
+						append(result["upload"].(map[string]interface{})["latency"].([]int), int(math.Round(upLatency)))
+
 				} else {
 					fmt.Printf("%sNO %s upload too slow %f kBps < %f kBps%s\n",
-						colors.FAIL, colors.WARNING, upSpeedKbps, testConfig.min_ul_speed, colors.ENDC)
+						colors.FAIL, colors.WARNING, upSpeedKbps, Config.min_ul_speed, colors.ENDC)
 					// process.Process.Kill()
-					// return nil
+					return nil
 				}
 			} else {
 				fmt.Printf("%sNO %s upload latency too high%s\n",
 					colors.FAIL, colors.WARNING, colors.ENDC)
 				// process.Process.Kill()
-				// return nil
+				return nil
 			}
 		}
-
-		// if testConfig.do_upload_test {
-		// 			var err error
-		// 			nBytes := testConfig.min_ul_speed * 1000 * testConfig.max_ul_time
-		// 			upSpeed, upLatency, err = uploadSpeedTest(int(nBytes), proxies, int(testConfig.min_ul_speed)+int(testConfig.max_ul_time))
-		// 			if err != nil {
-		// 				fmt.Printf("%sNO %supload unknown error%s\n", colors.FAIL, colors.WARNING, colors.ENDC)
-		// 				// log.Error("Upload - unknown error", ip)
-		// 				log.Fatal(err)
-		// 				proc.Kill()
-		// 				return nil
-		// 			}
-		// 		} else {
-		// 			if upLatency <= testConfig.max_ul_latency {
-		// 				upSpeedKbps := upSpeed / 8 * 1000
-		// 				if upSpeedKbps >= testConfig.min_ul_speed {
-		// 					result["upload"].(map[string]interface{})["speed"] = append(result["upload"].(map[string]interface{})["speed"].([]float64), upSpeed)
-		// 					result["upload"].(map[string]interface{})["latency"] = append(result["upload"].(map[string]interface{})["latency"].([]int), int(math.Round(upLatency*1000)))
-		// 				} else {
-		// 					fmt.Printf("%sNO %s download too slow %f kBps < %f kBps%s\n", colors.FAIL, colors.WARNING, dlSpeed, testConfig.min_dl_speed, colors.ENDC)
-		// 					proc.Kill()
-		// 					return nil
-		// 				}
-		// 			} else {
-		// 				fmt.Printf("%sNO %s upload latency too high%s\n", colors.FAIL, colors.WARNING, colors.ENDC)
-		// 				proc.Kill()
-		// 				return nil
-		// 			}
-		// 		}
-		// 	}
 	}
 	// process.Process.Kill()
+	fmt.Println(result)
 	return result
 }
 
@@ -576,7 +554,7 @@ func createTestConfig(configPath string, startprocessTimeout time.Duration,
 
 	// proctimeout := int64(startprocessTimeout / int64(time.Millisecond))
 
-	testConfig := ConfigStruct{
+	ConfigObject := ConfigStruct{
 		user_id:              jsonFileContent["id"].(string),
 		ws_header_host:       jsonFileContent["host"].(string),
 		address_port:         jsonFileContent["port"].(string),
@@ -594,8 +572,24 @@ func createTestConfig(configPath string, startprocessTimeout time.Duration,
 		n_tries:              nTries,
 		no_vpn:               noVpn,
 	}
-	fmt.Println("Config:", testConfig)
-	return testConfig
+	fmt.Println("Config :", "\n", "User ID :", colors.OKBLUE, ConfigObject.user_id, colors.ENDC, "\n",
+		"WS Header Host:", colors.OKBLUE, ConfigObject.ws_header_host, colors.ENDC, "\n",
+		"WS Header Path : ", colors.OKBLUE, ConfigObject.ws_header_path, colors.ENDC, "\n",
+		"Address Port :", colors.OKBLUE, ConfigObject.address_port, colors.ENDC, "\n",
+		"SNI :", colors.OKBLUE, ConfigObject.sni, colors.ENDC, "\n",
+		"Start Proccess Timeout :", colors.OKBLUE, ConfigObject.startprocess_timeout, colors.ENDC, "\n",
+		"Upload Test :", colors.OKBLUE, ConfigObject.do_upload_test, colors.ENDC, "\n",
+		"Minimum Download Speed :", colors.OKBLUE, ConfigObject.min_dl_speed, colors.ENDC, "\n",
+		"Maximum Download Time :", colors.OKBLUE, ConfigObject.max_dl_time, colors.ENDC, "\n",
+		"Minimum Upload Speed :", colors.OKBLUE, ConfigObject.min_ul_speed, colors.ENDC, "\n",
+		"Maximum Upload Time :", colors.OKBLUE, ConfigObject.max_ul_time, colors.ENDC, "\n",
+		"Fronting Timeout :", colors.OKBLUE, ConfigObject.fronting_timeout, colors.ENDC, "\n",
+		"Maximum Download Latency :", colors.OKBLUE, ConfigObject.max_dl_latency, colors.ENDC, "\n",
+		"Maximum Upload Latency :", colors.OKBLUE, ConfigObject.max_ul_latency, colors.ENDC, "\n",
+		"Number of Tries :", colors.OKBLUE, ConfigObject.n_tries, colors.ENDC, "\n",
+		"No VPN Mode :", colors.OKBLUE, ConfigObject.no_vpn, colors.ENDC)
+
+	return ConfigObject
 }
 
 // // Converts IP in long integer format to a string
@@ -857,9 +851,8 @@ func inc(ip net.IP) {
 // main
 func checkCIDRs(testConfig *ConfigStruct, cidrList []string, threadsCount int) {
 	var wg sync.WaitGroup
-	// ipList, _ := cidrToIPList(cidr)
 
-	// n := len(ipList)
+	n := len(cidrList)
 	batchSize := len(cidrList) / threadsCount
 	batches := make([][]string, threadsCount)
 
@@ -867,7 +860,7 @@ func checkCIDRs(testConfig *ConfigStruct, cidrList []string, threadsCount int) {
 		start := i * batchSize
 		end := (i + 1) * batchSize
 		if i == threadsCount-1 {
-			end = len(cidrList)
+			end = n
 		}
 		batches[i] = cidrList[start:end]
 
@@ -878,21 +871,36 @@ func checkCIDRs(testConfig *ConfigStruct, cidrList []string, threadsCount int) {
 			defer wg.Done()
 			for _, ip := range batch {
 				res := checkip(ip, *testConfig)
+
 				if res != nil {
-					downLatency, ok := res["download"].(map[string]interface{})["latency"].([]float64)
+					downLatencyInt, ok := res["download"].(map[string]interface{})["latency"].([]int)
+
+					downLatency := make([]float64, len(downLatencyInt))
+					for i, v := range downLatencyInt {
+						downLatency[i] = float64(v)
+					}
+
+					fmt.Printf("%T\n", res["download"].(map[string]interface{})["speed"])
+
 					if !ok {
 						log.Printf("Error getting download latency for IP %s", ip)
 						continue
 					}
 					downMeanJitter := meanJitter(downLatency)
 					upMeanJitter := -1.0
-					upLatency, ok := res["upload"].(map[string]interface{})["latency"].([]float64)
+					upLatencyInt, ok := res["upload"].(map[string]interface{})["latency"].([]int)
+
+					upLatency := make([]float64, len(upLatencyInt))
+					for i, v := range upLatencyInt {
+						downLatency[i] = float64(v)
+					}
+
 					if testConfig.do_upload_test && ok {
 						upMeanJitter = meanJitter(upLatency)
 					}
 					downSpeed, ok := res["download"].(map[string]interface{})["speed"].([]float64)
 					if !ok {
-						log.Printf("Error getting download speed for IP %s", ip)
+						log.Printf("Error getting download speed for IP %s , %v", ip, ok)
 						continue
 					}
 					meanDownSpeed := mean(downSpeed)
@@ -1007,7 +1015,7 @@ func mean(latencies []float64) float64 {
 // }
 
 var (
-	version  = "0.2"
+	version  = "0.3"
 	build    = "Custom"
 	codename = "CFScanner , CloudFlare Scanner."
 )
@@ -1043,8 +1051,8 @@ func main() {
 	var bigIPList []string
 
 	rootCmd := &cobra.Command{
-		Use:   "app",
-		Short: "Cloudflare edge ips scanner to use with v2ray",
+		Use:   os.Args[0],
+		Short: codename,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(VersionStatement())
 			if !noVpn {
@@ -1092,30 +1100,30 @@ func main() {
 			for _, cidr := range cidrList {
 				ips, err := cidrToIPList(cidr)
 				if err != nil {
-					log.Fatal(err)
+					log.Print("Error : ", err)
 				}
 				bigIPList = append(bigIPList, ips...)
 			}
 
-			fmt.Println("Total threads : ", threads)
+			fmt.Println("Total Threads : ", threads)
 			fmt.Printf("Starting to scan %d IPS.\n", nTotalIPs)
-			fmt.Println(bigIPList)
+			// fmt.Println(bigIPList)
 			checkCIDRs(&testConfig, bigIPList, threadsCount)
 		},
 	}
-	rootCmd.PersistentFlags().IntVar(&threads, "threads", 0, "Number of threads to use for parallel computing")
+	rootCmd.PersistentFlags().IntVar(&threads, "threads", 1, "Number of threads to use for parallel computing")
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "The path to the config file. For confg file example, see https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/ClientConfig.json")
 	rootCmd.PersistentFlags().BoolVar(&noVpn, "novpn", false, "If passed, test without creating vpn connections")
 	rootCmd.PersistentFlags().StringVar(&subnetsPath, "subnets", "", "(optional) The path to the custom subnets file. each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip. If not provided, the program will read the cidrs from asn lookup")
 	rootCmd.PersistentFlags().BoolVar(&doUploadTest, "upload-test", false, "If True, upload test will be conducted")
 	rootCmd.PersistentFlags().IntVar(&nTries, "tries", 1, "Number of times to try each IP. An IP is marked as OK if all tries are successful")
-	rootCmd.PersistentFlags().Float64Var(&minDLSpeed, "download-speed", 50, "Minimum acceptable download speed in kilobytes per second")
-	rootCmd.PersistentFlags().Float64Var(&minULSpeed, "upload-speed", 50, "Maximum acceptable upload speed in kilobytes per second")
-	rootCmd.PersistentFlags().Float64Var(&maxDLTime, "download-time", 2, "Maximum (effective, excluding http time) time to spend for each download")
-	rootCmd.PersistentFlags().Float64Var(&maxULTime, "upload-time", 2, "Maximum (effective, excluding http time) time to spend for each upload")
-	rootCmd.PersistentFlags().Float64Var(&frontingTimeout, "fronting-timeout", 1.0, "Maximum time to wait for fronting response")
-	rootCmd.PersistentFlags().Float64Var(&maxDLLatency, "download-latency", 2.0, "Maximum allowed latency for download")
-	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 2.0, "Maximum allowed latency for download")
+	rootCmd.PersistentFlags().Float64Var(&minDLSpeed, "download-speed", 10, "Minimum acceptable download speed in kilobytes per second")
+	rootCmd.PersistentFlags().Float64Var(&minULSpeed, "upload-speed", 10, "Maximum acceptable upload speed in kilobytes per second")
+	rootCmd.PersistentFlags().Float64Var(&maxDLTime, "download-time", 5, "Maximum (effective, excluding http time) time to spend for each download")
+	rootCmd.PersistentFlags().Float64Var(&maxULTime, "upload-time", 5, "Maximum (effective, excluding http time) time to spend for each upload")
+	rootCmd.PersistentFlags().Float64Var(&frontingTimeout, "fronting-timeout", 10.0, "Maximum time to wait for fronting response")
+	rootCmd.PersistentFlags().Float64Var(&maxDLLatency, "download-latency", 10.0, "Maximum allowed latency for download")
+	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 10.0, "Maximum allowed latency for download")
 	rootCmd.PersistentFlags().IntVar(&startProcessTimeout, "startprocess-timeout", 5, "")
 
 	err := rootCmd.Execute()
