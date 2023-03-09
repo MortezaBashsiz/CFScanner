@@ -22,7 +22,7 @@ git clone https://github.com/MortezaBashsiz/CFScanner.git
 ```
 * Change directory
 ```bash
-cd CFScanner
+cd CFScanner/python/
 ```
 * Install required packages
 ```bash
