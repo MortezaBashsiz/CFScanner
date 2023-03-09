@@ -3,6 +3,8 @@ result/
 files/
 bash/config.real
 bash/subnets.list
+python/log/
+python/__pycache__/
 windows/*.rsuser
 windows/*.suo
 windows/*.user
@@ -198,4 +200,3 @@ windows/healthchecksdb
 windows/MigrationBackup/
 windows/.ionide/
 windows/FodyWeavers.xsd
-.vs

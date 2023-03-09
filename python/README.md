@@ -22,7 +22,7 @@ sudo apt update && sudo apt install python3-pip python3-venv git -y
 ```
 * Clone the project
 ```bash
-git clone https://github.com/tempookian/CFScanner.git
+git clone https://github.com/MortezaBashsiz/CFScanner.git
 ```
 * Change directory
 ```bash
