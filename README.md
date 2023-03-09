@@ -17,7 +17,7 @@ This script is also available for windows [here](https://github.com/MortezaBashs
 
 ## Python
 
-This script is also available for windows [here](https://github.com/MortezaBashsiz/CFScanner/tree/main/python "here").
+This script is also available for python3 [here](https://github.com/MortezaBashsiz/CFScanner/tree/main/python "here").
 
 ## Video Guide
 You can find a video guide for this script on [youtube](https://youtu.be/BKLRAHolhvM "youtube").
