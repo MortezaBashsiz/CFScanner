@@ -20,9 +20,10 @@ from functools import partial
 from typing import Tuple
 
 import requests
-from . import clog
+from clog import CLogger
 
-log = clog.CLogger("CFScanner-python")
+log = CLogger("CFScanner-python")
+
 
 V2RAY_CONFIG_TEMPLATE = """
 {
@@ -628,81 +629,11 @@ def parse_args(args=sys.argv[1:]):
     )
 
     parse_args = parser.parse_args()
-        
 
     if not parse_args.no_vpn:
         if parse_args.config_path is None:
-            create_dir(CONFIGDIR)
-            configFilePath = args.config_path
-    create_dir(RESULTDIR)
+            parser.error("Either use novpn mode or provide a config file")
 
-    # create empty result file
-    with open(INTERIM_RESULTS_PATH, "w") as emptyfile:
-        titles = [
-            "avg_download_speed", "avg_upload_speed",
-            "avg_download_latency", "avg_upload_latency",
-            "avg_download_jitter", "avg_upload_jitter"
-        ]
-        titles += [f"download_speed_{i+1}" for i in range(args.n_tries)]
-        titles += [f"upload_speed_{i+1}" for i in range(args.n_tries)]
-        titles += [f"download_latency_{i+1}" for i in range(args.n_tries)]
-        titles += [f"upload_latency_{i+1}" for i in range(args.n_tries)]
-        emptyfile.write(",".join(titles) + "\n")
-
-    threadsCount = args.threads
-
-    if args.subnets_path:
-        subnetFilePath = args.subnets_path
-        with open(str(subnetFilePath), 'r') as subnetFile:
-            cidr_list = [l.strip() for l in subnetFile.readlines()]
-    else:
-        cidr_list = read_cidrs_from_asnlookup()
-
-    test_config = create_test_config(args)
-
-    n_total_ips = sum(get_num_ips_in_cidr(cidr) for cidr in cidr_list)
-    print(f"Starting to scan {n_total_ips} ips...")
-
-    big_ip_list = [ip for cidr in cidr_list for ip in cidr_to_ip_list(cidr)]
-
-    with multiprocessing.Pool(processes=threadsCount) as pool:
-        for res in pool.imap(partial(check_ip, test_config=test_config), big_ip_list):
-            if res:
-                down_mean_jitter = mean_jitter(res["download"]["latency"])
-                up_mean_jitter = mean_jitter(
-                    res["upload"]["latency"]) if test_config.do_upload_test else -1
-                mean_down_speed = statistics.mean(res["download"]["speed"])
-                mean_up_speed = statistics.mean(
-                    res["upload"]["speed"]) if test_config.do_upload_test else -1
-                mean_down_latency = statistics.mean(res["download"]["latency"])
-                mean_up_latency = statistics.mean(
-                    res["download"]["latency"]) if test_config.do_upload_test else -1
-
-                print(
-                    f"{_COLORS.OKGREEN}"
-                    f"OK {res['ip']:15s} "
-                    f"{_COLORS.OKBLUE}"
-                    f"avg_down_speed: {mean_down_speed:7.4f}mbps "
-                    f"avg_up_speed: {mean_up_speed:7.4f}mbps "
-                    f"avg_down_latency: {mean_down_latency:6.2f}ms "
-                    f"avg_up_latency: {mean_up_latency:6.2f}ms ",
-                    f"avg_down_jitter: {down_mean_jitter:6.2f}ms ",
-                    f"avg_up_jitter: {up_mean_jitter:4.2f}ms"
-                    f"{_COLORS.ENDC}"
-                )
-                
-                with open(INTERIM_RESULTS_PATH, "a") as outfile:
-                    res_parts = [
-                        mean_down_speed, mean_up_speed,
-                        mean_down_latency, mean_up_latency,
-                        down_mean_jitter, up_mean_jitter
-                    ]
-                    res_parts += res["download"]["speed"]
-                    res_parts += res["upload"]["speed"]
-                    res_parts += res["download"]["latency"]
-                    res_parts += res["upload"]["latency"]
-
-                    outfile.write(",".join(map(str, res_parts)) + "\n")
     return parse_args
 
 
@@ -803,8 +734,80 @@ def mean_jitter(latencies: list):
     return statistics.mean(jitters)
 
 
-# if __name__ == "__main__":
-    
+if __name__ == "__main__":
+    args = parse_args()
 
-    
+    if not args.no_vpn:
+        create_dir(CONFIGDIR)
+        configFilePath = args.config_path
+
+    create_dir(RESULTDIR)
+
+    # create empty result file
+    with open(INTERIM_RESULTS_PATH, "w") as emptyfile:
+        titles = [
+            "avg_download_speed", "avg_upload_speed",
+            "avg_download_latency", "avg_upload_latency",
+            "avg_download_jitter", "avg_upload_jitter"
+        ]
+        titles += [f"download_speed_{i+1}" for i in range(args.n_tries)]
+        titles += [f"upload_speed_{i+1}" for i in range(args.n_tries)]
+        titles += [f"download_latency_{i+1}" for i in range(args.n_tries)]
+        titles += [f"upload_latency_{i+1}" for i in range(args.n_tries)]
+        emptyfile.write(",".join(titles) + "\n")
+
+    threadsCount = args.threads
+
+    if args.subnets_path:
+        subnetFilePath = args.subnets_path
+        with open(str(subnetFilePath), 'r') as subnetFile:
+            cidr_list = [l.strip() for l in subnetFile.readlines()]
+    else:
+        cidr_list = read_cidrs_from_asnlookup()
+
+    test_config = create_test_config(args)
+
+    n_total_ips = sum(get_num_ips_in_cidr(cidr) for cidr in cidr_list)
+    print(f"Starting to scan {n_total_ips} ips...")
+
+    big_ip_list = [ip for cidr in cidr_list for ip in cidr_to_ip_list(cidr)]
+
+    with multiprocessing.Pool(processes=threadsCount) as pool:
+        for res in pool.imap(partial(check_ip, test_config=test_config), big_ip_list):
+            if res:
+                down_mean_jitter = mean_jitter(res["download"]["latency"])
+                up_mean_jitter = mean_jitter(
+                    res["upload"]["latency"]) if test_config.do_upload_test else -1
+                mean_down_speed = statistics.mean(res["download"]["speed"])
+                mean_up_speed = statistics.mean(
+                    res["upload"]["speed"]) if test_config.do_upload_test else -1
+                mean_down_latency = statistics.mean(res["download"]["latency"])
+                mean_up_latency = statistics.mean(
+                    res["download"]["latency"]) if test_config.do_upload_test else -1
+
+                print(
+                    f"{_COLORS.OKGREEN}"
+                    f"OK {res['ip']:15s} "
+                    f"{_COLORS.OKBLUE}"
+                    f"avg_down_speed: {mean_down_speed:7.4f}mbps "
+                    f"avg_up_speed: {mean_up_speed:7.4f}mbps "
+                    f"avg_down_latency: {mean_down_latency:6.2f}ms "
+                    f"avg_up_latency: {mean_up_latency:6.2f}ms ",
+                    f"avg_down_jitter: {down_mean_jitter:6.2f}ms ",
+                    f"avg_up_jitter: {up_mean_jitter:4.2f}ms"
+                    f"{_COLORS.ENDC}"
+                )
+                
+                with open(INTERIM_RESULTS_PATH, "a") as outfile:
+                    res_parts = [
+                        mean_down_speed, mean_up_speed,
+                        mean_down_latency, mean_up_latency,
+                        down_mean_jitter, up_mean_jitter
+                    ]
+                    res_parts += res["download"]["speed"]
+                    res_parts += res["upload"]["speed"]
+                    res_parts += res["download"]["latency"]
+                    res_parts += res["upload"]["latency"]
+
+                    outfile.write(",".join(map(str, res_parts)) + "\n")
                     
