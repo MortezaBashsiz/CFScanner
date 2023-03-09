@@ -68,8 +68,6 @@ namespace WinCFScan
 
             appUpdateChecker = new AppUpdateChecker();
 
-            showTempInfo();
-
             // is debug mode enable? this line should be at bottom line
             checkEnableDebugMode();
         }
@@ -1183,37 +1181,6 @@ namespace WinCFScan
         private void mnuHelpOurGitHub_Click(object sender, EventArgs e)
         {
             openUrl(ourGitHubUrl);
-        }
-
-        private void frmMain_Resize(object sender, EventArgs e)
-        {
-            showTempInfo();
-        }
-
-        private void showTempInfo()
-        {
-
-            //panel1.Width = tabPageCFRanges.Width;
-            //panel1.Height = splitContainer1.Panel1.Height;
-
-            lblTempInfo.Text = $"cf list: {listCFIPList.Size.ToString()}\n" +
-                $"cf tab : {tabPageCFRanges.Size.ToString()}\n" +
-                $"tab ctl : {tabControl1.Size.ToString()}\n" +
-                $"splt: {splitContainer1.Panel1.Size.ToString()}\n";
-
-
-        }
-
-        private void btnTemp_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                //panel1.Height = int.Parse(txtTemp.Text);
-            }
-            catch (Exception)
-            {
-
-            }
         }
     }
 }
