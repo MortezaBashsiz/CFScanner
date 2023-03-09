@@ -4,6 +4,7 @@ files/
 bash/config.real
 bash/subnets.list
 python/log/
+python/venv/
 python/__pycache__/
 windows/*.rsuser
 windows/*.suo
