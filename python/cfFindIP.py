@@ -76,8 +76,7 @@ BINDIR = f"{SCRIPTDIR}/../bin"
 CONFIGDIR = f"{SCRIPTDIR}/../config"
 RESULTDIR = f"{SCRIPTDIR}/../result"
 START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
-INTERIM_RESULTS_PATH = os.path.join(
-    RESULTDIR, START_DT_STR + '_result.csv')
+INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
 
 
 class TestConfig:
@@ -164,8 +163,9 @@ def wait_for_port(
         except OSError as ex:
             time.sleep(0.01)
             if time.perf_counter() - start_time >= timeout:
-                raise TimeoutError('Waited too long for the port {} on host {} to start accepting '
-                                   'connections.'.format(port, host)) from ex
+                raise TimeoutError(
+                    f'Waited too long for the port {port} on host {host} to start accepting connections.'
+                ) from ex
 
 
 def fronting_test(
@@ -329,8 +329,10 @@ def _raise_speed_timeout(signum, frame):
 class _FakeProcess:
     def __init__(self):
         pass
+
     def kill(self):
         pass
+
 
 def check_ip(
     ip: str,
@@ -338,17 +340,11 @@ def check_ip(
 ):
     result = dict(
         ip=ip,
-        download=dict(
-            speed=list(),
-            latency=list()
-        ),
-        upload=dict(
-            speed=list(),
-            latency=list()
-        )
+        download=dict(speed=[], latency=[]),
+        upload=dict(speed=[], latency=[]),
     )
 
-    for try_idx in range(test_config.n_tries):
+    for _ in range(test_config.n_tries):
         if not fronting_test(ip, timeout=test_config.fronting_timeout):
             return False
 
@@ -358,7 +354,7 @@ def check_ip(
         log.error("Could not save v2ray config to file", ip)
         log.exception(e)
         return False
-    
+
     if not test_config.no_vpn:
         try:
             process, proxies = start_v2ray_service(
@@ -372,9 +368,9 @@ def check_ip(
             return False
     else:
         process = _FakeProcess()
-        proxies = None 
+        proxies = None
 
-    for try_idx in range(test_config.n_tries):
+    for _ in range(test_config.n_tries):
         # check download speed
         n_bytes = test_config.min_dl_speed * 1000 * test_config.max_dl_time
         try:
@@ -388,7 +384,8 @@ def check_ip(
             )
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError, requests.ConnectTimeout, TimeoutError) as e:
             if "Download/upload too slow".lower() in traceback.format_exc().lower():
-                print(f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download too slow")
+                print(
+                    f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download too slow")
             else:
                 print(
                     f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download error{_COLORS.ENDC}")
@@ -429,20 +426,11 @@ def check_ip(
                     timeout=test_config.max_ul_latency + test_config.max_ul_time
                 )
             except requests.exceptions.ReadTimeout:
-                print(
-                    f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} upload read timeout{_COLORS.ENDC}")
-                process.kill()
-                return False
+                return _extracted_from_check_ip_(ip, ' upload read timeout', process)
             except requests.exceptions.ConnectTimeout:
-                print(
-                    f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} upload connect timeout{_COLORS.ENDC}")
-                process.kill()
-                return False
+                return _extracted_from_check_ip_(ip, ' upload connect timeout', process)
             except requests.exceptions.ConnectionError:
-                print(
-                    f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} upload connection error{_COLORS.ENDC}")
-                process.kill()
-                return False
+                return _extracted_from_check_ip_(ip, ' upload connection error', process)
             except Exception as e:
                 print(
                     f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s}upload unknown error{_COLORS.ENDC}")
@@ -451,24 +439,27 @@ def check_ip(
                 process.kill()
                 return False
 
-            if up_latency <= test_config.max_ul_latency:
-                up_speed_kBps = up_speed / 8 * 1000
-                if up_speed_kBps >= test_config.min_ul_speed:
-                    result["upload"]["speed"].append(up_speed)
-                    result["upload"]["latency"].append(
-                        round(up_latency * 1000))
-                else:
-                    print(
-                        f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download too slow {dl_speed_kBps:.4f} kBps < {test_config.min_dl_speed:.4f} kBps{_COLORS.ENDC}")
-                    process.kill()
-                    return False
+            if up_latency > test_config.max_ul_latency:
+                return _extracted_from_check_ip_(ip, ' upload latency too high', process)
+            up_speed_kBps = up_speed / 8 * 1000
+            if up_speed_kBps >= test_config.min_ul_speed:
+                result["upload"]["speed"].append(up_speed)
+                result["upload"]["latency"].append(
+                    round(up_latency * 1000))
             else:
                 print(
-                    f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} upload latency too high{_COLORS.ENDC}")
+                    f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download too slow {dl_speed_kBps:.4f} kBps < {test_config.min_dl_speed:.4f} kBps{_COLORS.ENDC}")
                 process.kill()
                 return False
     process.kill()
     return result
+
+
+# TODO Rename this here and in `check_ip`
+def _extracted_from_check_ip_(ip, arg1, process):
+    print(f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s}{arg1}{_COLORS.ENDC}")
+    process.kill()
+    return False
 
 
 def create_dir(dir_path):
@@ -630,9 +621,8 @@ def parse_args(args=sys.argv[1:]):
 
     parse_args = parser.parse_args()
 
-    if not parse_args.no_vpn:
-        if parse_args.config_path is None:
-            parser.error("Either use novpn mode or provide a config file")
+    if not parse_args.no_vpn and parse_args.config_path is None:
+        parser.error("Either use novpn mode or provide a config file")
 
     return parse_args
 
@@ -691,9 +681,7 @@ def get_num_ips_in_cidr(cidr):
     except IndexError as e:
         subnet_mask = 32
 
-    num_ips = (2**(32-subnet_mask))
-
-    return num_ips
+    return (2**(32-subnet_mask))
 
 
 def save_results(
@@ -797,7 +785,7 @@ if __name__ == "__main__":
                     f"avg_up_jitter: {up_mean_jitter:4.2f}ms"
                     f"{_COLORS.ENDC}"
                 )
-                
+
                 with open(INTERIM_RESULTS_PATH, "a") as outfile:
                     res_parts = [
                         mean_down_speed, mean_up_speed,
@@ -810,4 +798,3 @@ if __name__ == "__main__":
                     res_parts += res["upload"]["latency"]
 
                     outfile.write(",".join(map(str, res_parts)) + "\n")
-                    
