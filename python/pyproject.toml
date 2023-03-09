@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "cfscanner"
+version = "0.1.0"
+description = "Cloud Flare scanner"
+authors = ["MortezaBashsiz <morteza.bashsiz@gmail.com>", "tempookian", "AlirezaArabi <me@alirezaarabi.com>"]
+readme = "README.md"
+
+[tool.poetry.scripts]
+cfscanner = "cfscanner.cfFindIP:parse_args"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "^2.28.2"
+pysocks = "^1.7.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
