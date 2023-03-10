@@ -119,6 +119,7 @@
             mnuCopyDownloadErrors = new ToolStripMenuItem();
             toolStripSeparator4 = new ToolStripSeparator();
             lblAutoSkipStatus = new ToolStripLabel();
+            lblRunningWorkers = new ToolStripLabel();
             groupBox1.SuspendLayout();
             toolStrip1.SuspendLayout();
             mnuListView.SuspendLayout();
@@ -264,7 +265,6 @@
             mnuPauseScan.Size = new Size(134, 22);
             mnuPauseScan.Text = "Pause Scan";
             mnuPauseScan.Visible = false;
-            mnuPauseScan.Click += mnuPauseScan_Click;
             // 
             // toolStripSeparator2
             // 
@@ -300,7 +300,6 @@
             comboTargetSpeed.RightToLeft = RightToLeft.No;
             comboTargetSpeed.Size = new Size(70, 23);
             comboTargetSpeed.ToolTipText = "Target Speed";
-            comboTargetSpeed.SelectedIndexChanged += comboTargetSpeed_SelectedIndexChanged;
             // 
             // lblTargetSpeed
             // 
@@ -596,7 +595,7 @@
             tabPageCFRanges.Controls.Add(btnSelectAllIPRanges);
             tabPageCFRanges.Location = new Point(4, 24);
             tabPageCFRanges.Name = "tabPageCFRanges";
-            tabPageCFRanges.Padding = new Padding(3, 3, 3, 3);
+            tabPageCFRanges.Padding = new Padding(3);
             tabPageCFRanges.Size = new Size(854, 272);
             tabPageCFRanges.TabIndex = 1;
             tabPageCFRanges.Text = "Cloudflare IP ranges";
@@ -666,7 +665,7 @@
             tabPageResults.Controls.Add(listResults);
             tabPageResults.Location = new Point(4, 24);
             tabPageResults.Name = "tabPageResults";
-            tabPageResults.Padding = new Padding(3, 3, 3, 3);
+            tabPageResults.Padding = new Padding(3);
             tabPageResults.Size = new Size(854, 272);
             tabPageResults.TabIndex = 0;
             tabPageResults.Text = "Scan Results";
@@ -863,7 +862,7 @@
             // 
             toolStripBottom.Dock = DockStyle.Bottom;
             toolStripBottom.ImageScalingSize = new Size(20, 20);
-            toolStripBottom.Items.AddRange(new ToolStripItem[] { btnFrontingErrors, toolStripSeparator3, btnDownloadErrors, toolStripSeparator4, lblAutoSkipStatus });
+            toolStripBottom.Items.AddRange(new ToolStripItem[] { btnFrontingErrors, toolStripSeparator3, btnDownloadErrors, toolStripSeparator4, lblAutoSkipStatus, lblRunningWorkers });
             toolStripBottom.Location = new Point(0, 636);
             toolStripBottom.Name = "toolStripBottom";
             toolStripBottom.Size = new Size(887, 25);
@@ -928,6 +927,13 @@
             lblAutoSkipStatus.Text = "Auto Skip";
             lblAutoSkipStatus.ToolTipText = "Auto Skip is enabled";
             lblAutoSkipStatus.Visible = false;
+            // 
+            // lblRunningWorkers
+            // 
+            lblRunningWorkers.Name = "lblRunningWorkers";
+            lblRunningWorkers.Size = new Size(60, 22);
+            lblRunningWorkers.Text = "Threads: 0";
+            lblRunningWorkers.ToolTipText = "Running worker threads";
             // 
             // frmMain
             // 
@@ -1058,5 +1064,6 @@
         private Label lblTempInfo;
         private TextBox txtTemp;
         private Button btnTemp;
+        private ToolStripLabel lblRunningWorkers;
     }
 }

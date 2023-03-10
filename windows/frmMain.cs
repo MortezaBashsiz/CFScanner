@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Security.Policy;
 using System.Windows.Forms;
 using WinCFScan.Classes;
@@ -258,6 +259,8 @@ namespace WinCFScan
                 btnScanInPrevResults.Enabled = true;
                 btnResultsActions.Enabled = true;
                 timerProgress.Enabled = false;
+                lblRunningWorkers.Text = $"Threads: 0";
+
                 //btnSkipCurRange.Enabled = false;
                 comboResults.Enabled = true;
                 if (!configManager.enableDebug)
@@ -321,6 +324,8 @@ namespace WinCFScan
                 {
                     txtFastestIP.Text = $"{pInf.scanResults.fastestIP.ip}  -  {pInf.scanResults.fastestIP.delay:n0} ms";
                 }
+
+                lblRunningWorkers.Text = $"Threads: {pInf.curentWorkingThreads}";
 
                 prgOveral.Maximum = pInf.totalIPRanges;
                 prgOveral.Value = pInf.currentIPRangesNumber;
@@ -958,16 +963,6 @@ namespace WinCFScan
         private void importScanResultsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             importResults();
-        }
-
-        private void comboTargetSpeed_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void mnuPauseScan_Click(object sender, EventArgs e)
-        {
-
         }
 
         private void btnStart_ButtonClick(object sender, EventArgs e)
