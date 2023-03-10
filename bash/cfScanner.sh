@@ -633,29 +633,50 @@ function fncUsage {
 
 if [[ $OSTYPE == darwin* ]]
 then
-	parsedArguments=$(getopt vpn:m:t:thr:try:c:s:f: "$*")
+	parsedArguments=$(getopt v:m:t:p:r:c:s:f: "$@")
 else
 	parsedArguments=$(getopt -a -n  cfScanner -o vpn:m:t:thr:try:c:s:f: --long vpn-mode:,mode:,test-type:,thread:,tryCount:,config:,speed:,file: -- "$@")
 fi
 
 eval set -- "$parsedArguments"
-while :
-do
-  case "$1" in
-		-vpn | --vpn-mode) vpnOrNot="$2" ; shift 2  ;;
-		-m | --mode)    subnetOrIP="$2" ; shift 2  ;;
-		-t | --test-type)   downloadOrUpload="$2" ; shift 2  ;;
-		-thr | --thread)    threads="$2"  ; shift 2  ;;
-		-try | --tryCount)    tryCount="$2"  ; shift 2  ;;
-		-c | --config) config="$2"  ; shift 2  ;;
-		-s | --speed)    speed="$2" ; shift 2  ;;
-		-f | --file)    subnetIPFile="$2"  ; shift 2  ;;
-		-h | --help) fncUsage ;;
-    --) shift; break ;;
-    *) echo "Unexpected option: $1 - this should not happen."
-       fncUsage ;;
-  esac
-done
+if [[ $OSTYPE == darwin* ]]
+then
+	while :
+	do
+		case "$1" in
+			-v) vpnOrNot="$2" ; shift 2 ;;
+			-m) subnetOrIP="$2" ; shift 2 ;;
+			-t) downloadOrUpload="$2" ; shift 2 ;;
+			-p) threads="$2" ; shift 2 ;;
+			-r) tryCount="$2" ; shift 2 ;;
+			-c) config="$2" ; shift 2 ;;
+			-s) speed="$2" ; shift 2 ;;
+			-f) subnetIPFile="$2" ; shift 2 ;;
+			-h) fncUsage ;;
+			--) shift; break ;;
+			*) echo "Unexpected option: $1 - this should not happen."
+			fncUsage ;;
+		esac
+	done
+else
+	while :
+	do
+		case "$1" in
+			-vpn|--vpn-mode) vpnOrNot="$2" ; shift 2 ;;
+			-m|--mode) subnetOrIP="$2" ; shift 2 ;;
+			-t|--test-type) downloadOrUpload="$2" ; shift 2 ;;
+			-thr|--thread) threads="$2" ; shift 2 ;;
+			-try|--tryCount) tryCount="$2" ; shift 2 ;;
+			-c|--config) config="$2" ; shift 2 ;;
+			-s|--speed) speed="$2" ; shift 2 ;;
+			-f|--file) subnetIPFile="$2" ; shift 2 ;;
+			-h|--help) fncUsage ;;
+			--) shift; break ;;
+			*) echo "Unexpected option: $1 - this should not happen."
+			fncUsage ;;
+		esac
+	done
+fi
 
 validArguments=$?
 if [ "$validArguments" != "0" ]; then
