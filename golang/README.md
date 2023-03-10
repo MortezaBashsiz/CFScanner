@@ -1,4 +1,4 @@
-# CFScanner
+# CFScanner GoLang
 
 ![go]
 ![version]
@@ -97,6 +97,15 @@ CFScanner takes several arguments:
 ```bash
 ./CFScanner --config config.real --subnets 172.20.0.0/24 --threads 4 --tries 3
 ```
+
+## Output
+
+Two files are stored for each (complete) run of the program
+
+- interim results file (e.g., `2023-03-10_20:49:30_result.csv`)
+  - Includes the unsorted intermediate results on csv format. Useful in case if the scanning process is not complete.
+- final results file (e.g., `2023-03-10_20:49:30_final.txt`)
+  - Includes the final sorted results. The results are sorted ascendingly based on the download latency time.
 
 # License
 
