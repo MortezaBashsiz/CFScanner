@@ -110,6 +110,7 @@ func Checkip(ip string, Config config.ConfigStruct) map[string]interface{} {
 			nBytes := Config.Min_ul_speed * 1000 * Config.Max_ul_time
 			upSpeed, upLatency, err = speedtest.UploadSpeedTest(int(nBytes), proxies, time.Duration(Config.Max_ul_time))
 			if err != nil {
+				fmt.Println(err)
 				fmt.Printf("%sFAIL %supload unknown error%s\n", utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)
 				if Config.Vpn {
 					process.Process.Kill()
@@ -254,8 +255,8 @@ func Scanner(testConfig *config.ConfigStruct, cidrList []string, threadsCount in
 					// change download latency to string for using it with saveresults func
 					var latencystring string
 
-					for _, f := range downLatency {
-						latencystring = fmt.Sprintf("%.0f", f)
+					for _, f := range downLatencyInt {
+						latencystring = fmt.Sprintf("%d", f)
 					}
 
 					results = append(results, []string{latencystring, ip})
@@ -273,9 +274,8 @@ func Scanner(testConfig *config.ConfigStruct, cidrList []string, threadsCount in
 						utils.Colors.ENDC,
 					)
 
-					writeResultToFile(res, downMeanJitter, upMeanJitter, meanDownSpeed, meanUpSpeed, meanDownLatency, meanUpLatency)
-					SaveResults(results, config.INTERIM_RESULTS_PATH_SORTED, true)
-
+					WriteResultToFile(res, ip, downMeanJitter, upMeanJitter, meanDownSpeed, meanUpSpeed, meanDownLatency, meanUpLatency)
+					SaveResults(results, config.FINAL_RESULTS_PATH_SORTED, true)
 				}
 			}
 		}(batches[i])
@@ -283,11 +283,19 @@ func Scanner(testConfig *config.ConfigStruct, cidrList []string, threadsCount in
 	wg.Wait()
 }
 
-func writeResultToFile(res map[string]interface{}, downMeanJitter float64, upMeanJitter float64, meanDownSpeed float64, meanUpSpeed float64, meanDownLatency float64, meanUpLatency float64) {
+func WriteResultToFile(res map[string]interface{}, ip string, downMeanJitter float64, upMeanJitter float64, meanDownSpeed float64, meanUpSpeed float64, meanDownLatency float64, meanUpLatency float64) {
 	resParts := []interface{}{
+		ip,
 		meanDownSpeed, meanUpSpeed,
 		meanDownLatency, meanUpLatency,
 		downMeanJitter, upMeanJitter,
+	}
+
+	ip, ok := res["ip"].(string)
+	if ok {
+		for _, ip := range ip {
+			resParts = append(resParts, ip)
+		}
 	}
 
 	downSpeed, ok := res["download"].(map[string]interface{})["speed"].([]float64)

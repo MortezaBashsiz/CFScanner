@@ -144,10 +144,11 @@ func main() {
 
 			fmt.Println("Total Threads : ", utils.Colors.OKBLUE, threads, utils.Colors.ENDC)
 			fmt.Printf("Starting to scan %d IPS.\n", nTotalIPs)
-			fmt.Println("---------------------------")
+			fmt.Println("-------------------------------------")
+			// begin scanning process
 			scan.Scanner(&testConfig, bigIPList, threadsCount)
 			fmt.Println("Results Written in :", configuration.INTERIM_RESULTS_PATH)
-			fmt.Println("Sorted IPS Written in :", configuration.INTERIM_RESULTS_PATH_SORTED)
+			fmt.Println("Sorted IPS Written in :", configuration.FINAL_RESULTS_PATH_SORTED)
 		},
 	}
 	rootCmd.PersistentFlags().IntVarP(&threads, "threads", "t", 1, "Number of threads to use for parallel scanning")
@@ -165,6 +166,10 @@ func main() {
 	rootCmd.PersistentFlags().Float64Var(&maxDLLatency, "download-latency", 2.0, "Maximum allowed latency for download")
 	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 2.0, "Maximum allowed latency for download")
 	rootCmd.PersistentFlags().Float64Var(&startProcessTimeout, "startprocess-timeout", 10, "")
+
+	if len(os.Args) <= 1 {
+		rootCmd.Help()
+	}
 
 	err := rootCmd.Execute()
 	cobra.CheckErr(err)

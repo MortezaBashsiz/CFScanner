@@ -13,13 +13,13 @@ import (
 )
 
 var (
-	PROGRAMDIR                  = filepath.Dir(os.Args[0])
-	BINDIR                      = filepath.Join(PROGRAMDIR, "..", "bin")
-	CONFIGDIR                   = filepath.Join(PROGRAMDIR, "..", "config")
-	RESULTDIR                   = filepath.Join(PROGRAMDIR, "..", "result")
-	START_DT_STR                = time.Now().Format("2006-01-02_15:04:05")
-	INTERIM_RESULTS_PATH        = filepath.Join(RESULTDIR, START_DT_STR+"_result.csv")
-	INTERIM_RESULTS_PATH_SORTED = filepath.Join(RESULTDIR, START_DT_STR+"_final.txt")
+	PROGRAMDIR                = filepath.Dir(os.Args[0])
+	BINDIR                    = filepath.Join(PROGRAMDIR, "..", "bin")
+	CONFIGDIR                 = filepath.Join(PROGRAMDIR, "..", "config")
+	RESULTDIR                 = filepath.Join(PROGRAMDIR, "..", "result")
+	START_DT_STR              = time.Now().Format("2006-01-02_15:04:05")
+	INTERIM_RESULTS_PATH      = filepath.Join(RESULTDIR, START_DT_STR+"_result.csv")
+	FINAL_RESULTS_PATH_SORTED = filepath.Join(RESULTDIR, START_DT_STR+"_final.txt")
 )
 
 type ConfigStruct struct {
@@ -52,6 +52,8 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 
 	jsonFile, err := os.Open(configPath)
 	if err != nil {
+		fmt.Printf("%verror occurred during opening the configuration file.%v",
+			utils.Colors.WARNING, utils.Colors.ENDC)
 		log.Fatal(err)
 	}
 	defer jsonFile.Close()
@@ -110,9 +112,14 @@ func CreateInterimResultsFile(interimResultsPath string, nTries int) error {
 	defer emptyFile.Close()
 
 	titles := []string{
+		"ip",
 		"avg_download_speed", "avg_upload_speed",
 		"avg_download_latency", "avg_upload_latency",
 		"avg_download_jitter", "avg_upload_jitter",
+	}
+
+	for i := 1; i <= nTries; i++ {
+		titles = append(titles, fmt.Sprintf("ip_%d", i))
 	}
 
 	for i := 1; i <= nTries; i++ {
