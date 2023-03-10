@@ -76,7 +76,7 @@ func Checkip(ip string, Config config.ConfigStruct) map[string]interface{} {
 			if Config.Vpn {
 				process.Process.Kill()
 			}
-			// return nil
+			return nil
 		}
 
 		if dlLatency <= Config.Max_dl_latency {
@@ -143,8 +143,8 @@ func Checkip(ip string, Config config.ConfigStruct) map[string]interface{} {
 
 		dltimeLatency := math.Round(dlLatency)
 		uptimeLatency := math.Round(upLatency)
-		fmt.Printf("%vOK Download: %.2fkBps , Upload: %.2fkbps , UP_Latency: %v , DL_Latency: %v , IP: %5s %v\n",
-			utils.Colors.OKGREEN, utils.Float64ToKBps(dlSpeed), utils.Float64ToKBps(upSpeed), uptimeLatency, dltimeLatency, ip, utils.Colors.ENDC)
+		fmt.Printf("%vOK IP: %v , Download: %.2fkBps , Upload: %.2fkbps , UP_Latency: %v , DL_Latency: %v%v\n",
+			utils.Colors.OKGREEN, ip, utils.Float64ToKBps(dlSpeed), utils.Float64ToKBps(upSpeed), uptimeLatency, dltimeLatency, utils.Colors.ENDC)
 		if Config.Vpn {
 			process.Process.Kill()
 		}
