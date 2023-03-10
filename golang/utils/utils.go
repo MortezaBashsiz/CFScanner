@@ -24,7 +24,7 @@ func Mean(latencies []float64) float64 {
 }
 
 func MeanJitter(latencies []float64) float64 {
-	if len(latencies) <= 1 {
+	if len(latencies) == 1 {
 		return 0
 	}
 	jitters := make([]float64, len(latencies)-1)
@@ -97,6 +97,15 @@ func IPParser(list []string) []string {
 		}
 	}
 	return IPList
+}
+
+// Validate IP Input
+func IPValidator(ip string) string {
+	var ipinput string
+	if net.ParseIP(ip) != nil {
+		ipinput = ip
+	}
+	return ipinput
 }
 
 func inc(ip net.IP) {
