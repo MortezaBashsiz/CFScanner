@@ -46,11 +46,12 @@ NOTE: If you want to use your custom config DO NOT use it as config.real since s
 ### 4. Execute it
 
 
+
 #### in Linux:
 
 At following command pay attention to the arguments **vpn** **SUBNET or IP** **DOWN or UP or BOTH**, **threads**, **tryCount**, **speed** and **Custom Subnet File**.
-=======
 You have following switches to define the arguments 
+
 
 
 -vpn: YES or NO, you are able to define for script to test with your vmess or not
