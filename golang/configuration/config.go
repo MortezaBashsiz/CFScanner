@@ -13,12 +13,13 @@ import (
 )
 
 var (
-	PROGRAMDIR           = filepath.Dir(os.Args[0])
-	BINDIR               = filepath.Join(PROGRAMDIR, "..", "bin")
-	CONFIGDIR            = filepath.Join(PROGRAMDIR, "..", "config")
-	RESULTDIR            = filepath.Join(PROGRAMDIR, "..", "result")
-	START_DT_STR         = time.Now().Format("2006-01-02_15:04:05")
-	INTERIM_RESULTS_PATH = filepath.Join(RESULTDIR, START_DT_STR+"_result.csv")
+	PROGRAMDIR                  = filepath.Dir(os.Args[0])
+	BINDIR                      = filepath.Join(PROGRAMDIR, "..", "bin")
+	CONFIGDIR                   = filepath.Join(PROGRAMDIR, "..", "config")
+	RESULTDIR                   = filepath.Join(PROGRAMDIR, "..", "result")
+	START_DT_STR                = time.Now().Format("2006-01-02_15:04:05")
+	INTERIM_RESULTS_PATH        = filepath.Join(RESULTDIR, START_DT_STR+"_result.csv")
+	INTERIM_RESULTS_PATH_SORTED = filepath.Join(RESULTDIR, START_DT_STR+"_final.txt")
 )
 
 type ConfigStruct struct {

@@ -37,7 +37,7 @@ var config = configuration.ConfigStruct{
 
 // Program Info
 var (
-	version  = "0.7"
+	version  = "0.8"
 	build    = "Custom"
 	codename = "CFScanner , CloudFlare Scanner."
 )
@@ -147,6 +147,7 @@ func main() {
 			fmt.Println("---------------------------")
 			scan.Scanner(&testConfig, bigIPList, threadsCount)
 			fmt.Println("Results Written in :", configuration.INTERIM_RESULTS_PATH)
+			fmt.Println("Sorted IPS Written in :", configuration.INTERIM_RESULTS_PATH_SORTED)
 		},
 	}
 	rootCmd.PersistentFlags().IntVarP(&threads, "threads", "t", 1, "Number of threads to use for parallel scanning")

@@ -11,6 +11,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -162,6 +163,7 @@ func Scanner(testConfig *config.ConfigStruct, cidrList []string, threadsCount in
 	n := len(cidrList)
 	batchSize := len(cidrList) / threadsCount
 	batches := make([][]string, threadsCount)
+	results := [][]string{}
 
 	for i := range batches {
 		start := i * batchSize
@@ -249,6 +251,15 @@ func Scanner(testConfig *config.ConfigStruct, cidrList []string, threadsCount in
 						meanUpLatency = utils.Mean(upLatency)
 					}
 
+					// change download latency to string for using it with saveresults func
+					var latencystring string
+
+					for _, f := range downLatency {
+						latencystring = fmt.Sprintf("%.0f", f)
+					}
+
+					results = append(results, []string{latencystring, ip})
+
 					fmt.Printf("%sOK %-15s %savg_down_speed: %.2fkbps avg_up_speed: %.2fkbps avg_down_latency: %6.2fms avg_up_latency: %6.2fms avg_down_jitter: %6.2fms avg_up_jitter: %4.2fms%s\n",
 						utils.Colors.OKGREEN,
 						res["ip"].(string),
@@ -261,12 +272,14 @@ func Scanner(testConfig *config.ConfigStruct, cidrList []string, threadsCount in
 						upMeanJitter,
 						utils.Colors.ENDC,
 					)
+
 					writeResultToFile(res, downMeanJitter, upMeanJitter, meanDownSpeed, meanUpSpeed, meanDownLatency, meanUpLatency)
+					SaveResults(results, config.INTERIM_RESULTS_PATH_SORTED, true)
+
 				}
 			}
 		}(batches[i])
 	}
-
 	wg.Wait()
 }
 
@@ -319,4 +332,41 @@ func writeResultToFile(res map[string]interface{}, downMeanJitter float64, upMea
 		fmt.Printf("Failed to write to file: %s\n", err)
 	}
 	w.Flush()
+}
+
+func SaveResults(results [][]string, savePath string, sort bool) error {
+	// clean the results and make sure the first element is integer
+	for i := 0; i < len(results); i++ {
+		ms, err := strconv.Atoi(strings.TrimSuffix(results[i][0], " ms"))
+		if err != nil {
+			return err
+		}
+		results[i][0] = strconv.Itoa(ms)
+	}
+
+	if sort {
+		// sort the results based on response time using bubble sort
+		for i := 0; i < len(results); i++ {
+			for j := 0; j < len(results)-1; j++ {
+				ms1, _ := strconv.Atoi(results[j][0])
+				ms2, _ := strconv.Atoi(results[j+1][0])
+				if ms1 > ms2 {
+					results[j], results[j+1] = results[j+1], results[j]
+				}
+			}
+		}
+	}
+
+	// write the results to file
+	var lines []string
+	for _, res := range results {
+		lines = append(lines, strings.Join(res, " "))
+	}
+	data := []byte(strings.Join(lines, "\n") + "\n")
+	err := os.WriteFile(savePath, data, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
