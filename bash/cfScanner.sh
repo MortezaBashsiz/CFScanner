@@ -218,7 +218,7 @@ function fncCheckIPList {
 							if [[ "$downloadOrUpload" == "DOWN" ]] || [[  "$downloadOrUpload" == "BOTH" ]]
 							then
 								downTimeMil=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "TIME: %{time_total}\n" "https://speed.cloudflare.com/__down?bytes=$fileSize" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
-								if [[ $downTimeMil -gt 1 ]]
+								if [[ $downTimeMil -gt 100 ]]
 								then
 									downSuccessedCount=$(( downSuccessedCount+1 ))
 								else
@@ -232,7 +232,7 @@ function fncCheckIPList {
   	            if [[ "$resultAnswer" ]]
   	            then
 									upTimeMil="$(echo "$result" | grep -i "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc)"
-									if [[ $upTimeMil -gt 1 ]]
+									if [[ $upTimeMil -gt 100 ]]
 									then
 										upSuccessedCount=$(( upSuccessedCount+1 ))
 									else
@@ -263,15 +263,15 @@ function fncCheckIPList {
 						then
 							kill -9 "$pid" > /dev/null 2>&1
 						fi
-						if [[ "$downRealTime" && $downRealTime -gt 1 ]] || [[ "$upRealTime" && $upRealTime -gt 1 ]]
+						if [[ "$downRealTime" && $downRealTime -gt 100 ]] || [[ "$upRealTime" && $upRealTime -gt 100 ]]
 						then
 							echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr ${ORANGE}UP: Avg $upRealTime, $upAvgStr${NC}" 
-							if [[ "$downRealTime" && $downRealTime -gt 1 ]]
+							if [[ "$downRealTime" && $downRealTime -gt 100 ]]
 							then
 								#echo "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr${NC}" 
 								echo "$downRealTime, $downAvgStr DOWN FOR IP $ip" >> "$resultFile"
 							fi
-							if [[ "$upRealTime" && $upRealTime -gt 1 ]]
+							if [[ "$upRealTime" && $upRealTime -gt 100 ]]
 							then
 								#echo "${GREEN}OK${NC} $ip ${BLUE}UP: $upRealTime, $upAvgStr${NC}" 
 								echo "$upRealTime, $upAvgStr UP FOR IP $ip" >> "$resultFile"
@@ -308,7 +308,7 @@ function fncCheckIPList {
 							if [[ "$downloadOrUpload" == "DOWN" ]] || [[  "$downloadOrUpload" == "BOTH" ]]
 							then
 								downTimeMil=$($timeoutCommand 2 curl -s -w "TIME: %{time_total}\n" -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=$fileSize" --output /dev/null | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc )
-								if [[ $downTimeMil -gt 1 ]]
+								if [[ $downTimeMil -gt 100 ]]
 								then
 									downSuccessedCount=$(( downSuccessedCount+1 ))
 								else
@@ -322,7 +322,7 @@ function fncCheckIPList {
   	            if [[ "$resultAnswer" ]]
   	            then
 									upTimeMil="$(echo "$result" | grep -i "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc)"
-									if [[ $upTimeMil -gt 1 ]]
+									if [[ $upTimeMil -gt 100 ]]
 									then
 										upSuccessedCount=$(( upSuccessedCount+1 ))
 									else
@@ -347,15 +347,15 @@ function fncCheckIPList {
 						else
 							upRealTime=0
 						fi
-						if [[ "$downRealTime" && $downRealTime -gt 1 ]] || [[ "$upRealTime" && $upRealTime -gt 1 ]]
+						if [[ "$downRealTime" && $downRealTime -gt 100 ]] || [[ "$upRealTime" && $upRealTime -gt 100 ]]
 						then
 							echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr ${ORANGE}UP: Avg $upRealTime, $upAvgStr${NC}" 
-							if [[ "$downRealTime" && $downRealTime -gt 1 ]]
+							if [[ "$downRealTime" && $downRealTime -gt 100 ]]
 							then
 								#echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr${NC}" 
 								echo "$downRealTime, $downAvgStr DOWN FOR IP $ip" >> "$resultFile"
 							fi
-							if [[ "$upRealTime" && $upRealTime -gt 1 ]]
+							if [[ "$upRealTime" && $upRealTime -gt 100 ]]
 							then
 								#echo -e "${GREEN}OK${NC} $ip ${BLUE}UP: $upRealTime, $upAvgStr${NC}" 
 								echo "$upRealTime, $upAvgStr UP FOR IP $ip" >> "$resultFile"
