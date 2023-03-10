@@ -19,7 +19,7 @@ var (
 	BINDIR               = filepath.Join(PROGRAMDIR, "..", "bin")
 	CONFIGDIR            = filepath.Join(PROGRAMDIR, "..", "config")
 	RESULTDIR            = filepath.Join(PROGRAMDIR, "..", "result")
-	START_DT_STR         = time.Now().Format("15")
+	START_DT_STR         = time.Now().Format("2006-01-02_15:04:05")
 	INTERIM_RESULTS_PATH = filepath.Join(RESULTDIR, START_DT_STR+"_result.csv")
 )
 
@@ -31,6 +31,7 @@ type ConfigStruct struct {
 	Ws_header_path       string
 	Sni                  string
 	Do_upload_test       bool
+	Do_fronting_test     bool
 	Min_dl_speed         float64       // kilobytes per second
 	Min_ul_speed         float64       // kilobytes per second
 	Max_dl_time          float64       // seconds
@@ -63,12 +64,6 @@ func Checkip(ip string, Config ConfigStruct) map[string]interface{} {
 	// var proc fakeProcess
 	// v2ray_config_path := createV2rayConfig(ip, Config)
 
-	// for tryIdx := 0; tryIdx < Config.n_tries; tryIdx++ {
-	// 	if !frontingTest(ip, time.Duration(Config.fronting_timeout)) {
-	// 		return nil
-	// 	}
-	// }
-
 	var proxies map[string]string
 	// var proccess *exec.Cmd
 
@@ -84,7 +79,16 @@ func Checkip(ip string, Config ConfigStruct) map[string]interface{} {
 	// }
 
 	for tryIdx := 0; tryIdx < Config.N_tries; tryIdx++ {
-		// check download speed
+		// Fronting test
+		if Config.Do_fronting_test {
+			fronting := speedtest.FrontingTest(ip, time.Duration(Config.Fronting_timeout))
+
+			if !fronting {
+				return nil
+			}
+		}
+
+		// Check download speed
 		var err error
 		nBytes := Config.Min_dl_speed * 1000 * Config.Max_dl_time
 		dlSpeed, dlLatency, err = speedtest.DownloadSpeedTest(int(nBytes), nil, time.Duration(Config.Max_dl_time))

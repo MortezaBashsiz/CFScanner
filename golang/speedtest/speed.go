@@ -1,12 +1,15 @@
 package speedtest
 
 import (
+	"crypto/tls"
 	"fmt"
+	"net"
 	"net/http"
 	"strings"
 	"time"
 )
 
+// conducts a download speed test on ip and returns download speed and download latency
 func DownloadSpeedTest(nBytes int, proxies map[string]string, timeout time.Duration) (float64, float64, error) {
 	startTime := time.Now()
 	client := &http.Client{
@@ -55,6 +58,7 @@ func DownloadSpeedTest(nBytes int, proxies map[string]string, timeout time.Durat
 	return downloadSpeed, downloadTime, nil
 }
 
+// conducts a upload speed test on ip and returns upload speed and upload latency
 func UploadSpeedTest(nBytes int, proxies map[string]string, timeout time.Duration) (float64, float64, error) {
 	startTime := time.Now()
 	req, err := http.NewRequest("POST", "https://speed.cloudflare.com/__up", strings.NewReader(strings.Repeat("0", nBytes)))
@@ -88,46 +92,53 @@ func UploadSpeedTest(nBytes int, proxies map[string]string, timeout time.Duratio
 	return uploadSpeed, latency, nil
 }
 
-// func FrontingTest(ip string, timeout time.Duration) bool {
-// 	success := false
-// 	client := &http.Client{
-// 		Timeout: timeout * time.Second,
-// 		Transport: &http.Transport{
-// 			TLSClientConfig: &tls.Config{
-// 				ServerName:         "speed.cloudflare.com",
-// 				InsecureSkipVerify: true,
-// 			},
-// 		},
-// 	}
-// 	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s", ip), nil)
-// 	if err != nil {
-// 		fmt.Printf("Error creating request for IP %s: %v\n", ip, err)
-// 		return success
-// 	}
-// 	req.Header.Set("Host", "speed.cloudflare.com")
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		switch err.(type) {
-// 		case net.Error:
-// 			netErr := err.(net.Error)
-// 			if netErr.Timeout() {
-// 				fmt.Printf("Fronting test connect timeout for IP %s\n", ip)
-// 			} else {
-// 				fmt.Printf("Fronting test connection error for IP %s: %v\n", ip, err)
-// 			}
-// 		default:
-// 			fmt.Printf("Fronting test unknown error for IP %s: %v\n", ip, err)
-// 		}
-// 		return success
-// 	}
-// 	defer resp.Body.Close()
-// 	if resp.StatusCode != http.StatusOK {
-// 		fmt.Printf("Fronting test error for IP %s: %d\n", ip, resp.StatusCode)
-// 	} else {
-// 		success = true
-// 	}
-// 	return success
-// }
+// conducts a fronting test on an ip and return true if status 200 is received
+func FrontingTest(ip string, timeout time.Duration) bool {
+
+	client := &http.Client{
+		Timeout: timeout * time.Second,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				ServerName:         "speed.cloudflare.com",
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+
+	var success bool = false
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s", ip), nil)
+	if err != nil {
+		fmt.Printf("Error creating request for IP %s: %v\n", ip, err)
+		return success
+	}
+	req.Header.Set("Host", "speed.cloudflare.com")
+	resp, err := client.Do(req)
+
+	if err != nil {
+		switch err := err.(type) {
+		case net.Error:
+			if err.Timeout() {
+				fmt.Printf("Fronting test connect timeout for IP %s\n", ip)
+			} else {
+				fmt.Printf("Fronting test connection error for IP %s: %v\n", ip, err)
+			}
+		default:
+			fmt.Printf("Fronting test unknown error for IP %s: %v\n", ip, err)
+		}
+		return success
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("Fronting test error for IP %s: %d\n", ip, resp.StatusCode)
+	} else {
+		success = true
+	}
+
+	return success
+}
 
 // func downloadSpeedTest(nBytes int, proxies map[string]string, timeout time.Duration) (float64, float64, error) {
 // 	startTime := time.Now()
