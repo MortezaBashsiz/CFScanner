@@ -360,7 +360,6 @@ func uploadSpeedTest(nBytes int, proxies map[string]string, timeout time.Duratio
 	mb := float64(nBytes*8) / (10 * 10 * 10 * 10 * 10 * 10)
 	uploadSpeed := mb / latency
 
-	fmt.Println("Upload :", uploadSpeed)
 	return uploadSpeed, latency, nil
 }
 
@@ -462,18 +461,14 @@ func checkip(ip string, Config ConfigStruct) map[string]interface{} {
 		dlSpeed, dlLatency, err = downloadSpeedTest(int(nBytes), time.Duration(Config.max_dl_time))
 		if err != nil {
 			if strings.Contains(strings.ToLower(err.Error()), "download/upload too slow") {
-				fmt.Printf("%vNO %v%15s download too slow\n",
+				fmt.Printf("%vFAIL %v%15s Download too slow\n",
 					colors.FAIL, colors.WARNING, ip)
 			} else {
-				fmt.Printf("%vNO %v%15s download error%v\n",
+				fmt.Printf("%vFAIL %v%15s Download error%v\n",
 					colors.FAIL, colors.WARNING, ip, colors.ENDC)
 			}
 			// process.Process.Kill()
 			return nil
-		} else {
-			fmt.Printf("%vDownload:  %v Latency: %v IP: %15s\n",
-				colors.OKGREEN, dlSpeed, dlLatency, ip)
-
 		}
 
 		if dlLatency <= Config.max_dl_latency {
@@ -485,13 +480,13 @@ func checkip(ip string, Config ConfigStruct) map[string]interface{} {
 					append(result["download"].(map[string]interface{})["latency"].([]int), int(math.Round(dlLatency)))
 
 			} else {
-				fmt.Printf("%vNO %v%15s download too slow %.4f kBps < %.4f kBps%v\n",
+				fmt.Printf("%vFAIL %v%15s download too slow %.4f kBps < %.4f kBps%v\n",
 					colors.FAIL, colors.WARNING, ip, dlSpeedKBps, Config.min_dl_speed, colors.ENDC)
 				// process.Process.Kill()
 				return nil
 			}
 		} else {
-			fmt.Printf("%vNO %v%15s high download latency %.4f s > %.4f s%v\n",
+			fmt.Printf("%vFAIL %v%15s high download latency %.4f s > %.4f s%v\n",
 				colors.FAIL, colors.WARNING, ip, dlLatency, Config.max_dl_latency, colors.ENDC)
 			// process.Process.Kill()
 			return nil
@@ -501,9 +496,8 @@ func checkip(ip string, Config ConfigStruct) map[string]interface{} {
 			var err error
 			nBytes := Config.min_ul_speed * 1000 * Config.max_ul_time
 			upSpeed, upLatency, err = uploadSpeedTest(int(nBytes), proxies, time.Duration(Config.max_ul_time))
-			fmt.Println(upLatency, upSpeed)
 			if err != nil {
-				fmt.Printf("%sNO %supload unknown error%s\n", colors.FAIL, colors.WARNING, colors.ENDC)
+				fmt.Printf("%sFAIL %supload unknown error%s\n", colors.FAIL, colors.WARNING, colors.ENDC)
 				// log.Fatal(err)
 				// process.Process.Kill()
 				return nil
@@ -517,21 +511,26 @@ func checkip(ip string, Config ConfigStruct) map[string]interface{} {
 						append(result["upload"].(map[string]interface{})["latency"].([]int), int(math.Round(upLatency)))
 
 				} else {
-					fmt.Printf("%sNO %s upload too slow %f kBps < %f kBps%s\n",
+					fmt.Printf("%sFAIL %s upload too slow %f kBps < %f kBps%s\n",
 						colors.FAIL, colors.WARNING, upSpeedKbps, Config.min_ul_speed, colors.ENDC)
 					// process.Process.Kill()
 					return nil
 				}
 			} else {
-				fmt.Printf("%sNO %s upload latency too high%s\n",
-					colors.FAIL, colors.WARNING, colors.ENDC)
+				fmt.Printf("%sFAIL %s upload latency too high %v %s\n",
+					colors.FAIL, colors.WARNING, ip, colors.ENDC)
 				// process.Process.Kill()
 				return nil
 			}
 		}
+
+		dltimeLatency := math.Round(dlLatency)
+		uptimeLatency := math.Round(upLatency)
+		fmt.Printf("%vOK Download: %.2fkBps , Upload: %.2fkbps , UP_Latency: %v , DL_Latency: %v , IP: %5s %v\n",
+			colors.OKGREEN, Float64ToKBps(dlSpeed), Float64ToKBps(upSpeed), uptimeLatency, dltimeLatency, ip, colors.ENDC)
+
 	}
 	// process.Process.Kill()
-	fmt.Println(result)
 	return result
 }
 
@@ -592,171 +591,6 @@ func createTestConfig(configPath string, startprocessTimeout time.Duration,
 	return ConfigObject
 }
 
-// // Converts IP in long integer format to a string
-// func longIntToStr(num uint32) string {
-// 	var quad uint32
-// 	var ip [4]string
-
-// 	for e := 3; e >= 1; e-- {
-// 		quad = uint32(1 << (8 * e))
-// 		ip[3-e] = strconv.Itoa(int(num / quad))
-// 		num = num % quad
-// 	}
-// 	ip[3] = strconv.Itoa(int(num))
-
-// 	return fmt.Sprintf("%s.%s.%s.%s", ip[0], ip[1], ip[2], ip[3])
-// }
-
-// func ipToLongInt(ip string) uint32 {
-// 	var num uint32
-// 	octets := strings.Split(ip, ".")
-// 	for e := 3; e >= 0; e-- {
-// 		octet, _ := strconv.Atoi(octets[3-e])
-// 		num += uint32(octet) * (1 << (8 * uint32(e)))
-// 	}
-// 	return num
-// }
-
-// // Converts subnet to IP list
-// func subnetToIP(subnet string) []string {
-// 	var ipList []string
-// 	network := strings.Split(subnet, "/")
-// 	iparr := strings.Split(network[0], ".")
-// 	mask := 32
-// 	if len(network) > 1 {
-// 		mask, _ = strconv.Atoi(network[1])
-// 	}
-
-// 	var maskarr []int
-// 	if mask == 32 {
-// 		maskarr = []int{255, 255, 255, 255}
-// 	} else if mask < 8 {
-// 		maskarr = []int{256 - (1 << (8 - mask)), 0, 0, 0}
-// 	} else if mask < 16 {
-// 		maskarr = []int{255, 256 - (1 << (16 - mask)), 0, 0}
-// 	} else if mask < 24 {
-// 		maskarr = []int{255, 255, 256 - (1 << (24 - mask)), 0}
-// 	} else {
-// 		maskarr = []int{255, 255, 255, 256 - (1 << (32 - mask))}
-// 	}
-
-// 	if maskarr[2] == 255 {
-// 		maskarr[1] = 255
-// 	}
-// 	if maskarr[1] == 255 {
-// 		maskarr[0] = 255
-// 	}
-
-// 	// generate list of ip addresses
-// 	bytes := []int{0, 0, 0, 0}
-// 	for i := 0; i <= (255 - maskarr[0]); i++ {
-// 		bytes[0], _ = strconv.Atoi(iparr[0])
-// 		bytes[0] = i + (bytes[0] & maskarr[0])
-// 		for j := 0; j <= (255 - maskarr[1]); j++ {
-// 			bytes[1], _ = strconv.Atoi(iparr[1])
-// 			bytes[1] = j + (bytes[1] & maskarr[1])
-// 			for k := 0; k <= (255 - maskarr[2]); k++ {
-// 				bytes[2], _ = strconv.Atoi(iparr[2])
-// 				bytes[2] = k + (bytes[2] & maskarr[2])
-// 				for l := 1; l <= (255 - maskarr[3]); l++ {
-// 					bytes[3], _ = strconv.Atoi(iparr[3])
-// 					bytes[3] = l + (bytes[3] & maskarr[3])
-// 					ipList = append(ipList, fmt.Sprintf("%d.%d.%d.%d", bytes[0], bytes[1], bytes[2], bytes[3]))
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return ipList
-// }
-
-// func readCidrsFromAsnLookup(asnList []string) []string {
-// 	cidrs := []string{}
-
-// 	for _, asn := range asnList {
-// 		url := fmt.Sprintf("https://asnlookup.com/asn/%s/", asn)
-// 		resp, err := http.Get(url)
-
-// 		if err != nil {
-// 			fmt.Printf("ERROR: Could not read asn %s from asnlookup\n", asn)
-// 			continue
-// 		}
-
-// 		defer resp.Body.Close()
-// 		body, err := ioutil.ReadAll(resp.Body)
-
-// 		if err != nil {
-// 			fmt.Printf("ERROR: Could not read asn %s from asnlookup\n", asn)
-// 			continue
-// 		}
-
-// 		cidrRegex := regexp.MustCompile(`(?:[0-9]{1,3}\.){3}[0-9]{1,3}/\d+`)
-// 		thisCidrs := cidrRegex.FindAllString(string(body), -1)
-// 		cidrs = append(cidrs, thisCidrs...)
-// 	}
-
-// 	return cidrs
-// }
-
-// // Progress bar maker function (based on https://www.baeldung.com/linux/command-line-progress-bar)
-// func fncShowProgress(current int, total int) string {
-// 	barCharDone := "="
-// 	barCharTodo := " "
-// 	barSplitter := ">"
-// 	barPercentageScale := 2
-// 	barSize := tputCols() - 70 // 70 cols for description characters
-
-// 	// calculate the progress in percentage
-// 	percent := float64(current) / float64(total) * 100
-// 	percentStr := fmt.Sprintf("%.*f", barPercentageScale, percent)
-
-// 	// The number of done and todo characters
-// 	done := int(math.Floor(float64(barSize) * percent / 100))
-// 	todo := barSize - done
-
-// 	// build the done and todo sub-bars
-// 	doneSubBar := strings.Repeat(barCharDone, done)
-// 	todoSubBar := strings.Repeat(barCharTodo, todo-1) + barSplitter
-// 	spacesSubBar := strings.Repeat(" ", todo)
-
-// 	// output the bar
-// 	progressBar := fmt.Sprintf("| Progress bar of main IPs: [%s%s] %s%%%s",
-// 		doneSubBar, todoSubBar, percentStr, spacesSubBar) // Some end space for pretty formatting
-// 	return progressBar
-// }
-
-// // tputCols returns the number of columns in the terminal
-// func tputCols() int {
-// 	colsStr, _ := exec.Command("tput", "cols").Output()
-// 	cols, _ := strconv.Atoi(strings.TrimSpace(string(colsStr)))
-// 	return cols
-// }
-
-// func saveResults(results [][]string, savePath string, sortResults bool) error {
-// 	// clean the results and make sure the first element is integer
-// 	var cleanedResults [][]string
-// 	for _, res := range results {
-// 		ms, err := strconv.ParseFloat(res[0], 64)
-// 		if err != nil {
-// 			return err
-// 		}
-// 		ip := res[1]
-// 		cleanedResults = append(cleanedResults, []string{strconv.Itoa(int(ms)), ip})
-// 	}
-
-// 	if sortResults {
-// 		sort.Slice(cleanedResults, func(i, j int) bool {
-// 			return cleanedResults[i][0] < cleanedResults[j][0]
-// 		})
-// 	}
-
-// 	var lines []string
-// 	for _, res := range cleanedResults {
-// 		lines = append(lines, strings.Join(res, " "))
-// 	}
-// 	fileContents := strings.Join(lines, "\n") + "\n"
-// 	return ioutil.WriteFile(savePath, []byte(fileContents), 0644)
-// }
-
 func createInterimResultsFile(interimResultsPath string, nTries int) error {
 	emptyFile, err := os.Create(interimResultsPath)
 	if err != nil {
@@ -796,7 +630,7 @@ func createInterimResultsFile(interimResultsPath string, nTries int) error {
 // Stat module
 func meanJitter(latencies []float64) float64 {
 	if len(latencies) <= 1 {
-		return -1
+		return 0
 	}
 	jitters := make([]float64, len(latencies)-1)
 	for i := 1; i < len(latencies); i++ {
@@ -875,47 +709,74 @@ func checkCIDRs(testConfig *ConfigStruct, cidrList []string, threadsCount int) {
 				if res != nil {
 					downLatencyInt, ok := res["download"].(map[string]interface{})["latency"].([]int)
 
+					if !ok {
+						log.Printf("Error getting download latency for IP %s", ip)
+						continue
+					}
+
+					// make downLatencyInt to float64
 					downLatency := make([]float64, len(downLatencyInt))
 					for i, v := range downLatencyInt {
 						downLatency[i] = float64(v)
 					}
 
-					fmt.Printf("%T\n", res["download"].(map[string]interface{})["speed"])
-
-					if !ok {
-						log.Printf("Error getting download latency for IP %s", ip)
-						continue
-					}
 					downMeanJitter := meanJitter(downLatency)
-					upMeanJitter := -1.0
+
 					upLatencyInt, ok := res["upload"].(map[string]interface{})["latency"].([]int)
 
-					upLatency := make([]float64, len(upLatencyInt))
-					for i, v := range upLatencyInt {
-						downLatency[i] = float64(v)
+					if !ok {
+						log.Printf("Error getting upload latency for IP %s", ip)
+						continue
 					}
 
+					// make upLatencyInt to float64
+					upLatency := make([]float64, len(upLatencyInt))
+					for i, v := range upLatencyInt {
+						upLatency[i] = float64(v)
+					}
+
+					upMeanJitter := -1.0
 					if testConfig.do_upload_test && ok {
 						upMeanJitter = meanJitter(upLatency)
 					}
+
 					downSpeed, ok := res["download"].(map[string]interface{})["speed"].([]float64)
+
+					// make downSpeedKbps to return kbps
+					downSpeedKbps := make([]float64, len(downSpeed))
+					for i, v := range downSpeed {
+						downSpeedKbps[i] = Float64ToKBps(v)
+					}
 					if !ok {
 						log.Printf("Error getting download speed for IP %s , %v", ip, ok)
 						continue
 					}
-					meanDownSpeed := mean(downSpeed)
+					meanDownSpeed := mean(downSpeedKbps)
 					meanUpSpeed := -1.0
+
 					upSpeed, ok := res["upload"].(map[string]interface{})["speed"].([]float64)
-					if testConfig.do_upload_test && ok {
-						meanUpSpeed = mean(upSpeed)
+
+					if !ok {
+						log.Printf("Error getting upload speed for IP %s", ip)
+						continue
 					}
+
+					// make downSpeedKbps to return kbps
+					upSpeedKbps := make([]float64, len(upSpeed))
+					for i, v := range upSpeed {
+						upSpeedKbps[i] = Float64ToKBps(v)
+					}
+					if testConfig.do_upload_test {
+						meanUpSpeed = mean(upSpeedKbps)
+					}
+
 					meanDownLatency := mean(downLatency)
 					meanUpLatency := -1.0
-					if testConfig.do_upload_test && ok {
+					if testConfig.do_upload_test {
 						meanUpLatency = mean(upLatency)
 					}
 
-					fmt.Printf("%sOK %-15s %savg_down_speed: %7.4fmbps avg_up_speed: %7.4fmbps avg_down_latency: %6.2fms avg_up_latency: %6.2fms avg_down_jitter: %6.2fms avg_up_jitter: %4.2fms%s\n",
+					fmt.Printf("%sOK %-15s %savg_down_speed: %.2fkbps avg_up_speed: %.2fkbps avg_down_latency: %6.2fms avg_up_latency: %6.2fms avg_down_jitter: %6.2fms avg_up_jitter: %4.2fms%s\n",
 						colors.OKGREEN,
 						res["ip"].(string),
 						colors.OKBLUE,
@@ -997,8 +858,8 @@ func stringifySlice(s []interface{}) []string {
 }
 
 func mean(latencies []float64) float64 {
-	if len(latencies) <= 1 {
-		return -1
+	if len(latencies) == 0 {
+		return 0
 	}
 	var sum float64
 	for _, x := range latencies {
@@ -1007,12 +868,9 @@ func mean(latencies []float64) float64 {
 	return sum / float64(len(latencies))
 }
 
-// func abs(a, b float64) float64 {
-// 	if a > b {
-// 		return a - b
-// 	}
-// 	return b - a
-// }
+func Float64ToKBps(bytes float64) float64 {
+	return bytes / 8 * 1000
+}
 
 var (
 	version  = "0.3"
@@ -1105,10 +963,11 @@ func main() {
 				bigIPList = append(bigIPList, ips...)
 			}
 
+			fmt.Println("---------------------------")
 			fmt.Println("Total Threads : ", threads)
 			fmt.Printf("Starting to scan %d IPS.\n", nTotalIPs)
-			// fmt.Println(bigIPList)
 			checkCIDRs(&testConfig, bigIPList, threadsCount)
+			fmt.Println("Results Written in :", INTERIM_RESULTS_PATH)
 		},
 	}
 	rootCmd.PersistentFlags().IntVar(&threads, "threads", 1, "Number of threads to use for parallel computing")
@@ -1117,13 +976,13 @@ func main() {
 	rootCmd.PersistentFlags().StringVar(&subnetsPath, "subnets", "", "(optional) The path to the custom subnets file. each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip. If not provided, the program will read the cidrs from asn lookup")
 	rootCmd.PersistentFlags().BoolVar(&doUploadTest, "upload-test", false, "If True, upload test will be conducted")
 	rootCmd.PersistentFlags().IntVar(&nTries, "tries", 1, "Number of times to try each IP. An IP is marked as OK if all tries are successful")
-	rootCmd.PersistentFlags().Float64Var(&minDLSpeed, "download-speed", 10, "Minimum acceptable download speed in kilobytes per second")
-	rootCmd.PersistentFlags().Float64Var(&minULSpeed, "upload-speed", 10, "Maximum acceptable upload speed in kilobytes per second")
-	rootCmd.PersistentFlags().Float64Var(&maxDLTime, "download-time", 5, "Maximum (effective, excluding http time) time to spend for each download")
-	rootCmd.PersistentFlags().Float64Var(&maxULTime, "upload-time", 5, "Maximum (effective, excluding http time) time to spend for each upload")
-	rootCmd.PersistentFlags().Float64Var(&frontingTimeout, "fronting-timeout", 10.0, "Maximum time to wait for fronting response")
-	rootCmd.PersistentFlags().Float64Var(&maxDLLatency, "download-latency", 10.0, "Maximum allowed latency for download")
-	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 10.0, "Maximum allowed latency for download")
+	rootCmd.PersistentFlags().Float64Var(&minDLSpeed, "download-speed", 50, "Minimum acceptable download speed in kilobytes per second")
+	rootCmd.PersistentFlags().Float64Var(&minULSpeed, "upload-speed", 50, "Maximum acceptable upload speed in kilobytes per second")
+	rootCmd.PersistentFlags().Float64Var(&maxDLTime, "download-time", 2, "Maximum (effective, excluding http time) time to spend for each download")
+	rootCmd.PersistentFlags().Float64Var(&maxULTime, "upload-time", 2, "Maximum (effective, excluding http time) time to spend for each upload")
+	rootCmd.PersistentFlags().Float64Var(&frontingTimeout, "fronting-timeout", 1.0, "Maximum time to wait for fronting response")
+	rootCmd.PersistentFlags().Float64Var(&maxDLLatency, "download-latency", 2.0, "Maximum allowed latency for download")
+	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 2.0, "Maximum allowed latency for download")
 	rootCmd.PersistentFlags().IntVar(&startProcessTimeout, "startprocess-timeout", 5, "")
 
 	err := rootCmd.Execute()
