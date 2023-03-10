@@ -1,50 +1,22 @@
 package scanner
 
 import (
+	config "CFScanner/configuration"
 	"CFScanner/speedtest"
 	utils "CFScanner/utils"
+	"CFScanner/v2raysvc"
 	"encoding/csv"
 	"fmt"
 	"log"
 	"math"
 	"os"
-	"path/filepath"
+	"os/exec"
 	"strings"
 	"sync"
 	"time"
 )
 
-var (
-	PROGRAMDIR           = filepath.Dir(os.Args[0])
-	BINDIR               = filepath.Join(PROGRAMDIR, "..", "bin")
-	CONFIGDIR            = filepath.Join(PROGRAMDIR, "..", "config")
-	RESULTDIR            = filepath.Join(PROGRAMDIR, "..", "result")
-	START_DT_STR         = time.Now().Format("2006-01-02_15:04:05")
-	INTERIM_RESULTS_PATH = filepath.Join(RESULTDIR, START_DT_STR+"_result.csv")
-)
-
-type ConfigStruct struct {
-	Local_port           int
-	Address_port         string
-	User_id              string
-	Ws_header_host       string
-	Ws_header_path       string
-	Sni                  string
-	Do_upload_test       bool
-	Do_fronting_test     bool
-	Min_dl_speed         float64       // kilobytes per second
-	Min_ul_speed         float64       // kilobytes per second
-	Max_dl_time          float64       // seconds
-	Max_ul_time          float64       // seconds
-	Max_dl_latency       float64       // seconds
-	Max_ul_latency       float64       // seconds
-	Fronting_timeout     float64       // seconds
-	Startprocess_timeout time.Duration // seconds
-	N_tries              int
-	No_vpn               bool
-}
-
-func Checkip(ip string, Config ConfigStruct) map[string]interface{} {
+func Checkip(ip string, Config config.ConfigStruct) map[string]interface{} {
 	var dlSpeed float64
 	var dlLatency float64
 	var upSpeed float64
@@ -61,22 +33,23 @@ func Checkip(ip string, Config ConfigStruct) map[string]interface{} {
 			"latency": []int{},
 		},
 	}
-	// var proc fakeProcess
-	// v2ray_config_path := createV2rayConfig(ip, Config)
 
 	var proxies map[string]string
-	// var proccess *exec.Cmd
-
-	// var process *exec.Cmd
-	// var err error
-	// process, proxies, err = startV2RayService(v2ray_config_path, Config.startprocess_timeout)
-	// // fmt.Println(proxies)
-	// if err != nil {
-	// 	fmt.Printf("%vERROR - %vCould not start v2ray service%v\n",
-	// 		utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)
-	// 	log.Fatal(err)
-	// 	return nil
-	// }
+	var process *exec.Cmd
+	if Config.Vpn {
+		v2ray_config_path := v2raysvc.CreateV2rayConfig(ip, Config)
+		var err error
+		process, proxies, err = v2raysvc.StartV2RayService(v2ray_config_path, time.Duration(Config.Startprocess_timeout))
+		if err != nil {
+			fmt.Printf("%vERROR - %vCould not start v2ray service%v\n",
+				utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)
+			log.Fatal(err)
+			return nil
+		}
+	} else {
+		process = nil
+		proxies = nil
+	}
 
 	for tryIdx := 0; tryIdx < Config.N_tries; tryIdx++ {
 		// Fronting test
@@ -91,7 +64,7 @@ func Checkip(ip string, Config ConfigStruct) map[string]interface{} {
 		// Check download speed
 		var err error
 		nBytes := Config.Min_dl_speed * 1000 * Config.Max_dl_time
-		dlSpeed, dlLatency, err = speedtest.DownloadSpeedTest(int(nBytes), nil, time.Duration(Config.Max_dl_time))
+		dlSpeed, dlLatency, err = speedtest.DownloadSpeedTest(int(nBytes), proxies, time.Duration(Config.Max_dl_time))
 		if err != nil {
 			if strings.Contains(strings.ToLower(err.Error()), "download/upload too slow") {
 				fmt.Printf("%vFAIL %v%15s Download too slow\n",
@@ -100,8 +73,10 @@ func Checkip(ip string, Config ConfigStruct) map[string]interface{} {
 				fmt.Printf("%vFAIL %v%15s Download error%v\n",
 					utils.Colors.FAIL, utils.Colors.WARNING, ip, utils.Colors.ENDC)
 			}
-			// process.Process.Kill()
-			return nil
+			if Config.Vpn {
+				process.Process.Kill()
+			}
+			// return nil
 		}
 
 		if dlLatency <= Config.Max_dl_latency {
@@ -115,13 +90,17 @@ func Checkip(ip string, Config ConfigStruct) map[string]interface{} {
 			} else {
 				fmt.Printf("%vFAIL %v%15s download too slow %.4f kBps < %.4f kBps%v\n",
 					utils.Colors.FAIL, utils.Colors.WARNING, ip, dlSpeedKBps, Config.Min_dl_speed, utils.Colors.ENDC)
-				// process.Process.Kill()
+				if Config.Vpn {
+					process.Process.Kill()
+				}
 				return nil
 			}
 		} else {
 			fmt.Printf("%vFAIL %v%15s high download latency %.4f s > %.4f s%v\n",
 				utils.Colors.FAIL, utils.Colors.WARNING, ip, dlLatency, Config.Max_dl_latency, utils.Colors.ENDC)
-			// process.Process.Kill()
+			if Config.Vpn {
+				process.Process.Kill()
+			}
 			return nil
 		}
 		// upload speed test
@@ -131,8 +110,9 @@ func Checkip(ip string, Config ConfigStruct) map[string]interface{} {
 			upSpeed, upLatency, err = speedtest.UploadSpeedTest(int(nBytes), proxies, time.Duration(Config.Max_ul_time))
 			if err != nil {
 				fmt.Printf("%sFAIL %supload unknown error%s\n", utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)
-				// log.Fatal(err)
-				// process.Process.Kill()
+				if Config.Vpn {
+					process.Process.Kill()
+				}
 				return nil
 			}
 			if upLatency <= Config.Max_ul_latency {
@@ -146,13 +126,17 @@ func Checkip(ip string, Config ConfigStruct) map[string]interface{} {
 				} else {
 					fmt.Printf("%sFAIL %s upload too slow %f kBps < %f kBps%s\n",
 						utils.Colors.FAIL, utils.Colors.WARNING, upSpeedKbps, Config.Min_ul_speed, utils.Colors.ENDC)
-					// process.Process.Kill()
+					if Config.Vpn {
+						process.Process.Kill()
+					}
 					return nil
 				}
 			} else {
 				fmt.Printf("%sFAIL %s upload latency too high %v %s\n",
 					utils.Colors.FAIL, utils.Colors.WARNING, ip, utils.Colors.ENDC)
-				// process.Process.Kill()
+				if Config.Vpn {
+					process.Process.Kill()
+				}
 				return nil
 			}
 		}
@@ -161,13 +145,18 @@ func Checkip(ip string, Config ConfigStruct) map[string]interface{} {
 		uptimeLatency := math.Round(upLatency)
 		fmt.Printf("%vOK Download: %.2fkBps , Upload: %.2fkbps , UP_Latency: %v , DL_Latency: %v , IP: %5s %v\n",
 			utils.Colors.OKGREEN, utils.Float64ToKBps(dlSpeed), utils.Float64ToKBps(upSpeed), uptimeLatency, dltimeLatency, ip, utils.Colors.ENDC)
+		if Config.Vpn {
+			process.Process.Kill()
+		}
 
 	}
-	// process.Process.Kill()
+	if Config.Vpn {
+		process.Process.Kill()
+	}
 	return result
 }
 
-func Scanner(testConfig *ConfigStruct, cidrList []string, threadsCount int) {
+func Scanner(testConfig *config.ConfigStruct, cidrList []string, threadsCount int) {
 	var wg sync.WaitGroup
 
 	n := len(cidrList)
@@ -317,7 +306,7 @@ func writeResultToFile(res map[string]interface{}, downMeanJitter float64, upMea
 	}
 
 	// Open the file for appending the results
-	f, err := os.OpenFile(INTERIM_RESULTS_PATH, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(config.INTERIM_RESULTS_PATH, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Printf("Failed to open file: %s\n", err)
 		return

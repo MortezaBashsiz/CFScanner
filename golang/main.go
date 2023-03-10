@@ -1,7 +1,7 @@
 package main
 
 import (
-	configuration "CFScanner/config"
+	configuration "CFScanner/configuration"
 	scan "CFScanner/scanner"
 	utils "CFScanner/utils"
 	"bufio"
@@ -10,12 +10,11 @@ import (
 	"os"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 )
 
-var config = scan.ConfigStruct{
+var config = configuration.ConfigStruct{
 	Local_port:           0,
 	Address_port:         "0",
 	User_id:              "",
@@ -33,12 +32,12 @@ var config = scan.ConfigStruct{
 	Fronting_timeout:     -1.0,
 	Startprocess_timeout: -1.0,
 	N_tries:              -1,
-	No_vpn:               false,
+	Vpn:                  false,
 }
 
 // Program Info
 var (
-	version  = "0.6"
+	version  = "0.7"
 	build    = "Custom"
 	codename = "CFScanner , CloudFlare Scanner."
 )
@@ -57,7 +56,7 @@ func VersionStatement() string {
 func main() {
 	var threads int
 	var configPath string
-	var noVpn bool
+	var Vpn bool
 	var subnets string
 	var doUploadTest bool
 	var nTries int
@@ -66,7 +65,7 @@ func main() {
 	var maxDLTime float64
 	var maxULTime float64
 
-	var startProcessTimeout int
+	var startProcessTimeout float64
 	var frontingTimeout float64
 	var maxDLLatency float64
 	var maxULLatency float64
@@ -79,11 +78,11 @@ func main() {
 		Short: codename,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(VersionStatement())
-			if !noVpn {
-				utils.CreateDir(scan.CONFIGDIR)
+			if !Vpn {
+				utils.CreateDir(configuration.CONFIGDIR)
 			}
-			utils.CreateDir(scan.RESULTDIR)
-			if err := configuration.CreateInterimResultsFile(scan.INTERIM_RESULTS_PATH, nTries); err != nil {
+			utils.CreateDir(configuration.RESULTDIR)
+			if err := configuration.CreateInterimResultsFile(configuration.INTERIM_RESULTS_PATH, nTries); err != nil {
 				fmt.Printf("Error creating interim results file: %v\n", err)
 			}
 			// number of threads for scanning
@@ -127,10 +126,10 @@ func main() {
 			}
 
 			// Create Configuration file
-			testConfig := configuration.CreateTestConfig(configPath, time.Duration(startProcessTimeout), doUploadTest,
+			testConfig := configuration.CreateTestConfig(configPath, startProcessTimeout, doUploadTest,
 				minDLSpeed, minULSpeed, maxDLTime, maxULTime,
 				frontingTimeout, fronting, maxDLLatency, maxULLatency,
-				nTries, noVpn)
+				nTries, Vpn)
 
 			// Total number of IPS
 			var nTotalIPs int
@@ -147,12 +146,12 @@ func main() {
 			fmt.Printf("Starting to scan %d IPS.\n", nTotalIPs)
 			fmt.Println("---------------------------")
 			scan.Scanner(&testConfig, bigIPList, threadsCount)
-			fmt.Println("Results Written in :", scan.INTERIM_RESULTS_PATH)
+			fmt.Println("Results Written in :", configuration.INTERIM_RESULTS_PATH)
 		},
 	}
 	rootCmd.PersistentFlags().IntVarP(&threads, "threads", "t", 1, "Number of threads to use for parallel scanning")
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "The path to the config file. For config file example, see https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/ClientConfig.json")
-	rootCmd.PersistentFlags().BoolVar(&noVpn, "novpn", false, "If passed, test without creating vpn connections")
+	rootCmd.PersistentFlags().BoolVar(&Vpn, "vpn", false, "If passed, test without creating vpn connections")
 	rootCmd.PersistentFlags().StringVarP(&subnets, "subnets", "s", "", "The file or subnet. each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip.")
 	rootCmd.PersistentFlags().BoolVar(&doUploadTest, "upload-test", false, "If True, upload test will be conducted")
 	rootCmd.PersistentFlags().BoolVar(&fronting, "fronting-test", false, "If True, fronting request test will be conducted")
@@ -164,7 +163,7 @@ func main() {
 	rootCmd.PersistentFlags().Float64Var(&frontingTimeout, "fronting-timeout", 1.0, "Maximum time to wait for fronting response")
 	rootCmd.PersistentFlags().Float64Var(&maxDLLatency, "download-latency", 2.0, "Maximum allowed latency for download")
 	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 2.0, "Maximum allowed latency for download")
-	rootCmd.PersistentFlags().IntVar(&startProcessTimeout, "startprocess-timeout", 5, "")
+	rootCmd.PersistentFlags().Float64Var(&startProcessTimeout, "startprocess-timeout", 10, "")
 
 	err := rootCmd.Execute()
 	cobra.CheckErr(err)

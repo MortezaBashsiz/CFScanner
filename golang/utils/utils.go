@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"gonum.org/v1/gonum/stat"
 )
@@ -117,33 +118,34 @@ func inc(ip net.IP) {
 	}
 }
 
-// func getFreePort() int {
-// 	l, err := net.Listen("tcp", "localhost:0")
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	defer l.Close()
+func GetFreePort() int {
+	l, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer l.Close()
 
-// 	addr := l.Addr().(*net.TCPAddr)
-// 	return addr.Port
-// }
+	addr := l.Addr().(*net.TCPAddr)
+	return addr.Port
+}
 
 // func timeDurationToInt(n time.Duration) int64 {
 // 	ms := int64(n / time.Millisecond)
 // 	return ms
 // }
 
-// func waitForPort(host string, port int, timeout time.Duration) error {
-// 	startTime := time.Now()
-// 	for {
-// 		conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), timeout)
-// 		if err == nil {
-// 			conn.Close()
-// 			return nil
-// 		}
-// 		if time.Since(startTime) >= timeout {
-// 			return fmt.Errorf("waited too long for the port %d on host %s to start accepting connections", port, host)
-// 		}
-// 		time.Sleep(time.Millisecond * 10)
-// 	}
-// }
+func WaitForPort(host string, port int, timeout time.Duration) error {
+	startTime := time.Now()
+	timeDur := timeout * time.Second
+	for {
+		conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), timeDur)
+		if err == nil {
+			conn.Close()
+			return nil
+		}
+		if time.Since(startTime) >= timeDur {
+			return fmt.Errorf("waited too long for the port %d on host %s to start accepting connections", port, host)
+		}
+		time.Sleep(time.Millisecond * 10)
+	}
+}
