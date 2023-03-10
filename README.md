@@ -6,7 +6,8 @@ This script uses v2ray+vmess+websocket+tls by default and if you want to use it 
 # DONATE
 
 You can donate us with
-Here to buy me a coffee [here](https://buymeacoffee.com/Bashsiz "here")
+
+Buy me a coffee [here](https://buymeacoffee.com/Bashsiz "here")
 
 Or with crypto
 ```shell
