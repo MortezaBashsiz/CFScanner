@@ -17,6 +17,7 @@ namespace WinCFScan
     {
         private const string ourGitHubUrl = "https://github.com/MortezaBashsiz/CFScanner";
         private const string helpCustomConfigUrl = "https://github.com/MortezaBashsiz/CFScanner/discussions/210";
+        private const string buyMeCoffeeUrl = "https://www.buymeacoffee.com/Bashsiz";
         ConfigManager configManager;
         bool oneTimeChecked = false; // config checked once?
         ScanEngine scanEngine;
@@ -1176,6 +1177,11 @@ namespace WinCFScan
         private void mnuHelpOurGitHub_Click(object sender, EventArgs e)
         {
             openUrl(ourGitHubUrl);
+        }
+
+        private void linkBuyMeCoffee_Click(object sender, EventArgs e)
+        {
+            openUrl(buyMeCoffeeUrl);
         }
     }
 }

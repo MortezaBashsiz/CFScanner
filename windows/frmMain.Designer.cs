@@ -120,6 +120,7 @@
             toolStripSeparator4 = new ToolStripSeparator();
             lblAutoSkipStatus = new ToolStripLabel();
             lblRunningWorkers = new ToolStripLabel();
+            linkBuyMeCoffee = new ToolStripLabel();
             groupBox1.SuspendLayout();
             toolStrip1.SuspendLayout();
             mnuListView.SuspendLayout();
@@ -146,7 +147,7 @@
             txtLog.Name = "txtLog";
             txtLog.ReadOnly = true;
             txtLog.ScrollBars = ScrollBars.Vertical;
-            txtLog.Size = new Size(862, 182);
+            txtLog.Size = new Size(862, 180);
             txtLog.TabIndex = 1;
             txtLog.Text = "Welcome to Cloudflare IP Scanner.\r\n";
             // 
@@ -518,7 +519,7 @@
             listResults.GridLines = true;
             listResults.Location = new Point(0, 40);
             listResults.Name = "listResults";
-            listResults.Size = new Size(854, 228);
+            listResults.Size = new Size(854, 224);
             listResults.TabIndex = 4;
             listResults.UseCompatibleStateImageBehavior = false;
             listResults.View = View.Details;
@@ -571,8 +572,8 @@
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(txtLog);
-            splitContainer1.Size = new Size(862, 486);
-            splitContainer1.SplitterDistance = 300;
+            splitContainer1.Size = new Size(862, 480);
+            splitContainer1.SplitterDistance = 296;
             splitContainer1.TabIndex = 7;
             // 
             // tabControl1
@@ -583,7 +584,7 @@
             tabControl1.Location = new Point(0, 0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(862, 300);
+            tabControl1.Size = new Size(862, 296);
             tabControl1.TabIndex = 9;
             // 
             // tabPageCFRanges
@@ -596,7 +597,7 @@
             tabPageCFRanges.Location = new Point(4, 24);
             tabPageCFRanges.Name = "tabPageCFRanges";
             tabPageCFRanges.Padding = new Padding(3);
-            tabPageCFRanges.Size = new Size(854, 272);
+            tabPageCFRanges.Size = new Size(854, 268);
             tabPageCFRanges.TabIndex = 1;
             tabPageCFRanges.Text = "Cloudflare IP ranges";
             // 
@@ -607,7 +608,7 @@
             listCFIPList.Columns.AddRange(new ColumnHeader[] { headIPRange, headTotalIPs });
             listCFIPList.Location = new Point(0, 35);
             listCFIPList.Name = "listCFIPList";
-            listCFIPList.Size = new Size(852, 232);
+            listCFIPList.Size = new Size(852, 228);
             listCFIPList.TabIndex = 0;
             listCFIPList.UseCompatibleStateImageBehavior = false;
             listCFIPList.View = View.Details;
@@ -666,7 +667,7 @@
             tabPageResults.Location = new Point(4, 24);
             tabPageResults.Name = "tabPageResults";
             tabPageResults.Padding = new Padding(3);
-            tabPageResults.Size = new Size(854, 272);
+            tabPageResults.Size = new Size(854, 268);
             tabPageResults.TabIndex = 0;
             tabPageResults.Text = "Scan Results";
             tabPageResults.UseVisualStyleBackColor = true;
@@ -862,10 +863,10 @@
             // 
             toolStripBottom.Dock = DockStyle.Bottom;
             toolStripBottom.ImageScalingSize = new Size(20, 20);
-            toolStripBottom.Items.AddRange(new ToolStripItem[] { btnFrontingErrors, toolStripSeparator3, btnDownloadErrors, toolStripSeparator4, lblAutoSkipStatus, lblRunningWorkers });
-            toolStripBottom.Location = new Point(0, 636);
+            toolStripBottom.Items.AddRange(new ToolStripItem[] { btnFrontingErrors, toolStripSeparator3, btnDownloadErrors, toolStripSeparator4, lblAutoSkipStatus, lblRunningWorkers, linkBuyMeCoffee });
+            toolStripBottom.Location = new Point(0, 628);
             toolStripBottom.Name = "toolStripBottom";
-            toolStripBottom.Size = new Size(887, 25);
+            toolStripBottom.Size = new Size(887, 33);
             toolStripBottom.TabIndex = 9;
             toolStripBottom.Text = "toolStrip2";
             // 
@@ -878,7 +879,7 @@
             btnFrontingErrors.Image = (Image)resources.GetObject("btnFrontingErrors.Image");
             btnFrontingErrors.ImageTransparentColor = Color.Magenta;
             btnFrontingErrors.Name = "btnFrontingErrors";
-            btnFrontingErrors.Size = new Size(123, 22);
+            btnFrontingErrors.Size = new Size(123, 30);
             btnFrontingErrors.Text = "Fronting errors: 0%";
             btnFrontingErrors.ButtonClick += btnFrontingErrors_ButtonClick;
             // 
@@ -892,7 +893,7 @@
             // toolStripSeparator3
             // 
             toolStripSeparator3.Name = "toolStripSeparator3";
-            toolStripSeparator3.Size = new Size(6, 25);
+            toolStripSeparator3.Size = new Size(6, 33);
             // 
             // btnDownloadErrors
             // 
@@ -903,7 +904,7 @@
             btnDownloadErrors.Image = (Image)resources.GetObject("btnDownloadErrors.Image");
             btnDownloadErrors.ImageTransparentColor = Color.Magenta;
             btnDownloadErrors.Name = "btnDownloadErrors";
-            btnDownloadErrors.Size = new Size(132, 22);
+            btnDownloadErrors.Size = new Size(132, 30);
             btnDownloadErrors.Text = "Download errors: 0%";
             btnDownloadErrors.ButtonClick += btnDownloadErrors_ButtonClick;
             // 
@@ -917,13 +918,13 @@
             // toolStripSeparator4
             // 
             toolStripSeparator4.Name = "toolStripSeparator4";
-            toolStripSeparator4.Size = new Size(6, 25);
+            toolStripSeparator4.Size = new Size(6, 33);
             // 
             // lblAutoSkipStatus
             // 
             lblAutoSkipStatus.ForeColor = SystemColors.ControlDarkDark;
             lblAutoSkipStatus.Name = "lblAutoSkipStatus";
-            lblAutoSkipStatus.Size = new Size(58, 22);
+            lblAutoSkipStatus.Size = new Size(58, 30);
             lblAutoSkipStatus.Text = "Auto Skip";
             lblAutoSkipStatus.ToolTipText = "Auto Skip is enabled";
             lblAutoSkipStatus.Visible = false;
@@ -931,9 +932,24 @@
             // lblRunningWorkers
             // 
             lblRunningWorkers.Name = "lblRunningWorkers";
-            lblRunningWorkers.Size = new Size(60, 22);
+            lblRunningWorkers.Size = new Size(60, 30);
             lblRunningWorkers.Text = "Threads: 0";
             lblRunningWorkers.ToolTipText = "Running worker threads";
+            // 
+            // linkBuyMeCoffee
+            // 
+            linkBuyMeCoffee.Alignment = ToolStripItemAlignment.Right;
+            linkBuyMeCoffee.AutoSize = false;
+            linkBuyMeCoffee.DisplayStyle = ToolStripItemDisplayStyle.Image;
+            linkBuyMeCoffee.Image = Properties.Resources.buyyel28h_2;
+            linkBuyMeCoffee.ImageScaling = ToolStripItemImageScaling.None;
+            linkBuyMeCoffee.IsLink = true;
+            linkBuyMeCoffee.Margin = new Padding(0, 1, 3, 4);
+            linkBuyMeCoffee.Name = "linkBuyMeCoffee";
+            linkBuyMeCoffee.Size = new Size(114, 28);
+            linkBuyMeCoffee.Text = "toolStripLabel4";
+            linkBuyMeCoffee.ToolTipText = "Buy me a coffee";
+            linkBuyMeCoffee.Click += linkBuyMeCoffee_Click;
             // 
             // frmMain
             // 
@@ -1065,5 +1081,6 @@
         private TextBox txtTemp;
         private Button btnTemp;
         private ToolStripLabel lblRunningWorkers;
+        private ToolStripLabel linkBuyMeCoffee;
     }
 }
