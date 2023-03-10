@@ -65,7 +65,8 @@ class _MessageFilter(logging.Filter):
             record.threadName = 0
 
         if "prefix" in record.args:
-            if prefix := record.args.get("prefix"):
+            prefix = record.args.get("prefix")
+            if prefix:
                 record.prefix = record.args.get("prefix")
 
         return True
