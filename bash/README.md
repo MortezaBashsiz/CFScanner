@@ -45,7 +45,7 @@ NOTE: If you want to use your custom config DO NOT use it as config.real since s
 
 ### 4. Execute it
 
-At following command pay attention to the arguments **vpn** **SUBNET or IP** **DOWN or UP or BOTH**, **threads**, **tryCount**, **speed** and **Custom Subnet File**.
+You have following switches to define the arguments 
 
 -vpn: YES or NO, you are able to define for script to test with your vmess or not
 
@@ -139,4 +139,5 @@ It will generate a file in datetime format in the result directory.
 [~/CFScanner]>$
 ```
 ## Video Guide
-You can find a video guide for this script on [youtube](https://youtu.be/BKLRAHolhvM "youtube").
+You can find a video guide for this script on [youtube](https://youtu.be/BKLRAHolhvM "youtube") and [youtube](https://youtu.be/4xJvWYdGuV8 "youtube").
+
