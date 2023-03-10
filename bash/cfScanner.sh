@@ -608,16 +608,17 @@ subnetIPFile="NULL"
 function fncUsage {
 	if [[ $OSTYPE == darwin* ]]
 	then 
-		echo -e "Usage: cfScanner [ -vpn YES/NO ]
+		echo -e "Usage: cfScanner [ -v YES/NO ]
 			[ -m SUBNET/IP ] 
 			[ -t DOWN/UP/BOTH ]
-			[ -thr <int> ]
-			[ -try <int> ]
+			[ -p <int> ]
+			[ -r <int> ]
 			[ -c <configfile> ]
 			[ -s <int> ] 
 			[ -f <custome-ip-file> (if you chose IP mode)]\n"
 		exit 2
-	else
+	elif [[ $OSTYPE == linux-gnu* ]]
+	then
 		echo -e "Usage: cfScanner [ -vpn|--vpn-mode YES/NO ]
 			[ -m|--mode  SUBNET/IP ] 
 			[ -t|--test-type  DOWN/UP/BOTH ]
@@ -633,7 +634,8 @@ function fncUsage {
 
 if [[ $OSTYPE == darwin* ]]
 then
-	parsedArguments=$(getopt v:m:t:p:r:c:s:f: "$@")
+	parsedArguments=$(getopt v:m:t:p:r:c:s:f:h "$@")
+	
 else
 	parsedArguments=$(getopt -a -n  cfScanner -o vpn:m:t:thr:try:c:s:f: --long vpn-mode:,mode:,test-type:,thread:,tryCount:,config:,speed:,file: -- "$@")
 fi
@@ -658,7 +660,8 @@ then
 			fncUsage ;;
 		esac
 	done
-else
+elif [[ $OSTYPE == linux-gnu* ]]
+then
 	while :
 	do
 		case "$1" in
