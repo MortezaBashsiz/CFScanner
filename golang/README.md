@@ -103,7 +103,7 @@ CFScanner takes several arguments:
 Two files are stored for each (complete) run of the program
 
 - interim results file (e.g., `2023-03-10_20:49:30_result.csv`)
-  - Includes the unsorted intermediate results on csv format. Useful in case if the scanning process is not complete.
+  - Includes the unsorted intermediate results in csv format. Useful in case if the scanning process is not complete.
 - final results file (e.g., `2023-03-10_20:49:30_final.txt`)
   - Includes the final sorted results. The results are sorted ascendingly based on the download latency time.
 
