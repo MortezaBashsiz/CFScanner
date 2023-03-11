@@ -5,7 +5,6 @@ This script uses v2ray+vmess+websocket+tls by default and if you want to use it 
 
 
 
-## Linux & Mac OS
 
 
 # DONATE
@@ -24,7 +23,7 @@ Dogecoin: D9eKyR4c2vymXaF1pfZqgSE4meBj4JGfbk
 
 ## Bash
 
-For Linux find out [here](https://github.com/MortezaBashsiz/CFScanner/tree/main/bash "here").
+For Bash find out [here](https://github.com/MortezaBashsiz/CFScanner/tree/main/bash "here").
 
 ## Docker
 
