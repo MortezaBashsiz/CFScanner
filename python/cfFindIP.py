@@ -5,6 +5,7 @@ import ipaddress
 import json
 import multiprocessing
 import os
+import platform
 import re
 import signal
 import socket
@@ -19,6 +20,7 @@ from functools import partial
 from typing import Tuple
 
 import requests
+
 from clog import CLogger
 
 log = CLogger("CFScanner-python")
@@ -218,6 +220,26 @@ def fronting_test(
     return success
 
 
+def current_platform() -> str:
+    """Get current platform name by short string."""
+    if sys.platform.startswith('linux'):
+        return 'linux'
+    elif sys.platform.startswith('darwin'):
+        if "arm" in platform.processor().lower():
+            return 'mac-arm'
+        else:
+            return 'mac'
+    elif (
+        sys.platform.startswith('win')
+        or sys.platform.startswith('msys')
+        or sys.platform.startswith('cyg')
+    ):
+        if sys.maxsize > 2 ** 31 - 1:
+            return 'win64'
+        return 'win32'
+    raise OSError('Unsupported platform: ' + sys.platform)
+
+
 def start_v2ray_service(
     v2ray_conf_path: str,
     timeout=5
@@ -231,14 +253,31 @@ def start_v2ray_service(
     Returns:
         Tuple[subprocess.Popen, dict]: the v2 ray process object and a dictionary containing the proxies to use with ``requests.get`` 
     """
+    if current_platform().startswith("mac"):
+        v2ray_binary = os.path.join(BINDIR, "v2ray-mac")
+        v2ctl_binary = os.path.join(BINDIR, "v2ctl-mac")
+    elif current_platform() == "linux":
+        v2ray_binary = os.path.join(BINDIR, "v2ray")
+        v2ctl_binary = os.path.join(BINDIR, "v2ctl")
+    else:
+        log.error(f"Platform {current_platform()} is not supported yet.")
+        return None
+
     with open(v2ray_conf_path, "r") as infile:
         v2ray_conf = json.load(infile)
 
     v2ray_listen = v2ray_conf["inbounds"][0]["listen"]
     v2ray_port = v2ray_conf["inbounds"][0]["port"]
 
+    v2ctl_process = subprocess.Popen(
+        [v2ctl_binary, "config", v2ray_conf_path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL
+    )
+
     v2ray_process = subprocess.Popen(
-        [os.path.join(BINDIR, "v2ray"), "-c", f"{v2ray_conf_path}"],
+        [v2ray_binary, "-config=stdin:", "-format=pb"],
+        stdin=v2ctl_process.stdout,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )
