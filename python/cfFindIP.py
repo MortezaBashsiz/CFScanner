@@ -5,6 +5,7 @@ import ipaddress
 import json
 import multiprocessing
 import os
+import platform
 import re
 import signal
 import socket
@@ -19,6 +20,7 @@ from functools import partial
 from typing import Tuple
 
 import requests
+
 from clog import CLogger
 
 log = CLogger("CFScanner-python")
@@ -219,6 +221,26 @@ def fronting_test(
     return success
 
 
+def current_platform() -> str:
+    """Get current platform name by short string."""
+    if sys.platform.startswith('linux'):
+        return 'linux'
+    elif sys.platform.startswith('darwin'):
+        if "arm" in platform.processor().lower():
+            return 'mac-arm'
+        else:
+            return 'mac'
+    elif (
+        sys.platform.startswith('win')
+        or sys.platform.startswith('msys')
+        or sys.platform.startswith('cyg')
+    ):
+        if sys.maxsize > 2 ** 31 - 1:
+            return 'win64'
+        return 'win32'
+    raise OSError('Unsupported platform: ' + sys.platform)
+
+
 def start_v2ray_service(
     v2ray_conf_path: str,
     timeout=5
@@ -232,14 +254,31 @@ def start_v2ray_service(
     Returns:
         Tuple[subprocess.Popen, dict]: the v2 ray process object and a dictionary containing the proxies to use with ``requests.get`` 
     """
+    if current_platform().startswith("mac"):
+        v2ray_binary = os.path.join(BINDIR, "v2ray-mac")
+        v2ctl_binary = os.path.join(BINDIR, "v2ctl-mac")
+    elif current_platform() == "linux":
+        v2ray_binary = os.path.join(BINDIR, "v2ray")
+        v2ctl_binary = os.path.join(BINDIR, "v2ctl")
+    else:
+        log.error(f"Platform {current_platform()} is not supported yet.")
+        return None
+
     with open(v2ray_conf_path, "r") as infile:
         v2ray_conf = json.load(infile)
 
     v2ray_listen = v2ray_conf["inbounds"][0]["listen"]
     v2ray_port = v2ray_conf["inbounds"][0]["port"]
 
+    v2ctl_process = subprocess.Popen(
+        [v2ctl_binary, "config", v2ray_conf_path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL
+    )
+
     v2ray_process = subprocess.Popen(
-        [os.path.join(BINDIR, "v2ray"), "-c", f"{v2ray_conf_path}"],
+        [v2ray_binary, "-config=stdin:", "-format=pb"],
+        stdin=v2ctl_process.stdout,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )
@@ -329,8 +368,10 @@ def _raise_speed_timeout(signum, frame):
 class _FakeProcess:
     def __init__(self):
         pass
+
     def kill(self):
         pass
+
 
 def check_ip(
     ip: str,
@@ -358,7 +399,7 @@ def check_ip(
         log.error("Could not save v2ray config to file", ip)
         log.exception(e)
         return False
-    
+
     if not test_config.no_vpn:
         try:
             process, proxies = start_v2ray_service(
@@ -372,7 +413,7 @@ def check_ip(
             return False
     else:
         process = _FakeProcess()
-        proxies = None 
+        proxies = None
 
     for try_idx in range(test_config.n_tries):
         # check download speed
@@ -388,7 +429,8 @@ def check_ip(
             )
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError, requests.ConnectTimeout, TimeoutError) as e:
             if "Download/upload too slow".lower() in traceback.format_exc().lower():
-                print(f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download too slow")
+                print(
+                    f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download too slow")
             else:
                 print(
                     f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download error{_COLORS.ENDC}")
@@ -797,7 +839,7 @@ if __name__ == "__main__":
                     f"avg_up_jitter: {up_mean_jitter:4.2f}ms"
                     f"{_COLORS.ENDC}"
                 )
-                
+
                 with open(INTERIM_RESULTS_PATH, "a") as outfile:
                     res_parts = [
                         res["ip"], mean_down_speed, mean_up_speed,
@@ -810,4 +852,3 @@ if __name__ == "__main__":
                     res_parts += res["upload"]["latency"]
 
                     outfile.write(",".join(map(str, res_parts)) + "\n")
-                    
