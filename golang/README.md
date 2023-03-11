@@ -116,4 +116,4 @@ CFScanner is released under the [GPL-3](../LICENSE) license.
 Contributions are welcome! Please read [CONTRIBUTING.md](../CONTRIBUTING.md) for more information.
 
 [go]: https://img.shields.io/badge/Go-cyan?logo=go
-[version]: https://img.shields.io/badge/Version-0.8-blue
+[version]: https://img.shields.io/badge/Version-0.9-blue
