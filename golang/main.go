@@ -157,7 +157,7 @@ func main() {
 	}
 	rootCmd.PersistentFlags().IntVarP(&threads, "threads", "t", 1, "Number of threads to use for parallel scanning")
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "The path to the config file. For config file example, see https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/ClientConfig.json")
-	rootCmd.PersistentFlags().BoolVar(&Vpn, "vpn", false, "If passed, test without creating vpn connections")
+	rootCmd.PersistentFlags().BoolVar(&Vpn, "vpn", false, "If passed, test with creating vpn connections")
 	rootCmd.PersistentFlags().StringVarP(&subnets, "subnets", "s", "", "The file or subnet. each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip.")
 	rootCmd.PersistentFlags().BoolVar(&doUploadTest, "upload", false, "If True, upload test will be conducted")
 	rootCmd.PersistentFlags().BoolVar(&fronting, "fronting", false, "If True, fronting request test will be conducted")

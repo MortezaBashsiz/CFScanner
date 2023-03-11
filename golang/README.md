@@ -58,7 +58,7 @@ CFScanner takes several arguments:
 | ---------------------- | ------------------------------------------------------------------------------------------------ |
 | --threads -t           | Number of threads to use for parallel scanning. Default is 1.                                    |
 | --config -c            | The path to the config file. (Required)                                                          |
-| --vpn                  | If passed, test without creating VPN connections.                                                |
+| --vpn                  | If passed, test with creating VPN connections.                                                   |
 | --subnets -s           | The file or subnet. Each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip.   |
 | --upload               | If True, upload test will be conducted.                                                          |
 | --fronting             | If True, fronting request test will be conducted.                                                |
