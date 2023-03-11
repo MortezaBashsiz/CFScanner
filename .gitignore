@@ -6,6 +6,7 @@ bash/subnets.list
 python/log/
 python/venv/
 python/__pycache__/
+golang/CFScanner
 windows/*.rsuser
 windows/*.suo
 windows/*.user
