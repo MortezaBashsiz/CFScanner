@@ -25,10 +25,12 @@ namespace WinCFScan
         private bool scanFinshed = false;
         private bool isUpdatinglistCFIP;
         private bool isAppCongigValid = true;
+        private bool isManualTesting = false; // is testing ips 
         private ListViewColumnSorter listResultsColumnSorter;
         private ListViewColumnSorter listCFIPsColumnSorter;
         private Version appVersion;
         private AppUpdateChecker appUpdateChecker;
+        private bool stopAvgTetingIsRequested;
 
         public frmMain()
         {
@@ -163,6 +165,12 @@ namespace WinCFScan
             if (!isAppCongigValid)
             {
                 showCanNotContinueMessage();
+                return;
+            }
+
+            if (isManualTesting)
+            {
+                addTextLog($"Can not start while app is scanning.");
                 return;
             }
 
@@ -306,6 +314,8 @@ namespace WinCFScan
                 updateConrtolsProgress(true);
                 updateUIControlls(false);
             }
+
+            btnStopAvgTest.Visible = isManualTesting;
         }
 
         private void timerProgress_Tick(object sender, EventArgs e)
@@ -442,28 +452,15 @@ namespace WinCFScan
         {
             if (!oneTimeChecked && isAppCongigValid)
             {
-                //Load cf ip ranges
-                loadCFIPListView();
-
 
                 // check if client config file is exists and update
                 if (configManager.getClientConfig() != null && configManager.getClientConfig().isClientConfigOld())
                 {
-                    addTextLog("Updating client config from remote...");
-                    bool result = configManager.getClientConfig().remoteUpdateClientConfig();
-                    if (result)
-                    {
-                        addTextLog("'client config' is successfully updated.");
-                        if (!configManager.getClientConfig().isConfigValid())
-                        {
-                            addTextLog("'client config' data is not valid!");
-                        }
-                    }
-                    else
-                    {
-                        addTextLog("Failed to update client config. check your internet connection or maybe client config url is blocked by your ISP!");
-                    }
+                    remoteUpdateClientConfig();
                 }
+
+                //Load cf ip ranges
+                loadCFIPListView();
 
                 // check fronting domain
                 Task.Factory.StartNew(() =>
@@ -483,6 +480,30 @@ namespace WinCFScan
 
                 oneTimeChecked = true;
             }
+        }
+
+        // update clinet config and cf ip list
+        private bool remoteUpdateClientConfig()
+        {
+            addTextLog("Updating client config from remote...");
+            bool result = configManager.getClientConfig().remoteUpdateClientConfig();
+            if (result)
+            {
+                addTextLog("Client config and Cloudflare subnets are successfully updated.");
+                if (!configManager.getClientConfig().isConfigValid())
+                {
+                    addTextLog("'client config' data is not valid!");
+                }
+
+                // reload cf subnet list
+                scanEngine.loadCFIPList();
+            }
+            else
+            {
+                addTextLog("Failed to update client config. check your internet connection or maybe client config url is blocked by your ISP!");
+            }
+
+            return result;
         }
 
         // check for update
@@ -633,6 +654,7 @@ namespace WinCFScan
             if (e.Button == MouseButtons.Right)
             {
                 mnuListViewCopyIP.Text = "Copy IP Address " + getSelectedIPAddress();
+                mnuTestThisIP.Text = "Test this IP Address " + getSelectedIPAddress();
                 mnuListView.Show(listResults, e.X, e.Y);
             }
         }
@@ -671,25 +693,6 @@ namespace WinCFScan
         }
 
 
-        private void mnuListViewTestThisIPAddress_Click(object sender, EventArgs e)
-        {
-            var IPAddress = getSelectedIPAddress();
-            if (IPAddress != null)
-            {
-                testSingleIP(IPAddress);
-            }
-        }
-
-        private void testSingleIP(string IPAddress)
-        {
-            addTextLog($"Testing {IPAddress} ...");
-            var checker = new CheckIPWorking(IPAddress, getTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
-            var success = checker.check();
-            if (success)
-                addTextLog($"{IPAddress} is working. Delay: {checker.downloadDuration:n0} ms.");
-            else
-                addTextLog($"{IPAddress} is NOT working.");
-        }
 
         private ScanSpeed getTargetSpeed()
         {
@@ -713,7 +716,7 @@ namespace WinCFScan
             var IPAddress = getSelectedIPAddress();
             if (IPAddress != null)
             {
-                testSingleIP(IPAddress);
+                testSingleIPAddress(IPAddress);
             }
         }
 
@@ -780,6 +783,7 @@ namespace WinCFScan
             {
                 // stop scan
                 var sw = new Stopwatch();
+                sw.Start();
                 scanEngine.stop();
                 do
                 {
@@ -788,11 +792,6 @@ namespace WinCFScan
                 } while (isScanRunning() && sw.Elapsed.TotalSeconds < 7);
 
             }
-        }
-
-        private void linkGithub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            openUrl(ourGitHubUrl);
         }
 
         private void openUrl(string url)
@@ -861,7 +860,7 @@ namespace WinCFScan
                 return;
             }
 
-            testSingleIP(input);
+            testAvgSingleIP(input, 1, getTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
         }
 
         private void mnuListViewCopyIP_Click(object sender, EventArgs e)
@@ -1104,6 +1103,8 @@ namespace WinCFScan
         {
             lblAutoSkipStatus.Visible = mnuSkipAfter10Percent.Checked || mnuSkipAfter30Percent.Checked || mnuSkipAfter50Percent.Checked ||
                 mnuSkipAfterAWhile.Checked || mnuSkipAfterFoundIPs.Checked;
+
+            seperatorAutoSkip.Visible = lblAutoSkipStatus.Visible;
         }
 
         private void skipAfterPercent(ToolStripMenuItem menu)
@@ -1183,5 +1184,182 @@ namespace WinCFScan
         {
             openUrl(buyMeCoffeeUrl);
         }
+
+        private void linkGithub_Click(object sender, EventArgs e)
+        {
+            openUrl(ourGitHubUrl);
+        }
+
+        private void updateClientConfigCloudflareSubnetsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (configManager.getClientConfig() != null)
+            {
+                if (remoteUpdateClientConfig())
+                {
+                    // reload cf ip ranges
+                    loadCFIPListView();
+                };
+            }
+            else
+                addTextLog("ClientConfig is null!");
+        }
+
+
+        private void testAvgSingleIP(string IPAddress, int rounds, ScanSpeed targetSpeed, CustomConfigInfo v2rayConfig, int downloadTimeout)
+        {
+
+            addTextLog($"Testing {IPAddress} for {rounds} rounds...");
+
+            int totalSuccessCount = 0, totalFailedCount = 0;
+            long bestDLDuration = 99999, bestFrontingDuration = 99999, totalDLDuration = 0, totalFrontingDuration = 0;
+            long averageDLDuration = 0, averageFrontingDuration = 0;
+
+            for (int i = 1; i <= rounds; i++)
+            {
+                // test
+                var checker = new CheckIPWorking(IPAddress, targetSpeed, v2rayConfig, downloadTimeout);
+                var success = checker.check();
+
+                long DLDuration = checker.downloadDuration;
+                long FrontingDuration = checker.frontingDuration;
+
+                if (success)
+                {
+                    totalSuccessCount++;
+                    bestDLDuration = Math.Min(DLDuration, bestDLDuration);
+                    bestFrontingDuration = Math.Min(FrontingDuration, bestFrontingDuration);
+                    totalDLDuration += DLDuration;
+                    totalFrontingDuration += FrontingDuration;
+                }
+                else
+                {
+                    totalFailedCount++;
+                }
+
+                if (stopAvgTetingIsRequested)
+                    break;
+            }
+
+            if (totalSuccessCount > 0)
+            {
+                averageDLDuration = totalDLDuration / totalSuccessCount;
+                averageFrontingDuration = totalFrontingDuration / totalSuccessCount;
+
+                string results = $"{IPAddress} => {totalSuccessCount}/{rounds} was successfull." + Environment.NewLine +
+                    $"\tDownload: Best {bestDLDuration:n0} ms, Average: {averageDLDuration:n0} ms" + Environment.NewLine +
+                    $"\tFronting: Best {bestFrontingDuration:n0} ms, Average: {averageFrontingDuration:n0} ms" + Environment.NewLine;
+
+                addTextLog(results);
+            }
+            else
+            {
+                addTextLog($"{IPAddress} is NOT working.");
+            }
+
+        }
+
+        private void testSingleIPAddress(string IPAddress)
+        {
+            addTextLog($"Testing {IPAddress} ...");
+
+            var checker = new CheckIPWorking(IPAddress, getTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
+            var success = checker.check();
+
+            if (success)
+            {
+                addTextLog($"{IPAddress} is working. Delay: {checker.downloadDuration:n0} ms.");
+            }
+            else
+            {
+                addTextLog($"{IPAddress} is NOT working.");
+            }
+        }
+
+        private void testSelectedIPAddresses(int rounds = 1)
+        {
+            if (scanEngine.progressInfo.isScanRunning || isManualTesting)
+            {
+                addTextLog($"Can not test while app is scanning.");
+                return;
+            }
+
+            isManualTesting = true;
+            stopAvgTetingIsRequested = false;
+
+            var selectedIPs = listResults.SelectedItems.Cast<ListViewItem>()
+                                 .Select(item => item.SubItems[1].Text)
+                                 .ToArray<string>(); ;
+
+
+            var speed = getTargetSpeed();
+            var conf = getSelectedV2rayConfig();
+            var timeout = getDownloadTimeout();
+
+            addTextLog($"Start testing {selectedIPs.Length} IPs for {rounds} rounds..." + Environment.NewLine +
+                $"\tTest spec: download size: {speed.getTargetFileSizeInt(timeout) / 1000} KB in {timeout} seconds." + Environment.NewLine);
+
+            btnStopAvgTest.Visible = true;
+            btnStopAvgTest.Enabled = true;
+
+            Task.Factory.StartNew(() =>
+            {
+                for (int i = 0; i < selectedIPs.Length; i++)
+                {
+                    var ip = selectedIPs[i];
+                    testAvgSingleIP(ip, rounds, speed, conf, timeout);
+
+                    // stop requested
+                    if (stopAvgTetingIsRequested)
+                        break;
+                }
+            })
+            .ContinueWith(done =>
+            {
+                if (stopAvgTetingIsRequested)
+                    addTextLog("Test stopped by user.");
+                else
+                    addTextLog("Test finished.");
+                isManualTesting = false;
+                stopAvgTetingIsRequested = false;
+            });
+
+        }
+
+        private void mnuTesIP2Times_Click(object sender, EventArgs e)
+        {
+            testSelectedIPAddresses(2);
+        }
+
+        private void mnuTesIP3Times_Click(object sender, EventArgs e)
+        {
+            testSelectedIPAddresses(3);
+        }
+
+        private void mnuTesIP5Times_Click(object sender, EventArgs e)
+        {
+            testSelectedIPAddresses(5);
+        }
+
+        private void btnResultsActions_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void testThisIPAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var ip = getSelectedIPAddress();
+
+            if (ip != null)
+            {
+                testSingleIPAddress(ip);
+            }
+        }
+
+        private void btnStopAvgTest_Click(object sender, EventArgs e)
+        {
+            stopAvgTetingIsRequested = true;
+            btnStopAvgTest.Enabled = false;
+        }
     }
+
 }

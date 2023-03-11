@@ -178,7 +178,10 @@ namespace WinCFScan.Classes
             }
             catch (OperationCanceledException ex)
             {
-
+                //logMessages.Add("Scan cancel requested.");
+            }
+            catch (Exception ex) {
+                logMessages.Add($"Unknown Error on Scan Engine: {ex.Message}");
             }
             finally
             {
