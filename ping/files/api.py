@@ -8,10 +8,10 @@ logdir="/var/log/cfapi"
 
 app = Flask(__name__)
 
-@app.route("/cfiran/"+token+"/<string:provider>/<string:result>", methods=["POST"])
+@app.route(f"/cfiran/{token}/<string:provider>/<string:result>", methods=["POST"])
 def writeResult(provider, result):
     date = today.strftime("%b-%d-%Y-%H")
-    with open(logdir+"/"+provider+"."+date+".log", "a") as resultFile:
+    with open(f"{logdir}/{provider}.{date}.log", "a") as resultFile:
         resultFile.write(result+"\n")
     return("Done")
 

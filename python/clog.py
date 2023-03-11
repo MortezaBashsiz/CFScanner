@@ -38,10 +38,7 @@ class _CustomFormat(object):
 
     @staticmethod
     def create(colored=True, show_task_name=False):
-        task_name = ""
-        if show_task_name:
-            task_name = "[%(threadName)-3s] "
-
+        task_name = "[%(threadName)-3s] " if show_task_name else ""
         color_start, color_end = "", ""
         if colored:
             color_start = "%(color)s"
@@ -160,7 +157,7 @@ class CLogger(object):
             prefix = self._prefix
         msg = msg.replace("%", "%%")
         self._logger.error(msg, {"prefix": prefix})
-        
+
     def exception(self, e):
         self._logger.exception(e)
 
