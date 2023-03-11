@@ -37,7 +37,7 @@ var config = configuration.ConfigStruct{
 
 // Program Info
 var (
-	version  = "0.8"
+	version  = "0.9"
 	build    = "Custom"
 	codename = "CFScanner , CloudFlare Scanner."
 )

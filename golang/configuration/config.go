@@ -43,6 +43,28 @@ type ConfigStruct struct {
 	Vpn                  bool
 }
 
+func PrintInformation(Config ConfigStruct) {
+	fmt.Printf("-------------------------------------\n")
+	fmt.Printf("Configuration :\n")
+	fmt.Printf("User ID : %v%v%v\n", utils.Colors.OKBLUE, Config.User_id, utils.Colors.ENDC)
+	fmt.Printf("WS Header Host: %v%v%v\n", utils.Colors.OKBLUE, Config.Ws_header_host, utils.Colors.ENDC)
+	fmt.Printf("WS Header Path : %v%v%v\n", utils.Colors.OKBLUE, Config.Ws_header_path, utils.Colors.ENDC)
+	fmt.Printf("Address Port : %v%v%v\n", utils.Colors.OKBLUE, Config.Address_port, utils.Colors.ENDC)
+	fmt.Printf("SNI : %v%v%v\n", utils.Colors.OKBLUE, Config.Sni, utils.Colors.ENDC)
+	fmt.Printf("Start Proccess Timeout : %v%v%v\n", utils.Colors.OKBLUE, Config.Startprocess_timeout, utils.Colors.ENDC)
+	fmt.Printf("Upload Test : %v%v%v\n", utils.Colors.OKBLUE, Config.Do_upload_test, utils.Colors.ENDC)
+	fmt.Printf("Fronting Request Test : %v%v%v\n", utils.Colors.OKBLUE, Config.Do_fronting_test, utils.Colors.ENDC)
+	fmt.Printf("Minimum Download Speed : %v%v%v\n", utils.Colors.OKBLUE, Config.Min_dl_speed, utils.Colors.ENDC)
+	fmt.Printf("Maximum Download Time : %v%v%v\n", utils.Colors.OKBLUE, Config.Max_dl_time, utils.Colors.ENDC)
+	fmt.Printf("Minimum Upload Speed : %v%v%v\n", utils.Colors.OKBLUE, Config.Min_ul_speed, utils.Colors.ENDC)
+	fmt.Printf("Maximum Upload Time : %v%v%v\n", utils.Colors.OKBLUE, Config.Max_ul_time, utils.Colors.ENDC)
+	fmt.Printf("Fronting Timeout : %v%v%v\n", utils.Colors.OKBLUE, Config.Fronting_timeout, utils.Colors.ENDC)
+	fmt.Printf("Maximum Download Latency : %v%v%v\n", utils.Colors.OKBLUE, Config.Max_dl_latency, utils.Colors.ENDC)
+	fmt.Printf("Maximum Upload Latency : %v%v%v\n", utils.Colors.OKBLUE, Config.Max_ul_latency, utils.Colors.ENDC)
+	fmt.Printf("Number of Tries : %v%v%v\n", utils.Colors.OKBLUE, Config.N_tries, utils.Colors.ENDC)
+	fmt.Printf("VPN Mode : %v%v%v\n", utils.Colors.OKBLUE, Config.Vpn, utils.Colors.ENDC)
+}
+
 func CreateTestConfig(configPath string, startprocessTimeout float64,
 	doUploadTest bool, minDlSpeed float64,
 	minUlSpeed float64, maxDlTime float64,
@@ -83,24 +105,7 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 		N_tries:              nTries,
 		Vpn:                  Vpn,
 	}
-	fmt.Println("Config :", "\n", "User ID :", utils.Colors.OKBLUE, ConfigObject.User_id, utils.Colors.ENDC, "\n",
-		"WS Header Host:", utils.Colors.OKBLUE, ConfigObject.Ws_header_host, utils.Colors.ENDC, "\n",
-		"WS Header Path : ", utils.Colors.OKBLUE, ConfigObject.Ws_header_path, utils.Colors.ENDC, "\n",
-		"Address Port :", utils.Colors.OKBLUE, ConfigObject.Address_port, utils.Colors.ENDC, "\n",
-		"SNI :", utils.Colors.OKBLUE, ConfigObject.Sni, utils.Colors.ENDC, "\n",
-		"Start Proccess Timeout :", utils.Colors.OKBLUE, ConfigObject.Startprocess_timeout, utils.Colors.ENDC, "\n",
-		"Upload Test :", utils.Colors.OKBLUE, ConfigObject.Do_upload_test, utils.Colors.ENDC, "\n",
-		"Fronting Request Test :", utils.Colors.OKBLUE, ConfigObject.Do_fronting_test, utils.Colors.ENDC, "\n",
-		"Minimum Download Speed :", utils.Colors.OKBLUE, ConfigObject.Min_dl_speed, utils.Colors.ENDC, "\n",
-		"Maximum Download Time :", utils.Colors.OKBLUE, ConfigObject.Max_dl_time, utils.Colors.ENDC, "\n",
-		"Minimum Upload Speed :", utils.Colors.OKBLUE, ConfigObject.Min_ul_speed, utils.Colors.ENDC, "\n",
-		"Maximum Upload Time :", utils.Colors.OKBLUE, ConfigObject.Max_ul_time, utils.Colors.ENDC, "\n",
-		"Fronting Timeout :", utils.Colors.OKBLUE, ConfigObject.Fronting_timeout, utils.Colors.ENDC, "\n",
-		"Maximum Download Latency :", utils.Colors.OKBLUE, ConfigObject.Max_dl_latency, utils.Colors.ENDC, "\n",
-		"Maximum Upload Latency :", utils.Colors.OKBLUE, ConfigObject.Max_ul_latency, utils.Colors.ENDC, "\n",
-		"Number of Tries :", utils.Colors.OKBLUE, ConfigObject.N_tries, utils.Colors.ENDC, "\n",
-		"VPN Mode :", utils.Colors.OKBLUE, ConfigObject.Vpn, utils.Colors.ENDC)
-
+	PrintInformation(ConfigObject)
 	return ConfigObject
 }
 
