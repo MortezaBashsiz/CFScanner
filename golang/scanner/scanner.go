@@ -260,7 +260,7 @@ func Scanner(testConfig *config.ConfigStruct, cidrList []string, threadsCount in
 
 					results = append(results, []string{latencystring, ip})
 
-					log.Printf("%sOK %-15s %savg_down_speed: %7.2fkbps avg_up_speed: %7.4fkbps avg_down_latency: %6.2fms avg_up_latency: %6.2fms avg_down_jitter: %6.2fms avg_up_jitter: %4.2fms%s\n",
+					log.Printf("%sOK %-15s %s avg_down_speed: %7.2fkbps avg_up_speed: %7.4fkbps avg_down_latency: %6.2fms avg_up_latency: %6.2fms avg_down_jitter: %6.2fms avg_up_jitter: %4.2fms%s\n",
 						utils.Colors.OKGREEN,
 						res["ip"].(string),
 						utils.Colors.OKBLUE,

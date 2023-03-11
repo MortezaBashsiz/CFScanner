@@ -71,6 +71,7 @@ CFScanner takes several arguments:
 | --download-latency     | Maximum allowed latency for download. Default is 2.0.                                            |
 | --upload-latency       | Maximum allowed latency for upload. Default is 2.0.                                              |
 | --startprocess-timeout | Process timeout for v2ray. Default is 10.                                                        |
+| --v2ray-path           | Custom V2Ray path for using v2ray binary on another directory.                                   |
 
 # Examples
 
@@ -116,4 +117,4 @@ CFScanner is released under the [GPL-3](../LICENSE) license.
 Contributions are welcome! Please read [CONTRIBUTING.md](../CONTRIBUTING.md) for more information.
 
 [go]: https://img.shields.io/badge/Go-cyan?logo=go
-[version]: https://img.shields.io/badge/Version-0.9-blue
+[version]: https://img.shields.io/badge/Version-1.0-blue

@@ -37,7 +37,7 @@ var config = configuration.ConfigStruct{
 
 // Program Info
 var (
-	version  = "0.9"
+	version  = "1.0"
 	build    = "Custom"
 	codename = "CFScanner , CloudFlare Scanner."
 )
@@ -70,6 +70,7 @@ func main() {
 	var maxDLLatency float64
 	var maxULLatency float64
 	var fronting bool
+	var v2raypath string
 
 	var bigIPList []string
 
@@ -78,6 +79,9 @@ func main() {
 		Short: codename,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(VersionStatement())
+			if v2raypath != "" {
+				configuration.BINDIR = v2raypath
+			}
 			if !Vpn {
 				utils.CreateDir(configuration.CONFIGDIR)
 			}
@@ -143,7 +147,7 @@ func main() {
 			bigIPList = utils.IPParser(IPLIST)
 
 			fmt.Println("Total Threads : ", utils.Colors.OKBLUE, threads, utils.Colors.ENDC)
-			fmt.Printf("Starting to scan %d IPS.\n", nTotalIPs)
+			fmt.Printf("Starting to scan %v%d%v IPS.\n", utils.Colors.OKGREEN, nTotalIPs, utils.Colors.ENDC)
 			fmt.Println("-------------------------------------")
 			// begin scanning process
 			scan.Scanner(&testConfig, bigIPList, threadsCount)
@@ -166,12 +170,14 @@ func main() {
 	rootCmd.PersistentFlags().Float64Var(&maxDLLatency, "download-latency", 2.0, "Maximum allowed latency for download")
 	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 2.0, "Maximum allowed latency for download")
 	rootCmd.PersistentFlags().Float64Var(&startProcessTimeout, "startprocess-timeout", 10, "")
+	rootCmd.PersistentFlags().StringVar(&v2raypath, "v2ray-path", "", "Custom V2Ray path for using v2ray binary on another directory.")
 
 	if len(os.Args) <= 1 {
 		rootCmd.Help()
 	}
 
 	err := rootCmd.Execute()
+
 	cobra.CheckErr(err)
 
 }

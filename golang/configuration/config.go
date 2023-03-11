@@ -72,9 +72,13 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 	fronting bool, maxDlLatency float64,
 	maxUlLatency float64, nTries int, Vpn bool) ConfigStruct {
 
+	if configPath == "" {
+		log.Fatalf("Configuration file are not loaded please use the --config or -c flag to use the configuration file.")
+	}
+
 	jsonFile, err := os.Open(configPath)
 	if err != nil {
-		fmt.Printf("%verror occurred during opening the configuration file.%v",
+		log.Printf("%vError occurred during opening the configuration file.\n%v",
 			utils.Colors.WARNING, utils.Colors.ENDC)
 		log.Fatal(err)
 	}
@@ -83,8 +87,6 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 	var jsonFileContent map[string]interface{}
 	byteValue, _ := io.ReadAll(jsonFile)
 	json.Unmarshal(byteValue, &jsonFileContent)
-
-	// proctimeout := int64(startprocessTimeout / int64(time.Millisecond))
 
 	ConfigObject := ConfigStruct{
 		User_id:              jsonFileContent["id"].(string),
