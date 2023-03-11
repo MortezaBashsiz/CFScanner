@@ -17,7 +17,12 @@ namespace WinCFScan.Classes
 
         public string getTargetFileSize(int dlDuration = 2)
         {
-            return (targetSpeed * 1000 * dlDuration).ToString();
+            return getTargetFileSizeInt(dlDuration).ToString();
+        } 
+        
+        public int getTargetFileSizeInt(int dlDuration = 2)
+        {
+            return (targetSpeed * 1000 * dlDuration);
         }
 
         public int getTargetSpeed()

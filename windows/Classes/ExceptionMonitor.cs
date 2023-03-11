@@ -29,15 +29,19 @@ namespace WinCFScan.Classes
         }
 
         public void addError(string errMessage = "")
-        {
+        { 
+            if (errMessage == "" || errMessage == null)
+                return;
+
             this.errCount++;
             
-            if (errCount < 10000) // dont keep too many errors
-                addErrMessage(errMessage);    
+            if (errCount < 5000) // dont keep too many errors
+                addErrMessage(errMessage.Trim());    
         }
 
         private void addErrMessage(string errMessage)
         {
+
             if (errorsList.ContainsKey(errMessage))
                 errorsList[errMessage]++;
             else

@@ -18,6 +18,7 @@ namespace WinCFScan.Classes
         private string port;
         private string v2rayConfigPath;
         public long downloadDuration { get; private set; }
+        public long frontingDuration { get; private set; }
         private ScanSpeed targetSpeed;
         private readonly CustomConfigInfo scanConfig;
         private readonly int downloadTimeout;
@@ -95,14 +96,16 @@ namespace WinCFScan.Classes
             client.Timeout = TimeSpan.FromSeconds(timeout);
 
             Tools.logStep($"Start fronting check, timeout: {timeout}, Resolver IP: {ip}, withCustumDNSResolver: {withCustumDNSResolver.ToString()}");
-
+            Stopwatch sw = new Stopwatch();
             try
             {
-                Stopwatch sw = new Stopwatch();
+                
                 string frUrl = "https://" + ConfigManager.Instance.getAppConfig()?.frontDomain;
                 Tools.logStep($"Starting fronting check with url: {frUrl}");
+                sw.Start();
                 var html = client.GetStringAsync(frUrl).Result;
                 Tools.logStep($"Fronting check done in {sw.ElapsedMilliseconds:n0} ms, content: '{html.Substring(0, 50)}'");
+                frontingDuration = sw.ElapsedMilliseconds;
                 return true;
             }
             catch (Exception ex)
@@ -168,6 +171,10 @@ namespace WinCFScan.Classes
             finally
             {
                 downloadDuration = sw.ElapsedMilliseconds;
+                if(downloadDuration > (timeout * 1000) + 500)
+                {
+                    Tools.logStep($"Download took too long! {downloadDuration:n0} ms for IP {ip}");
+                }
                 handler.Dispose();
                 client.Dispose();
             }

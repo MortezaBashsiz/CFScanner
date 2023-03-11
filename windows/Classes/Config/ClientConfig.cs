@@ -19,6 +19,7 @@ namespace WinCFScan.Classes.Config
 
         protected string v2rayClientConfigName = "v2ray-config/ClientConfig.json";
         protected string v2rayGeneratedConfigDir = "v2ray-config/generated";
+        protected string cfIPlistFileName = "cf.local.iplist";
         protected AppConfig appConfig;
         protected ClientConfig loadedInstance;
 
@@ -26,6 +27,10 @@ namespace WinCFScan.Classes.Config
         {
             this.appConfig = appConfig;
             this.load();
+            if (isClientConfigOld())
+            {
+                deleteOldGeneratedConfigs();
+            }
         }
 
         public ClientConfig() { }
@@ -45,6 +50,12 @@ namespace WinCFScan.Classes.Config
                 loadedInstance = JsonSerializer.Deserialize<ClientConfig>(jsonString)!;
                 loadedInstance.appConfig = appConfig;
 
+                if (!File.Exists(cfIPlistFileName))
+                {
+                    // if cf subnet file is not found on the disk then download it from remote server
+                    loadedInstance.remoteUpdateCFIPList();
+                }
+
             }
             catch (Exception ex)
             {
@@ -63,41 +74,54 @@ namespace WinCFScan.Classes.Config
 
         public bool isConfigValid()
         {
-            return this.id!= null && this.host != null && this.port != null && this.path != null && this.serverName != null;
+            return this.id!= null && this.host != null && this.port != null && this.path != null && this.serverName != null && 
+                    File.Exists(cfIPlistFileName);
         }
 
-        // if 'client config' file is not exists or is too old then download it from remote
+        private bool remoteUpdateUrl(string url, string outFile)
+        {
+            // download 
+            var client = new HttpClient();
+            try
+            {
+                client.Timeout = TimeSpan.FromSeconds(10);
+                var html = client.GetStringAsync(url).Result;
+                File.WriteAllText(outFile, html);
+
+                return true;
+
+            }
+            catch (Exception ex)
+            {
+                Tools.logStep($"remoteUpdateUrl() had exception: {ex.Message}, url: {url}");
+                return false;
+            }
+            finally
+            {
+                client.Dispose();
+            }
+        }
+        
         public bool remoteUpdateClientConfig()
         {
-            if (isClientConfigOld())
+            // download fresh conf
+            bool configUpdated = remoteUpdateUrl(appConfig.clientConfigUrl, v2rayClientConfigName);  
+            if (configUpdated)
             {
-                deleteOldGeneratedConfigs();
-
-                // download fresh conf
-                var client = new HttpClient();
-                try
-                {
-                    client.Timeout = TimeSpan.FromSeconds(10);
-                    var html = client.GetStringAsync(this.appConfig.clientConfigUrl).Result;
-                    File.WriteAllText(v2rayClientConfigName, html);
+                // reload
+                this.load();
                     
-                    // reload
-                    this.load();
-                    return true;
-
-                }
-                catch (Exception ex)
-                {
-                    Tools.logStep($"remoteUpdateClientConfig() had exception: {ex.Message}");
-                    return false;
-                }
-                finally
-                {
-                    client.Dispose();
-                }
+                // also update Cloudflare subnet list
+                remoteUpdateCFIPList();
+                return true;
             }
 
-            return true;
+            return configUpdated;
+        }     
+        
+        public bool remoteUpdateCFIPList()
+        {
+            return remoteUpdateUrl(this.subnetsList, cfIPlistFileName);  
         }
 
         private void deleteOldGeneratedConfigs()

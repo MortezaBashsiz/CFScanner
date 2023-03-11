@@ -144,17 +144,24 @@ namespace WinCFScan.Classes
 
             try
             {
-                Parallel.ForEach(ipRange, po, (ip) =>
+                object locker = new object();
+                Parallel.ForEach(ipRange, po, (ip, state, index) =>
                 {
+                    lock (locker) {
+                        progressInfo.curentWorkingThreads++;
+                    }
                     var checker = new CheckIPWorking(ip, targetSpeed, scanConfig, downloadTimeout);
                     bool isOK = checker.check();
 
-                    progressInfo.lastCheckedIP = ip;
-                    progressInfo.totalCheckedIPInCurIPRange++;
-                    progressInfo.totalCheckedIP++;
+                    lock (locker) {
+                        progressInfo.curentWorkingThreads--;
+                        progressInfo.lastCheckedIP = ip;
+                        progressInfo.totalCheckedIPInCurIPRange++;
+                        progressInfo.totalCheckedIP++;
+                    }
 
                     //Thread.Sleep(1);
-                    LogControl.Write($"{ip} is {isOK.ToString()} , dl in {checker.downloadDuration:n0} ms");
+                    LogControl.Write($"{ip.PadRight(15)} is {isOK.ToString().PadRight(5)} front in: {checker.frontingDuration:n0} ms, dl in: {checker.downloadDuration:n0} ms");
 
                     if (isOK)
                     {
@@ -171,11 +178,15 @@ namespace WinCFScan.Classes
             }
             catch (OperationCanceledException ex)
             {
-
+                //logMessages.Add("Scan cancel requested.");
+            }
+            catch (Exception ex) {
+                logMessages.Add($"Unknown Error on Scan Engine: {ex.Message}");
             }
             finally
             {
                 cts.Dispose();
+                
             }
         }
 

@@ -3,6 +3,10 @@ This script scans Millions of Cloudflare IP addresses and generates a result fil
 
 This script uses v2ray+vmess+websocket+tls by default and if you want to use it behind your Cloudflare proxy then you have to set up a vmess account, otherwise, it will use the default configuration.
 
+
+
+
+
 # DONATE
 
 You can donate us with
@@ -19,7 +23,7 @@ Dogecoin: D9eKyR4c2vymXaF1pfZqgSE4meBj4JGfbk
 
 ## Bash
 
-For Linux find out [here](https://github.com/MortezaBashsiz/CFScanner/tree/main/bash "here").
+For Bash find out [here](https://github.com/MortezaBashsiz/CFScanner/tree/main/bash "here").
 
 ## Docker
 

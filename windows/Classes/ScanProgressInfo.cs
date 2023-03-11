@@ -24,6 +24,7 @@ namespace WinCFScan.Classes
         internal int totalCheckedIP = 0;
         internal ExceptionMonitor downloadExceptions = new("Download Errors");
         internal ExceptionMonitor frontingExceptions = new("Fronting Errors");
+        internal int curentWorkingThreads = 0;
 
         public float getCurrentRangePercentIsDone()
         {
