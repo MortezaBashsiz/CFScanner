@@ -144,15 +144,6 @@ You have following switches to define the arguments
 [~/CFScanner/bash]>$ bash cfScanner.sh -vpn YES -m SUBNET -t DOWN -thr 8 -try 1 -c config.real -s 100 -f custom.subnets
 ```
 
-Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
-
-```shell
-[~/CFScanner/bash]>$ cat custom.subnets 
-5.226.179.0/24
-203.89.5.0/24
-[~/CFScanner/bash]>$
-```
-
 ##### in MacOS:
 
 ```shell
@@ -200,7 +191,10 @@ Which the `custom.subnets` is like as follows. You can edit this file and add yo
 ```
 
 #### in MacOS:
+
+```shell
 [~/CFScanner/bash]>$ bash cfScanner.sh -v YES -m IP -t DOWN -p 8 -r 1 -c config.real -s 100 -f ip.list
+```
 
 ```shell
 [~/CFScanner/bash]>$ cat ip.list
