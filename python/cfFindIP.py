@@ -20,57 +20,10 @@ from functools import partial
 from typing import Tuple
 
 import requests
-
 from clog import CLogger
 
 log = CLogger("CFScanner-python")
 
-
-V2RAY_CONFIG_TEMPLATE = """
-{
-  "inbounds": [{
-    "port": PORTPORT,
-    "listen": "127.0.0.1",
-    "tag": "socks-inbound",
-    "protocol": "socks",
-    "settings": {
-      "auth": "noauth",
-      "udp": false,
-      "ip": "127.0.0.1"
-    },
-    "sniffing": {
-      "enabled": true,
-      "destOverride": ["http", "tls"]
-    }
-  }],
-  "outbounds": [
-    {
-		"protocol": "vmess",
-    "settings": {
-      "vnext": [{
-        "address": "IP.IP.IP.IP", 
-        "port": CFPORTCFPORT,
-        "users": [{"id": "IDID" }]
-      }]
-    },
-		"streamSettings": {
-        "network": "ws",
-        "security": "tls",
-        "wsSettings": {
-            "headers": {
-                "Host": "HOSTHOST"
-            },
-            "path": "ENDPOINTENDPOINT"
-        },
-        "tlsSettings": {
-            "serverName": "RANDOMHOST",
-            "allowInsecure": false
-        }
-    }
-	}],
-  "other": {}
-}
-"""
 
 SCRIPTDIR = os.path.dirname(os.path.realpath(__file__))
 BINDIR = f"{SCRIPTDIR}/../bin"
@@ -98,6 +51,8 @@ class TestConfig:
     startprocess_timeout = -1.0  # seconds
     n_tries = -1
     no_vpn = False
+    use_xray = False
+    proxy_config_template = ""
 
 
 class _COLORS:
@@ -114,21 +69,23 @@ def get_free_port():
     return free_port
 
 
-def create_v2ray_config(
+def create_proxy_config(
     edge_ip,
     test_config: TestConfig
 ) -> str:
-    """creates v2ray config json file based on ``clsV2rayConfig`` instance
+    """creates proxy (v2ray/xray) config json file based on ``TestConfig`` instance
 
     Args:
-        v2rayConfig (clsV2rayConfig): contains information about the v2ray config
+        edge_ip (str): Cloudflare edge ip to use for the config
+        test_config (TestConfig): instance of ``TestConfig`` containing information about the setting of the test
 
     Returns:
-        str: the path to the json file created
+        config_path (str): the path to the json file created
     """
     test_config.local_port = get_free_port()
     local_port_str = str(test_config.local_port)
-    config = V2RAY_CONFIG_TEMPLATE.replace("PORTPORT", local_port_str)
+    config = test_config.proxy_config_template.replace(
+        "PORTPORT", local_port_str)
     config = config.replace("IP.IP.IP.IP", edge_ip)
     config = config.replace("CFPORTCFPORT", str(test_config.address_port))
     config = config.replace("IDID", test_config.user_id)
@@ -240,56 +197,70 @@ def current_platform() -> str:
     raise OSError('Unsupported platform: ' + sys.platform)
 
 
-def start_v2ray_service(
-    v2ray_conf_path: str,
-    timeout=5
+def start_proxy_service(
+    proxy_conf_path: str,
+    timeout=5,
+    use_xray=False
 ) -> Tuple[subprocess.Popen, dict]:
-    """starts the v2ray service and waits for the respective port to open
+    """starts the proxy (v2ray/xray) service and waits for the respective port to open
 
     Args:
-        v2ray_conf_path (str): _description_
-        timeout (int, optional): _description_. Defaults to 5.
+        proxy_conf_path (str): the path to the proxy (v2ray or xray) config json file
+        timeout (int, optional): total time in seconds to wait for the proxy service to start. Defaults to 5.
+        use_xray (bool, optional): if true, xray will be used, otherwise v2ray
 
     Returns:
         Tuple[subprocess.Popen, dict]: the v2 ray process object and a dictionary containing the proxies to use with ``requests.get`` 
     """
-    if current_platform().startswith("mac"):
-        v2ray_binary = os.path.join(BINDIR, "v2ray-mac")
-        v2ctl_binary = os.path.join(BINDIR, "v2ctl-mac")
-    elif current_platform() == "linux":
-        v2ray_binary = os.path.join(BINDIR, "v2ray")
-        v2ctl_binary = os.path.join(BINDIR, "v2ctl")
+    if use_xray:
+        if current_platform().startswith("mac"):
+            binaryfile = os.path.join(BINDIR, "xray-mac")
+        elif current_platform() == "linux":
+            binaryfile = os.path.join(BINDIR, "xray")
     else:
-        log.error(f"Platform {current_platform()} is not supported yet.")
-        return None
+        if current_platform().startswith("mac"):
+            binaryfile = os.path.join(BINDIR, "v2ray-mac")
+            v2ctl_binary = os.path.join(BINDIR, "v2ctl-mac")
+        elif current_platform() == "linux":
+            binaryfile = os.path.join(BINDIR, "v2ray")
+            v2ctl_binary = os.path.join(BINDIR, "v2ctl")
+        else:
+            log.error(f"Platform {current_platform()} is not supported yet.")
+            return None
 
-    with open(v2ray_conf_path, "r") as infile:
-        v2ray_conf = json.load(infile)
+    with open(proxy_conf_path, "r") as infile:
+        proxy_conf = json.load(infile)
 
-    v2ray_listen = v2ray_conf["inbounds"][0]["listen"]
-    v2ray_port = v2ray_conf["inbounds"][0]["port"]
+    proxy_listen = proxy_conf["inbounds"][0]["listen"]
+    proxy_port = proxy_conf["inbounds"][0]["port"]
 
-    v2ctl_process = subprocess.Popen(
-        [v2ctl_binary, "config", v2ray_conf_path],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL
-    )
+    if use_xray:
+        proxy_process = subprocess.Popen(
+            [binaryfile, "-c", proxy_conf_path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
+    else:
+        v2ctl_process = subprocess.Popen(
+            [v2ctl_binary, "config", proxy_conf_path],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL
+        )
+        proxy_process = subprocess.Popen(
+            [binaryfile, "-config=stdin:", "-format=pb"],
+            stdin=v2ctl_process.stdout,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        )
 
-    v2ray_process = subprocess.Popen(
-        [v2ray_binary, "-config=stdin:", "-format=pb"],
-        stdin=v2ctl_process.stdout,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL
-    )
-
-    wait_for_port(host=v2ray_listen, port=v2ray_port, timeout=timeout)
+    wait_for_port(host=proxy_listen, port=proxy_port, timeout=timeout)
 
     proxies = dict(
-        http=f"socks5://{v2ray_listen}:{v2ray_port}",
-        https=f"socks5://{v2ray_listen}:{v2ray_port}"
+        http=f"socks5://{proxy_listen}:{proxy_port}",
+        https=f"socks5://{proxy_listen}:{proxy_port}"
     )
 
-    return v2ray_process, proxies
+    return proxy_process, proxies
 
 
 def download_speed_test(
@@ -387,21 +358,22 @@ def check_ip(
             return False
 
     try:
-        v2ray_config_path = create_v2ray_config(ip, test_config)
+        proxy_config_path = create_proxy_config(ip, test_config)
     except Exception as e:
-        log.error("Could not save v2ray config to file", ip)
+        log.error("Could not save proxy (xray/v2ray) config to file", ip)
         log.exception(e)
         return False
 
     if not test_config.no_vpn:
         try:
-            process, proxies = start_v2ray_service(
-                v2ray_conf_path=v2ray_config_path,
-                timeout=test_config.startprocess_timeout
+            process, proxies = start_proxy_service(
+                proxy_conf_path=proxy_config_path,
+                timeout=test_config.startprocess_timeout,
+                use_xray=test_config.use_xray
             )
         except Exception as e:
             print(
-                f"{_COLORS.FAIL}ERROR - {_COLORS.WARNING}Could not start v2ray service{_COLORS.ENDC}")
+                f"{_COLORS.FAIL}ERROR - {_COLORS.WARNING}Could not start proxy (v2ray/xray) service{_COLORS.ENDC}")
             log.exception(e)
             return False
     else:
@@ -512,13 +484,16 @@ def create_test_config(args):
 
     test_config = TestConfig()
 
-    # v2ray related config
+    # proxy related config
     test_config.user_id = jsonfilecontent["id"]
     test_config.ws_header_host = jsonfilecontent["host"]
     test_config.address_port = int(jsonfilecontent["port"])
     test_config.sni = jsonfilecontent["serverName"]
     test_config.user_id = jsonfilecontent["id"]
     test_config.ws_header_path = "/" + (jsonfilecontent["path"].lstrip("/"))
+    test_config.use_xray = args.use_xray
+    with open(args.template_path, "r") as infile:
+        test_config.proxy_config_template = infile.read()
 
     # speed related config
     test_config.startprocess_timeout = args.startprocess_timeout
@@ -538,7 +513,7 @@ def create_test_config(args):
 
 def parse_args(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(
-        description='Cloudflare edge ips scanner to use with v2ray')
+        description='Cloudflare edge ips scanner to use with v2ray or xray')
     parser.add_argument(
         "--threads", "-thr",
         dest="threads",
@@ -655,6 +630,21 @@ def parse_args(args=sys.argv[1:]):
         type=float,
         dest="startprocess_timeout",
         default=5
+    )
+    parser.add_argument(
+        "--use-xray",
+        help="Use xray instead of v2ray",
+        action="store_true",
+        dest="use_xray"
+    )
+    parser.add_argument(
+        "--template",
+        type=str,
+        help="Path to the proxy (v2ray/xra) template file. By default vmess_ws_tls is used",
+        required=False,
+        dest="template_path",
+        default=os.path.join(SCRIPTDIR, "config_templates",
+                             "vmess_ws_tls_template.json")
     )
 
     parse_args = parser.parse_args()
