@@ -349,11 +349,17 @@ def check_ip(
 ):
     result = dict(
         ip=ip,
-        download=dict(speed=[], latency=[]),
-        upload=dict(speed=[], latency=[]),
+        download=dict(
+            speed=[-1] * test_config.n_tries,
+            latency=[-1] * test_config.n_tries
+        ),
+        upload=dict(
+            speed=[-1] * test_config.n_tries,
+            latency=[-1] * test_config.n_tries
+        ),
     )
 
-    for _ in range(test_config.n_tries):
+    for try_idx in range(test_config.n_tries):
         if not fronting_test(ip, timeout=test_config.fronting_timeout):
             return False
 
@@ -380,7 +386,7 @@ def check_ip(
         process = _FakeProcess()
         proxies = None
 
-    for _ in range(test_config.n_tries):
+    for try_idx in range(test_config.n_tries):
         # check download speed
         n_bytes = test_config.min_dl_speed * 1000 * test_config.max_dl_time
         try:
@@ -414,8 +420,9 @@ def check_ip(
         if dl_latency <= test_config.max_dl_latency:
             dl_speed_kBps = dl_speed / 8 * 1000
             if dl_speed_kBps >= test_config.min_dl_speed:
-                result["download"]["speed"].append(dl_speed)
-                result["download"]["latency"].append(round(dl_latency * 1000))
+                result["download"]["speed"][try_idx] = dl_speed
+                result["download"]["latency"][try_idx] = round(
+                    dl_latency * 1000)
             else:
                 print(
                     f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download too slow {dl_speed_kBps:.4f} kBps < {test_config.min_dl_speed:.4f} kBps{_COLORS.ENDC}")
@@ -453,9 +460,8 @@ def check_ip(
                 return _extracted_from_check_ip_(ip, ' upload latency too high', process)
             up_speed_kBps = up_speed / 8 * 1000
             if up_speed_kBps >= test_config.min_ul_speed:
-                result["upload"]["speed"].append(up_speed)
-                result["upload"]["latency"].append(
-                    round(up_latency * 1000))
+                result["upload"]["speed"][try_idx] = up_speed
+                result["upload"]["latency"][try_idx] = round(up_latency * 1000)
             else:
                 print(
                     f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download too slow {dl_speed_kBps:.4f} kBps < {test_config.min_dl_speed:.4f} kBps{_COLORS.ENDC}")
@@ -799,7 +805,7 @@ if __name__ == "__main__":
                     res["upload"]["speed"]) if test_config.do_upload_test else -1
                 mean_down_latency = statistics.mean(res["download"]["latency"])
                 mean_up_latency = statistics.mean(
-                    res["download"]["latency"]) if test_config.do_upload_test else -1
+                    res["upload"]["latency"]) if test_config.do_upload_test else -1
 
                 print(
                     f"{_COLORS.OKGREEN}"
