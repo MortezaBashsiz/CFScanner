@@ -87,6 +87,7 @@ Each line of the subnets file must be a Cloudflare subnets in CIDR notation or a
 **--upload-time**: Maximum (effective, excluding latency) time to spend for each upload <br>
 **--download-latency**: Maximum allowed latency (seconds) for download <br>
 **--upload-latency**: Maximum allowed latency (seconds) for upload <br>
+**--use-xray**: If true, xray will be used, otherwise v2ray
 
 ---
 
