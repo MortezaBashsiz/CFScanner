@@ -606,7 +606,7 @@ subnetIPFile="NULL"
 # Function fncUsage
 # usage function
 function fncUsage {
-	if [[ $OSTYPE == darwin* ]]
+	if [[ "$osVersion" == "Mac" ]]
 	then 
 		echo -e "Usage: cfScanner [ -v YES/NO ]
 			[ -m SUBNET/IP ] 
@@ -617,7 +617,7 @@ function fncUsage {
 			[ -s <int> ] 
 			[ -f <custome-ip-file> (if you chose IP mode)]\n"
 		exit 2
-	elif [[ $OSTYPE == linux-gnu* ]]
+	elif [[ "$osVersion" == "Linux" ]]
 	then
 		echo -e "Usage: cfScanner [ -vpn|--vpn-mode YES/NO ]
 			[ -m|--mode  SUBNET/IP ] 
@@ -632,16 +632,18 @@ function fncUsage {
 }
 # End of Function fncUsage
 
-if [[ $OSTYPE == darwin* ]]
+osVersion="$(fncCheckDpnd)"
+
+if [[ "$osVersion" == "Mac" ]]
 then
 	parsedArguments=$(getopt v:m:t:p:r:c:s:f:h "$@")
-	
-else
+elif [[ "$osVersion" == "Linux" ]]
+then
 	parsedArguments=$(getopt -a -n  cfScanner -o vpn:m:t:thr:try:c:s:f: --long vpn-mode:,mode:,test-type:,thread:,tryCount:,config:,speed:,file: -- "$@")
 fi
 
 eval set -- "$parsedArguments"
-if [[ $OSTYPE == darwin* ]]
+if [[ "$osVersion" == "Mac" ]]
 then
 	while :
 	do
@@ -660,7 +662,7 @@ then
 			fncUsage ;;
 		esac
 	done
-elif [[ $OSTYPE == linux-gnu* ]]
+elif [[ "$osVersion" == "Linux" ]]
 then
 	while :
 	do
@@ -739,8 +741,6 @@ export NC='\033[0m'
 fncCreateDir "${resultDir}"
 fncCreateDir "${configDir}"
 echo "" > "$resultFile"
-
-osVersion="$(fncCheckDpnd)"
 
 echo "updating config.real"
 if [[ "$config" == "config.real"  ]]
