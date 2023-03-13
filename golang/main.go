@@ -37,7 +37,7 @@ var config = configuration.ConfigStruct{
 
 // Program Info
 var (
-	version  = "1.0"
+	version  = "1.1"
 	build    = "Custom"
 	codename = "CFScanner , CloudFlare Scanner."
 )
@@ -143,16 +143,18 @@ func main() {
 				nTotalIPs += numIPs
 			}
 
+			///////////////////////////////////
 			// Parsing and Validanting IPLISTS
 			bigIPList = utils.IPParser(IPLIST)
 
 			fmt.Println("Total Threads : ", utils.Colors.OKBLUE, threads, utils.Colors.ENDC)
 			fmt.Printf("Starting to scan %v%d%v IPS.\n", utils.Colors.OKGREEN, nTotalIPs, utils.Colors.ENDC)
 			fmt.Println("-------------------------------------")
-			// begin scanning process
+			// Begin scanning process
 			scan.Scanner(&testConfig, bigIPList, threadsCount)
 			fmt.Println("Results Written in :", configuration.INTERIM_RESULTS_PATH)
 			fmt.Println("Sorted IPS Written in :", configuration.FINAL_RESULTS_PATH_SORTED)
+			///////////////////////////////////
 		},
 	}
 	rootCmd.PersistentFlags().IntVarP(&threads, "threads", "t", 1, "Number of threads to use for parallel scanning")
@@ -162,7 +164,7 @@ func main() {
 	rootCmd.PersistentFlags().BoolVar(&doUploadTest, "upload", false, "If True, upload test will be conducted")
 	rootCmd.PersistentFlags().BoolVar(&fronting, "fronting", false, "If True, fronting request test will be conducted")
 	rootCmd.PersistentFlags().IntVar(&nTries, "tries", 1, "Number of times to try each IP. An IP is marked as OK if all tries are successful")
-	rootCmd.PersistentFlags().Float64Var(&minDLSpeed, "download-speed", 50, "Minimum acceptable download speed in kilobytes per second")
+	rootCmd.PersistentFlags().Float64Var(&minDLSpeed, "download-speed", 50, "Maximum acceptable download speed in kilobytes per second")
 	rootCmd.PersistentFlags().Float64Var(&minULSpeed, "upload-speed", 50, "Maximum acceptable upload speed in kilobytes per second")
 	rootCmd.PersistentFlags().Float64Var(&maxDLTime, "download-time", 2, "Maximum (effective, excluding http time) time to spend for each download")
 	rootCmd.PersistentFlags().Float64Var(&maxULTime, "upload-time", 2, "Maximum (effective, excluding http time) time to spend for each upload")
