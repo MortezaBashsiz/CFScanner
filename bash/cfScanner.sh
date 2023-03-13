@@ -633,6 +633,15 @@ function fncUsage {
 # End of Function fncUsage
 
 osVersion="$(fncCheckDpnd)"
+vpnOrNot="NO"
+subnetOrIP="SUBNET"
+downloadOrUpload="BOTH"
+threads="4"
+tryCount="1"
+config="ClientConfig.json"
+speed="100"
+subnetIPFile="custom.subnets"
+
 
 if [[ "$osVersion" == "Mac" ]]
 then
