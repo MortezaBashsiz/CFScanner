@@ -13,14 +13,15 @@ import socketserver
 import statistics
 import subprocess
 import sys
-from threading import Thread
 import time
 import traceback
 from datetime import datetime
 from functools import partial
+from threading import Thread
 from typing import Tuple
 
 import requests
+
 from clog import CLogger
 
 log = CLogger("CFScanner-python")
@@ -332,10 +333,6 @@ def upload_speed_test(
     return upload_speed, latency
 
 
-def _raise_speed_timeout(signum, frame):
-    raise TimeoutError("Download/upload too slow!")
-
-
 class _FakeProcess:
     def __init__(self):
         pass
@@ -428,11 +425,13 @@ def check_ip(
         try:
             dl_speed, dl_latency = time_out_download()
         except TimeoutError as e:
-            print(f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download timeout exceeded{_COLORS.ENDC}")
+            print(
+                f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download timeout exceeded{_COLORS.ENDC}")
             process.kill()
             return False
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError, requests.ConnectTimeout, TimeoutError) as e:
-            print(f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download error{_COLORS.ENDC}")
+            print(
+                f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download error{_COLORS.ENDC}")
             process.kill()
             return False
         except Exception as e:
