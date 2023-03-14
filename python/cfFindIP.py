@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 
 import argparse
+import functools
 import ipaddress
 import json
 import multiprocessing
 import os
 import platform
 import re
-import signal
 import socket
 import socketserver
 import statistics
 import subprocess
 import sys
+from threading import Thread
 import time
 import traceback
 from datetime import datetime
@@ -343,6 +344,33 @@ class _FakeProcess:
         pass
 
 
+def _timeout(timeout):
+    def deco(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            res = [TimeoutError(f'Timeout {timeout} exceeded')]
+
+            def newFunc():
+                try:
+                    res[0] = func(*args, **kwargs)
+                except Exception as e:
+                    res[0] = e
+            t = Thread(target=newFunc)
+            t.daemon = True
+            try:
+                t.start()
+                t.join(timeout)
+            except Exception as je:
+                print('error starting thread')
+                raise je
+            ret = res[0]
+            if isinstance(ret, BaseException):
+                raise ret
+            return ret
+        return wrapper
+    return deco
+
+
 def check_ip(
     ip: str,
     test_config: TestConfig
@@ -386,25 +414,25 @@ def check_ip(
         process = _FakeProcess()
         proxies = None
 
+    @_timeout(test_config.max_dl_latency + test_config.max_dl_time)
+    def time_out_download():
+        return download_speed_test(
+            n_bytes=n_bytes,
+            proxies=proxies,
+            timeout=test_config.max_dl_latency  # not sure if this is too generous or not
+        )
+
     for try_idx in range(test_config.n_tries):
         # check download speed
         n_bytes = test_config.min_dl_speed * 1000 * test_config.max_dl_time
         try:
-            signal.signal(signal.SIGALRM, _raise_speed_timeout)
-            signal.setitimer(signal.ITIMER_REAL,
-                             test_config.max_dl_latency + test_config.max_dl_time)
-            dl_speed, dl_latency = download_speed_test(
-                n_bytes=n_bytes,
-                proxies=proxies,
-                timeout=test_config.max_dl_latency  # not sure if this is too generous or not
-            )
+            dl_speed, dl_latency = time_out_download()
+        except TimeoutError as e:
+            print(f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download timeout exceeded{_COLORS.ENDC}")
+            process.kill()
+            return False
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError, requests.ConnectTimeout, TimeoutError) as e:
-            if "Download/upload too slow".lower() in traceback.format_exc().lower():
-                print(
-                    f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download too slow")
-            else:
-                print(
-                    f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download error{_COLORS.ENDC}")
+            print(f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download error{_COLORS.ENDC}")
             process.kill()
             return False
         except Exception as e:
@@ -414,8 +442,6 @@ def check_ip(
             log.exception(e)
             process.kill()
             return False
-        finally:
-            signal.setitimer(signal.ITIMER_REAL, 0)
 
         if dl_latency <= test_config.max_dl_latency:
             dl_speed_kBps = dl_speed / 8 * 1000
