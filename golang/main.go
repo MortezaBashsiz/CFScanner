@@ -75,12 +75,13 @@ func main() {
 	var bigIPList []string
 
 	rootCmd := &cobra.Command{
-		Use:   os.Args[0],
-		Short: codename,
+		Use:     os.Args[0],
+		Short:   codename,
+		Version: version,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(VersionStatement())
 			if v2raypath != "" {
-				configuration.BINDIR = v2raypath
+				configuration.BIN = v2raypath
 			}
 			if !Vpn {
 				utils.CreateDir(configuration.CONFIGDIR)
@@ -158,21 +159,21 @@ func main() {
 		},
 	}
 	rootCmd.PersistentFlags().IntVarP(&threads, "threads", "t", 1, "Number of threads to use for parallel scanning")
-	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "The path to the config file. For config file example, see https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/ClientConfig.json")
+	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "The path to the config file.")
 	rootCmd.PersistentFlags().BoolVar(&Vpn, "vpn", false, "If passed, test with creating vpn connections")
 	rootCmd.PersistentFlags().StringVarP(&subnets, "subnets", "s", "", "The file or subnet. each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip.")
-	rootCmd.PersistentFlags().BoolVar(&doUploadTest, "upload", false, "If True, upload test will be conducted")
-	rootCmd.PersistentFlags().BoolVar(&fronting, "fronting", false, "If True, fronting request test will be conducted")
-	rootCmd.PersistentFlags().IntVar(&nTries, "tries", 1, "Number of times to try each IP. An IP is marked as OK if all tries are successful")
-	rootCmd.PersistentFlags().Float64Var(&minDLSpeed, "download-speed", 50, "Maximum acceptable download speed in kilobytes per second")
-	rootCmd.PersistentFlags().Float64Var(&minULSpeed, "upload-speed", 50, "Maximum acceptable upload speed in kilobytes per second")
-	rootCmd.PersistentFlags().Float64Var(&maxDLTime, "download-time", 2, "Maximum (effective, excluding http time) time to spend for each download")
-	rootCmd.PersistentFlags().Float64Var(&maxULTime, "upload-time", 2, "Maximum (effective, excluding http time) time to spend for each upload")
+	rootCmd.PersistentFlags().BoolVar(&doUploadTest, "upload", false, "If passed, upload test will be conducted")
+	rootCmd.PersistentFlags().BoolVar(&fronting, "fronting", false, "If passed, fronting request test will be conducted")
+	rootCmd.PersistentFlags().IntVar(&nTries, "tries", 1, "Number of times to try each IP.")
+	rootCmd.PersistentFlags().Float64Var(&minDLSpeed, "download-speed", 50, "Maximum download speed in kilobytes per second")
+	rootCmd.PersistentFlags().Float64Var(&minULSpeed, "upload-speed", 50, "Maximum upload speed in kilobytes per second")
+	rootCmd.PersistentFlags().Float64Var(&maxDLTime, "download-time", 2, "Maximum time to spend for each download")
+	rootCmd.PersistentFlags().Float64Var(&maxULTime, "upload-time", 2, "Maximum time to spend for each upload")
 	rootCmd.PersistentFlags().Float64Var(&frontingTimeout, "fronting-timeout", 1.0, "Maximum time to wait for fronting response")
 	rootCmd.PersistentFlags().Float64Var(&maxDLLatency, "download-latency", 2.0, "Maximum allowed latency for download")
 	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 2.0, "Maximum allowed latency for download")
-	rootCmd.PersistentFlags().Float64Var(&startProcessTimeout, "startprocess-timeout", 10, "")
-	rootCmd.PersistentFlags().StringVar(&v2raypath, "v2ray-path", "", "Custom V2Ray path for using v2ray binary on another directory.")
+	rootCmd.PersistentFlags().Float64Var(&startProcessTimeout, "startprocess-timeout", 10, "Process timeout for v2ray.")
+	rootCmd.PersistentFlags().StringVar(&v2raypath, "v2ray-path", "", "Custom V2Ray binary path for using v2ray binary in another directory.")
 
 	if len(os.Args) <= 1 {
 		rootCmd.Help()

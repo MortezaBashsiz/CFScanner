@@ -42,7 +42,7 @@ in the config file the variables are :
 
 - NOTE: If you want to use your custom config DO NOT use it as config.real since script will update this file. Store your config in another file and pass it as an argument to script instead of config.real
 
-- The configuration file are similer to the bash version
+- The configuration file are similer to the bash version.
 
 # Usage
 
@@ -60,18 +60,18 @@ CFScanner takes several arguments:
 | --config -c            | The path to the config file. (Required)                                                          |
 | --vpn                  | If passed, test with creating VPN connections.                                                   |
 | --subnets -s           | The file or subnet. Each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip.   |
-| --upload               | If True, upload test will be conducted.                                                          |
-| --fronting             | If True, fronting request test will be conducted.                                                |
+| --upload               | If passed, upload test will be conducted.                                                        |
+| --fronting             | If passed, fronting request test will be conducted.                                              |
 | --tries                | Number of times to try each IP. An IP is marked as OK if all tries are successful. Default is 1. |
-| --download-speed       | Minimum acceptable download speed in kilobytes per second. Default is 50.                        |
-| --upload-speed         | Maximum acceptable upload speed in kilobytes per second. Default is 50.                          |
-| --download-time        | Maximum (effective, excluding http time) time to spend for each download. Default is 2.          |
-| --upload-time          | Maximum (effective, excluding http time) time to spend for each upload. Default is 2.            |
+| --download-speed       | Maximum download speed in kilobytes per second. Default is 50.                                   |
+| --upload-speed         | Maximum upload speed in kilobytes per second. Default is 50.                                     |
+| --download-time        | Maximum time to spend for each download. Default is 2.                                           |
+| --upload-time          | Maximum time to spend for each upload. Default is 2.                                             |
 | --fronting-timeout     | Maximum time to wait for fronting response. Default is 1.0.                                      |
 | --download-latency     | Maximum allowed latency for download. Default is 2.0.                                            |
 | --upload-latency       | Maximum allowed latency for upload. Default is 2.0.                                              |
 | --startprocess-timeout | Process timeout for v2ray. Default is 10.                                                        |
-| --v2ray-path           | Custom V2Ray path for using v2ray binary on another directory.                                   |
+| --v2ray-path           | Custom V2Ray binary path for using v2ray binary in another directory.                            |
 
 # Examples
 
@@ -81,7 +81,7 @@ CFScanner takes several arguments:
 ./CFScanner --config config.real --subnets ips.txt
 ```
 
-### Load configuration file and use input cidr and begin scanning ips w
+### Load configuration file and use input cidr and begin scanning ips with 4 threads
 
 ```bash
 ./CFScanner --config config.real --subnets 172.20.0.0/24 --threads 4
