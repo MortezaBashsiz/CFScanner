@@ -83,7 +83,7 @@ func main() {
 			if v2raypath != "" {
 				configuration.BIN = v2raypath
 			}
-			if !Vpn {
+			if Vpn {
 				utils.CreateDir(configuration.CONFIGDIR)
 			}
 			utils.CreateDir(configuration.RESULTDIR)
