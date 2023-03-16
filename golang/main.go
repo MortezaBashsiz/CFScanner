@@ -164,7 +164,7 @@ func main() {
 	rootCmd.PersistentFlags().StringVarP(&subnets, "subnets", "s", "", "The file or subnet. each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip.")
 	rootCmd.PersistentFlags().BoolVar(&doUploadTest, "upload", false, "If passed, upload test will be conducted")
 	rootCmd.PersistentFlags().BoolVar(&fronting, "fronting", false, "If passed, fronting request test will be conducted")
-	rootCmd.PersistentFlags().IntVar(&nTries, "tries", 1, "Number of times to try each IP.")
+	rootCmd.PersistentFlags().IntVarP(&nTries, "tries", "n", 1, "Number of times to try each IP.")
 	rootCmd.PersistentFlags().Float64Var(&minDLSpeed, "download-speed", 50, "Maximum download speed in kilobytes per second")
 	rootCmd.PersistentFlags().Float64Var(&minULSpeed, "upload-speed", 50, "Maximum upload speed in kilobytes per second")
 	rootCmd.PersistentFlags().Float64Var(&maxDLTime, "download-time", 2, "Maximum time to spend for each download")

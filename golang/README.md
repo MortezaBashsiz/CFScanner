@@ -54,7 +54,7 @@ To see CFScanner help , run the following command:
 
 CFScanner takes several arguments:
 
-| Arguments              | Descriptions                                                                                     |
+| Arguments              | Short Descriptions                                                                               |
 | ---------------------- | ------------------------------------------------------------------------------------------------ |
 | --threads -t           | Number of threads to use for parallel scanning. Default is 1.                                    |
 | --config -c            | The path to the config file. (Required)                                                          |
@@ -62,7 +62,7 @@ CFScanner takes several arguments:
 | --subnets -s           | The file or subnet. Each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip.   |
 | --upload               | If passed, upload test will be conducted.                                                        |
 | --fronting             | If passed, fronting request test will be conducted.                                              |
-| --tries                | Number of times to try each IP. An IP is marked as OK if all tries are successful. Default is 1. |
+| --tries -n             | Number of times to try each IP. An IP is marked as OK if all tries are successful. Default is 1. |
 | --download-speed       | Maximum download speed in kilobytes per second. Default is 50.                                   |
 | --upload-speed         | Maximum upload speed in kilobytes per second. Default is 50.                                     |
 | --download-time        | Maximum time to spend for each download. Default is 2.                                           |
@@ -99,13 +99,19 @@ CFScanner takes several arguments:
 ./CFScanner --config config.real --subnets 172.20.0.0/24 --threads 4 --tries 3
 ```
 
+### Load configurations file with subnet file and using vpn mode with another v2ray binary
+
+```bash
+./CFScanner --config config.real --subnets 172.20.0.0/24 --vpn --v2ray-path ~/v2ray-macos-arm64-v8a/v2ray
+```
+
 ## Output
 
 Two files are stored for each (complete) run of the program
 
-- interim results file (e.g., `2023-03-10_20:49:30_result.csv`)
-  - Includes the unsorted intermediate results in csv format. Useful in case if the scanning process is not complete.
-- final results file (e.g., `2023-03-10_20:49:30_final.txt`)
+- Interim results file (e.g., `2023-03-10_20:49:30_result.csv`)
+  - Includes the unsorted intermediate results in CSV format. Useful in case the scanning process is not complete.
+- Final results file (e.g., `2023-03-10_20:49:30_final.txt`)
   - Includes the final sorted results. The results are sorted ascendingly based on the download latency time.
 
 # License
@@ -117,4 +123,4 @@ CFScanner is released under the [GPL-3](../LICENSE) license.
 Contributions are welcome! Please read [CONTRIBUTING.md](../CONTRIBUTING.md) for more information.
 
 [go]: https://img.shields.io/badge/Go-cyan?logo=go
-[version]: https://img.shields.io/badge/Version-1.0-blue
+[version]: https://img.shields.io/badge/Version-1.1-blue
