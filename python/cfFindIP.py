@@ -147,8 +147,9 @@ def fronting_test(
 
     success = False
     try:
+        compatible_ip = f"[{ip}]" if ":" in ip else ip
         r = s.get(
-            f"https://{ip}",
+            f"https://{compatible_ip}",
             timeout=timeout,
             headers={"Host": "speed.cloudflare.com"}
         )
