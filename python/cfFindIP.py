@@ -714,9 +714,10 @@ def get_num_ips_in_cidr(cidr):
     try:
         subnet_mask = int(parts[1])
     except IndexError as e:
-        subnet_mask = 32
+        subnet_mask = 128 if ":" in cidr else 32
+    n_ips = 2**(128 - subnet_mask) if ":" in cidr else 2**(32 - subnet_mask)
 
-    return (2**(32-subnet_mask))
+    return n_ips
 
 
 def save_results(
