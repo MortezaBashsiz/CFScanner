@@ -14,34 +14,13 @@ import (
 
 var (
 	PROGRAMDIR                = filepath.Dir(os.Args[0])
-	BINDIR                    = filepath.Join(PROGRAMDIR, "..", "bin")
+	BIN                       = filepath.Join(PROGRAMDIR, "..", "bin", "v2ray")
 	CONFIGDIR                 = filepath.Join(PROGRAMDIR, "..", "config")
 	RESULTDIR                 = filepath.Join(PROGRAMDIR, "..", "result")
 	START_DT_STR              = time.Now().Format("2006-01-02_15:04:05")
 	INTERIM_RESULTS_PATH      = filepath.Join(RESULTDIR, START_DT_STR+"_result.csv")
 	FINAL_RESULTS_PATH_SORTED = filepath.Join(RESULTDIR, START_DT_STR+"_final.txt")
 )
-
-type ConfigStruct struct {
-	Local_port           int
-	Address_port         string
-	User_id              string
-	Ws_header_host       string
-	Ws_header_path       string
-	Sni                  string
-	Do_upload_test       bool
-	Do_fronting_test     bool
-	Min_dl_speed         float64 // kilobytes per second
-	Min_ul_speed         float64 // kilobytes per second
-	Max_dl_time          float64 // seconds
-	Max_ul_time          float64 // seconds
-	Max_dl_latency       float64 // seconds
-	Max_ul_latency       float64 // seconds
-	Fronting_timeout     float64 // seconds
-	Startprocess_timeout float64 // seconds
-	N_tries              int
-	Vpn                  bool
-}
 
 func PrintInformation(Config ConfigStruct) {
 	fmt.Printf("-------------------------------------\n")

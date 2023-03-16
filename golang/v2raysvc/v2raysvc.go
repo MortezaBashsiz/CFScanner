@@ -81,7 +81,7 @@ func CreateV2rayConfig(IP string, testConfig configuration.ConfigStruct) string 
 	return configPath
 }
 
-// start v2ray service based on bin dir
+// start v2ray service based on bin path
 func StartV2RayService(v2rayConfPath string, timeout time.Duration) (*exec.Cmd, map[string]string, error) {
 	v2rayConfFile, err := os.Open(v2rayConfPath)
 	if err != nil {
@@ -98,7 +98,7 @@ func StartV2RayService(v2rayConfPath string, timeout time.Duration) (*exec.Cmd, 
 	v2rayListen := v2rayConf["inbounds"].([]interface{})[0].(map[string]interface{})["listen"].(string)
 	v2rayPort := int(v2rayConf["inbounds"].([]interface{})[0].(map[string]interface{})["port"].(float64))
 
-	v2rayCmd := exec.Command(path.Join(configuration.BINDIR, "v2ray"), "-c", v2rayConfPath)
+	v2rayCmd := exec.Command(path.Join(configuration.BIN), "-c", v2rayConfPath)
 	v2rayCmd.Stdout = nil
 	v2rayCmd.Stderr = nil
 
