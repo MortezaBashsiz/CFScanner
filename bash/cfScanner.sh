@@ -784,7 +784,7 @@ fi
 if [[ "$downloadOrUpload" == "UP" || "$downloadOrUpload" == "BOTH" ]]
 then
 	echo "You are testing upload"
-	echo "making upload file by size $fileSize KB in $uploadFile"
+	echo "making upload file by size $fileSize Bytes in $uploadFile"
 	ddSize="$(( 2*speed ))"
 	dd if=/dev/random of="$uploadFile" bs=1024 count="$ddSize" > /dev/null 2>&1
 fi
