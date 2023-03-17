@@ -6,10 +6,7 @@ import ipaddress
 import json
 import multiprocessing
 import os
-import platform
 import re
-import socket
-import socketserver
 import statistics
 import subprocess
 import sys
@@ -21,8 +18,9 @@ from threading import Thread
 from typing import Tuple
 
 import requests
-
-from clog import CLogger
+from clog.clog import CLogger
+from utils.sockettools import get_free_port, wait_for_port
+from utils.systemtools import detect_system, create_dir
 
 log = CLogger("CFScanner-python")
 
@@ -65,12 +63,6 @@ class _COLORS:
     ENDC = '\033[0m'
 
 
-def get_free_port():
-    with socketserver.TCPServer(("localhost", 0), None) as s:
-        free_port = s.server_address[1]
-    return free_port
-
-
 def create_proxy_config(
     edge_ip,
     test_config: TestConfig
@@ -100,32 +92,6 @@ def create_proxy_config(
         configFile.write(config)
 
     return config_path
-
-
-def wait_for_port(
-    port: int,
-    host: str = 'localhost',
-    timeout: float = 5.0
-) -> None:
-    """Wait until a port starts accepting TCP connections.
-    Args:
-        port: Port number.
-        host: Host address on which the port should exist.
-        timeout: In seconds. How long to wait before raising errors.
-    Raises:
-        TimeoutError: The port isn't accepting connection after time specified in `timeout`.
-    """
-    start_time = time.perf_counter()
-    while True:
-        try:
-            with socket.create_connection((host, port), timeout=timeout):
-                break
-        except OSError as ex:
-            time.sleep(0.01)
-            if time.perf_counter() - start_time >= timeout:
-                raise TimeoutError(
-                    f'Timeout exceeded for the port {port} on host {host} to start accepting connections.'
-                ) from ex
 
 
 def fronting_test(
@@ -180,26 +146,6 @@ def fronting_test(
     return success
 
 
-def current_platform() -> str:
-    """Get current platform name by short string."""
-    if sys.platform.startswith('linux'):
-        return 'linux'
-    elif sys.platform.startswith('darwin'):
-        if "arm" in platform.processor().lower():
-            return 'mac-arm'
-        else:
-            return 'mac'
-    elif (
-        sys.platform.startswith('win')
-        or sys.platform.startswith('msys')
-        or sys.platform.startswith('cyg')
-    ):
-        if sys.maxsize > 2 ** 31 - 1:
-            return 'win64'
-        return 'win32'
-    raise OSError('Unsupported platform: ' + sys.platform)
-
-
 def start_proxy_service(
     proxy_conf_path: str,
     timeout=5,
@@ -216,19 +162,20 @@ def start_proxy_service(
         Tuple[subprocess.Popen, dict]: the v2 ray process object and a dictionary containing the proxies to use with ``requests.get`` 
     """
     if use_xray:
-        if current_platform().startswith("mac"):
+        if detect_system()[0].startswith("mac"):
             binaryfile = os.path.join(BINDIR, "xray-mac")
-        elif current_platform() == "linux":
+        elif detect_system()[0] == "linux":
             binaryfile = os.path.join(BINDIR, "xray")
     else:
-        if current_platform().startswith("mac"):
+        if detect_system()[0].startswith("mac"):
             binaryfile = os.path.join(BINDIR, "v2ray-mac")
             v2ctl_binary = os.path.join(BINDIR, "v2ctl-mac")
-        elif current_platform() == "linux":
+        elif detect_system()[0] == "linux":
             binaryfile = os.path.join(BINDIR, "v2ray")
             v2ctl_binary = os.path.join(BINDIR, "v2ctl")
         else:
-            log.error(f"Platform {current_platform()} is not supported yet.")
+            log.error(
+                f"Platform {'-'.join(detect_system())} is not supported yet.")
             return None
 
     with open(proxy_conf_path, "r") as infile:
@@ -498,16 +445,10 @@ def check_ip(
 
 
 # TODO Rename this here and in `check_ip`
-def _extracted_from_check_ip_(ip, arg1, process):
-    print(f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s}{arg1}{_COLORS.ENDC}")
+def _extracted_from_check_ip_(ip, message, process):
+    print(f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s}{message}{_COLORS.ENDC}")
     process.kill()
     return False
-
-
-def create_dir(dir_path):
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
-        print(f"Directory created : {dir_path}")
 
 
 def create_test_config(args):
