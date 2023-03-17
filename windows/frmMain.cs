@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Security.Policy;
 using System.Windows.Forms;
+using System.Windows.Forms.Automation;
 using WinCFScan.Classes;
 using WinCFScan.Classes.Config;
 using WinCFScan.Classes.HTTPRequest;
@@ -31,6 +33,7 @@ namespace WinCFScan
         private Version appVersion;
         private AppUpdateChecker appUpdateChecker;
         private bool stopAvgTetingIsRequested;
+        private Stopwatch screenReaderStopWatch = new();
 
         public frmMain()
         {
@@ -59,7 +62,7 @@ namespace WinCFScan
             scanEngine = new ScanEngine();
 
             loadLastResultsComboList();
-            comboTargetSpeed.SelectedIndex = 2; // 100kb/s
+            comboTargetSpeed.SelectedIndex = 3; // 100kb/s
             comboDownloadTimeout.SelectedIndex = 0; //2 seconds timeout
             loadCustomConfigsComboList();
 
@@ -71,6 +74,8 @@ namespace WinCFScan
             this.Text += displayableVersion;
 
             appUpdateChecker = new AppUpdateChecker();
+
+            screenReaderStopWatch.Start();
 
             // is debug mode enable? this line should be at bottom line
             checkEnableDebugMode();
@@ -108,7 +113,7 @@ namespace WinCFScan
                 return (CustomConfigInfo)comboConfigs.SelectedItem;
             }
 
-            // return defualt config if nothing is selected
+            // return default config if nothing is selected
             return new CustomConfigInfo("Default", "Default");
         }
 
@@ -123,28 +128,30 @@ namespace WinCFScan
                 addTextLog("To exit debug mode delete 'enable-debug' file from the app directory and then re-open the app.");
 
                 string systemInfo = $"OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription} {System.Runtime.InteropServices.RuntimeInformation.OSArchitecture}, " +
-                    $"Cpu Arch: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}, Framework: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}";
+                    $"CPU Arch: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}, Framework: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}";
                 Tools.logStep($"\n\nApp started. Version: {appVersion}\n{systemInfo}");
             }
         }
 
         // add text log to log textbox
-        delegate void SetTextCallback(string log);
-        public void addTextLog(string log)
+        delegate void SetTextCallback(string log, bool sendToScreenReaderToo = false);
+        public void addTextLog(string log, bool sendToScreenReaderToo = false)
         {
             try
             {
                 if (this.txtLog.InvokeRequired)
                 {
                     SetTextCallback d = new SetTextCallback(addTextLog);
-                    this.Invoke(d, new object[] { log });
+                    this.Invoke(d, new object[] { log, sendToScreenReaderToo });
                 }
                 else
                 {
                     txtLog.AppendText(log + Environment.NewLine);
+                    if (sendToScreenReaderToo)
+                        sendScreenReaderMsg(log);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
             }
         }
@@ -181,8 +188,8 @@ namespace WinCFScan
                 waitUntilScannerStoped();
                 updateUIControlls(false);
             }
-            else
-            {   // start scan
+            else// start scan
+            {
                 if (inPrevResult)
                 {
                     if (currentScanResults.Count == 0)
@@ -190,7 +197,7 @@ namespace WinCFScan
                         addTextLog("Current result list is empty!");
                         return;
                     }
-                    addTextLog($"Start scanning {currentScanResults.Count} IPs in previous results...");
+                    addTextLog($"Start scanning {currentScanResults.Count} IPs in previous results...", true);
                 }
                 else
                 {
@@ -205,7 +212,7 @@ namespace WinCFScan
                     }
                     currentScanResults = new();
                     scanEngine.setCFIPRangeList(ipRanges);
-                    addTextLog($"Start scanning {ipRanges.Length} Cloudflare IP ranges...");
+                    addTextLog($"Start scanning {ipRanges.Length} Cloudflare IP ranges...", true);
                 }
 
                 updateUIControlls(true);
@@ -227,7 +234,7 @@ namespace WinCFScan
                     {
                         scanFinshed = true;
                         this.currentScanResults = scanEngine.progressInfo.scanResults.workingIPs;
-                        addTextLog($"{scanEngine.progressInfo.totalCheckedIP:n0} IPs tested and found {scanEngine.progressInfo.scanResults.totalFoundWorkingIPs:n0} working IPs.");
+                        addTextLog($"{scanEngine.progressInfo.totalCheckedIP:n0} IPs tested and found {scanEngine.progressInfo.scanResults.totalFoundWorkingIPs:n0} working IPs.", true);
                     });
 
                 tabControl1.SelectTab(1);
@@ -251,6 +258,7 @@ namespace WinCFScan
                 loadLastResultsComboList();
                 listResults.Items.Clear();
                 btnStart.Text = "Stop Scan";
+                //sendScreenReaderMsg("Scan Started");
                 btnScanInPrevResults.Enabled = false;
                 btnResultsActions.Enabled = false;
                 comboConcurrent.Enabled = false;
@@ -264,6 +272,8 @@ namespace WinCFScan
             else
             {   // is stopping
                 btnStart.Text = "Start Scan";
+                //sendScreenReaderMsg("Scan Stopped");
+                //btnStart.AccessibilityObject.RaiseLiveRegionChanged();
                 btnStart.Enabled = true;
                 btnScanInPrevResults.Enabled = true;
                 btnResultsActions.Enabled = true;
@@ -292,7 +302,7 @@ namespace WinCFScan
                 }
                 else
                 {
-                    // delete result file if there is no woriking ip
+                    // delete result file if there is no working ip
                     scanResults.remove();
                 }
 
@@ -300,9 +310,39 @@ namespace WinCFScan
 
                 // sort results list
                 listResultsColumnSorter.Order = SortOrder.Ascending;
-                listResultsColumnSorter.SortColumn = 0;
+                listResultsColumnSorter.SortColumn = 1;
                 listResults.Sort();
             }
+        }
+
+        private void sendScreenReaderMsg(string msg, bool skipIfTooFrequent = false, AutomationNotificationProcessing notifProcessing = AutomationNotificationProcessing.All)
+        {
+            var totalElapsed = screenReaderStopWatch.Elapsed.TotalSeconds;
+
+            // dont send it too frequent
+            if (totalElapsed < 5 && skipIfTooFrequent)
+            {
+                //addTextLog("sendScreenReaderMsg skipped " + totalElapsed);
+                return;
+            }
+
+
+            // if its to frequent wait a few
+            if (totalElapsed < 1)
+            {
+                var sw = new Stopwatch();
+                sw.Start();
+                do
+                {
+                    System.Windows.Forms.Application.DoEvents();
+                    Thread.Sleep(100);
+                } while (sw.Elapsed.TotalMilliseconds <= 1000);
+                //addTextLog($"waited for {sw.Elapsed.TotalMilliseconds} ms");
+
+            }
+            this.ActiveControl.AccessibilityObject.RaiseAutomationNotification(AutomationNotificationKind.Other, notifProcessing, msg);
+            //this.AccessibilityObject.RaiseAutomationNotification(AutomationNotificationKind.Other, notifProcessing, msg);
+            screenReaderStopWatch.Restart();
         }
 
         private void timerBase_Tick(object sender, EventArgs e)
@@ -366,10 +406,12 @@ namespace WinCFScan
             foreach (var message in messages)
             {
                 addTextLog(message);
+                if (message.StartsWith("Starting range: "))
+                    sendScreenReaderMsg("Starting next IP range...", true);
             }
         }
 
-        // fetch new woriking ips and add to the list view while scanning
+        // fetch new working ips and add to the list view while scanning
         private void fetchWorkingIPResults()
         {
             List<ResultItem> scanResults = scanEngine.progressInfo.scanResults.fetchWorkingIPs();
@@ -439,11 +481,14 @@ namespace WinCFScan
                 foreach (ResultItem resultItem in workingIPs)
                 {
                     index++;
-                    listResults.Items.Add(new ListViewItem(new string[] { resultItem.delay.ToString(), resultItem.ip }));
+                    listResults.Items.Add(new ListViewItem(new string[] { resultItem.ip, resultItem.delay.ToString() }));
                 }
                 listResults.EndUpdate();
                 listResults.ListViewItemSorter = listResultsColumnSorter;
                 lblPrevListTotalIPs.Text = $"{listResults.Items.Count:n0} IPs";
+
+                //if (screenReaderStopWatch.Elapsed.TotalSeconds > 5)
+                //    sendScreenReaderMsg($"Found {workingIPs.Count} new IP address.", true);
             }
         }
 
@@ -468,7 +513,7 @@ namespace WinCFScan
                     var checker = new CheckIPWorking();
                     if (!checker.checkFronting(false, 5))
                     {
-                        addTextLog($"Fronting domain is not accessible! you might need to get new fronting url from our github or check your internet connection.");
+                        addTextLog($"Fronting domain is not accessible! you might need to get new fronting url from our github or check your Internet connection.");
                     }
                 });
 
@@ -500,7 +545,7 @@ namespace WinCFScan
             }
             else
             {
-                addTextLog("Failed to update client config. check your internet connection or maybe client config url is blocked by your ISP!");
+                addTextLog("Failed to update client config. check your Internet connection or maybe client config url is blocked by your ISP!");
             }
 
             return result;
@@ -568,6 +613,11 @@ namespace WinCFScan
 
         // results actions
         private void btnResultsActions_MouseClick(object sender, MouseEventArgs e)
+        {
+            showResultsActionsMenu();
+        }
+
+        private void showResultsActionsMenu()
         {
             mnuResultsActions.Show(this, btnResultsActions.Left + 5, splitContainer1.Top + btnResultsActions.Top + btnResultsActions.Height + 25);
         }
@@ -638,12 +688,20 @@ namespace WinCFScan
         // user selected ip list of cloudflare
         private string[] getCheckedCFIPList(bool getIPCount = false)
         {
-            return listCFIPList.CheckedItems.Cast<ListViewItem>()
+            var ipList = listCFIPList.CheckedItems.Cast<ListViewItem>()
                                  .Select(item =>
                                  {
                                      return getIPCount ? item.SubItems[1].Text : item.SubItems[0].Text;
                                  })
                                  .ToArray<string>();
+
+            if (checkScanInRandomOrder.Checked)
+            {
+                Random rnd = new Random();
+                ipList = ipList.OrderBy(x => rnd.Next()).ToArray();
+            }
+
+            return ipList;
 
 
         }
@@ -696,15 +754,19 @@ namespace WinCFScan
 
         private ScanSpeed getTargetSpeed()
         {
-            int speed = int.Parse(comboTargetSpeed.SelectedItem.ToString().Replace(" KB/s", ""));
-            return new ScanSpeed(speed);
+            int speed;
+
+            if (int.TryParse(comboTargetSpeed.SelectedItem.ToString().Replace(" KB/s", ""), out speed))
+                return new ScanSpeed(speed);
+            else
+                return new ScanSpeed(0);
         }
 
         private string? getSelectedIPAddress()
         {
             try
             {
-                return listResults.SelectedItems[0].SubItems[1].Text;
+                return listResults.SelectedItems[0].SubItems[0].Text;
             }
             catch (Exception ex) { }
 
@@ -773,6 +835,7 @@ namespace WinCFScan
 
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
+            sendScreenReaderMsg("Exiting the App.");
             addTextLog("Exiting...");
             waitUntilScannerStoped();
         }
@@ -849,7 +912,7 @@ namespace WinCFScan
         // test user provided ip
         private void scanASingleIPAddressToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string input = Tools.ShowDialog("Enter a valid IP address:", "Test Sigle IP Address");
+            string input = Tools.ShowDialog("Enter a valid IP address:", "Test Single IP Address");
 
             if (input == "" || input == null) { return; }
 
@@ -930,7 +993,7 @@ namespace WinCFScan
                 return;
             }
 
-            saveFileDialog1.Title = $"Saving {resultIPs.Count} IP addressses";
+            saveFileDialog1.Title = $"Saving {resultIPs.Count} IP addresses";
             saveFileDialog1.FileName = $"scan-results-{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")}.txt";
             saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
             var result = saveFileDialog1.ShowDialog();
@@ -1033,7 +1096,7 @@ namespace WinCFScan
         {
             if (setClipboard(scanEngine.progressInfo.downloadExceptions.getTopExceptions(7)))
             {
-                addTextLog("Errors coppied to the clipboard.");
+                addTextLog("Errors copied to the clipboard.");
             }
             else
             {
@@ -1045,7 +1108,7 @@ namespace WinCFScan
         {
             if (setClipboard(scanEngine.progressInfo.frontingExceptions.getTopExceptions(7)))
             {
-                addTextLog("Errors coppied to the clipboard.");
+                addTextLog("Errors copied to the clipboard.");
             }
             else
             {
@@ -1059,7 +1122,7 @@ namespace WinCFScan
 
             if (timeout > 2)
             {
-                addTextLog($"Download timeout is set to {timeout} seconds. Only use higher timeout values if your v2ray server's responce is slow.");
+                addTextLog($"Download timeout is set to {timeout} seconds. Only use higher timeout values if your v2ray server's response is slow.");
             }
         }
 
@@ -1165,7 +1228,7 @@ namespace WinCFScan
 
         private void setAutoSkip(bool enabled, string message)
         {
-            string enabledStatus = enabled ? "enabled" : "disbaled";
+            string enabledStatus = enabled ? "enabled" : "disabled";
             addTextLog($"{message} {enabledStatus}.");
 
         }
@@ -1245,7 +1308,7 @@ namespace WinCFScan
                 averageDLDuration = totalDLDuration / totalSuccessCount;
                 averageFrontingDuration = totalFrontingDuration / totalSuccessCount;
 
-                string results = $"{IPAddress} => {totalSuccessCount}/{rounds} was successfull." + Environment.NewLine +
+                string results = $"{IPAddress} => {totalSuccessCount}/{rounds} was successful." + Environment.NewLine +
                     $"\tDownload: Best {bestDLDuration:n0} ms, Average: {averageDLDuration:n0} ms" + Environment.NewLine +
                     $"\tFronting: Best {bestFrontingDuration:n0} ms, Average: {averageFrontingDuration:n0} ms" + Environment.NewLine;
 
@@ -1287,7 +1350,7 @@ namespace WinCFScan
             stopAvgTetingIsRequested = false;
 
             var selectedIPs = listResults.SelectedItems.Cast<ListViewItem>()
-                                 .Select(item => item.SubItems[1].Text)
+                                 .Select(item => item.SubItems[0].Text)
                                  .ToArray<string>(); ;
 
 
@@ -1297,6 +1360,11 @@ namespace WinCFScan
 
             addTextLog($"Start testing {selectedIPs.Length} IPs for {rounds} rounds..." + Environment.NewLine +
                 $"\tTest spec: download size: {speed.getTargetFileSizeInt(timeout) / 1000} KB in {timeout} seconds." + Environment.NewLine);
+
+            if (speed.isSpeedZero())
+            {
+                addTextLog("** Warning: Testing in NO VPN mode. Choose a target download speed from above settings so we can test base on that target speed.");
+            }
 
             btnStopAvgTest.Visible = true;
             btnStopAvgTest.Enabled = true;
@@ -1351,7 +1419,7 @@ namespace WinCFScan
 
             if (ip != null)
             {
-                testSingleIPAddress(ip);
+                testAvgSingleIP(ip, 1, getTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
             }
         }
 
@@ -1359,6 +1427,73 @@ namespace WinCFScan
         {
             stopAvgTetingIsRequested = true;
             btnStopAvgTest.Enabled = false;
+        }
+
+        // Global Hotkeys
+        private void frmMain_KeyDown(object sender, KeyEventArgs e)
+        {
+            // start stop
+            if (e.Control && e.KeyCode == Keys.F5)
+            {
+                startStopScan(false);
+            }
+
+            // skip
+            if (e.Control && e.KeyCode == Keys.N)
+            {
+                if (scanEngine.progressInfo.isScanRunning)
+                    scanEngine.skipCurrentIPRange();
+            }
+        }
+
+        // show scan status
+        private void mnushowScanStatus_Click(object sender, EventArgs e)
+        {
+            var sInf = scanEngine.progressInfo;
+            string status = "";
+            if (sInf.isScanRunning)
+            {
+                status = $"Found {sInf.scanResults.totalFoundWorkingIPs} working IPs out of {sInf.totalCheckedIP} scanned IPs." + Environment.NewLine +
+                    $"{sInf.getCurrentRangePercentIsDone():f0}% of current range is done. This is {sInf.currentIPRangesNumber} of total {sInf.totalIPRanges} IP ranges.";
+            }
+            else
+            {
+                status = "Scan is not running.";
+            }
+
+            addTextLog(status);
+            sendScreenReaderMsg(status, false, AutomationNotificationProcessing.ImportantAll);
+        }
+
+        private void btnResultsActions_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Space)
+            {
+                showResultsActionsMenu();
+            }
+        }
+
+        private void btnResultsActions_KeyPress(object sender, KeyPressEventArgs e)
+        {
+
+        }
+
+        private void frmMain_KeyPress(object sender, KeyPressEventArgs e)
+        {
+
+        }
+
+        private void listResults_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            //sendScreenReaderMsg(getSelectedIPAddress() ?? "");
+        }
+
+        private void comboTargetSpeed_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboTargetSpeed.SelectedIndex == 0)
+            {
+                addTextLog("By selecting this option we won't test download speed via VPN and just quickly return all resolvable IPs.");
+            }
         }
     }
 
