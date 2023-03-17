@@ -36,7 +36,6 @@
             lblLastIPRange = new Label();
             timerProgress = new System.Windows.Forms.Timer(components);
             groupBox1 = new GroupBox();
-            lblTempInfo = new Label();
             toolStrip1 = new ToolStrip();
             btnStart = new ToolStripSplitButton();
             mnuPauseScan = new ToolStripMenuItem();
@@ -69,8 +68,8 @@
             btnScanInPrevResults = new Button();
             btnLoadIPRanges = new Button();
             listResults = new ListView();
-            hdrDelay = new ColumnHeader();
             hdrIP = new ColumnHeader();
+            hdrDelay = new ColumnHeader();
             mnuListView = new ContextMenuStrip(components);
             mnuListViewCopyIP = new ToolStripMenuItem();
             mnuTestThisIP = new ToolStripMenuItem();
@@ -105,6 +104,7 @@
             addCustomV2rayConfigToolStripMenuItem = new ToolStripMenuItem();
             downloadTimeoutToolStripMenuItem = new ToolStripMenuItem();
             comboDownloadTimeout = new ToolStripComboBox();
+            mnushowScanStatus = new ToolStripMenuItem();
             toolStripSeparator5 = new ToolStripSeparator();
             checkForUpdateToolStripMenuItem = new ToolStripMenuItem();
             updateClientConfigCloudflareSubnetsToolStripMenuItem = new ToolStripMenuItem();
@@ -145,6 +145,8 @@
             // 
             // txtLog
             // 
+            txtLog.AccessibleDescription = "A textbox to show all sort of information about things that are happening in the App.";
+            txtLog.AccessibleName = "Scan Logs";
             txtLog.BackColor = Color.FromArgb(21, 23, 24);
             txtLog.Dock = DockStyle.Fill;
             txtLog.Font = new Font("Consolas", 9F, FontStyle.Regular, GraphicsUnit.Point);
@@ -190,7 +192,6 @@
             // groupBox1
             // 
             groupBox1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            groupBox1.Controls.Add(lblTempInfo);
             groupBox1.Controls.Add(toolStrip1);
             groupBox1.Controls.Add(lblDebugMode);
             groupBox1.Controls.Add(btnCopyFastestIP);
@@ -205,19 +206,10 @@
             groupBox1.TabIndex = 3;
             groupBox1.TabStop = false;
             // 
-            // lblTempInfo
-            // 
-            lblTempInfo.BackColor = Color.LightGray;
-            lblTempInfo.ForeColor = SystemColors.ControlText;
-            lblTempInfo.Location = new Point(267, 57);
-            lblTempInfo.Name = "lblTempInfo";
-            lblTempInfo.Size = new Size(201, 63);
-            lblTempInfo.TabIndex = 17;
-            lblTempInfo.Text = "bebug";
-            lblTempInfo.Visible = false;
-            // 
             // toolStrip1
             // 
+            toolStrip1.AccessibleDescription = "A toolbar including main scan settings and progress info and also start/stop button.";
+            toolStrip1.AccessibleName = "Main scan settings";
             toolStrip1.GripStyle = ToolStripGripStyle.Hidden;
             toolStrip1.ImageScalingSize = new Size(20, 20);
             toolStrip1.Items.AddRange(new ToolStripItem[] { btnStart, toolStripSeparator2, comboConcurrent, lblConcurrent, comboTargetSpeed, lblTargetSpeed, comboConfigs, toolStripLabel3, toolStripSeparator1, prgOveral, toolStripLabel1, btnSkipCurRange, prgCurRange, toolStripLabel2 });
@@ -225,11 +217,14 @@
             toolStrip1.Name = "toolStrip1";
             toolStrip1.RightToLeft = RightToLeft.Yes;
             toolStrip1.Size = new Size(846, 33);
-            toolStrip1.TabIndex = 16;
+            toolStrip1.TabIndex = 1;
+            toolStrip1.TabStop = true;
             toolStrip1.Text = "toolStrip1";
             // 
             // btnStart
             // 
+            btnStart.AccessibleDescription = "A button to start or stop the scan";
+            btnStart.AccessibleName = "Start or Stop the scan";
             btnStart.AutoSize = false;
             btnStart.BackColor = SystemColors.Control;
             btnStart.DisplayStyle = ToolStripItemDisplayStyle.Text;
@@ -242,14 +237,14 @@
             btnStart.RightToLeft = RightToLeft.No;
             btnStart.Size = new Size(95, 30);
             btnStart.Text = "Start Scan";
-            btnStart.ToolTipText = "Scan in selected IP ranges of Cloudflare";
+            btnStart.ToolTipText = "Scan in selected IP ranges of Cloudflare (Ctrl + F5)";
             btnStart.ButtonClick += btnStart_ButtonClick;
             btnStart.Click += btnStart_Click;
             // 
             // mnuPauseScan
             // 
             mnuPauseScan.Name = "mnuPauseScan";
-            mnuPauseScan.Size = new Size(134, 22);
+            mnuPauseScan.Size = new Size(180, 22);
             mnuPauseScan.Text = "Pause Scan";
             mnuPauseScan.Visible = false;
             // 
@@ -260,6 +255,8 @@
             // 
             // comboConcurrent
             // 
+            comboConcurrent.AccessibleDescription = "A box for setting number of concurrent scanner threads";
+            comboConcurrent.AccessibleName = "Parallel Threads";
             comboConcurrent.AutoSize = false;
             comboConcurrent.DropDownWidth = 50;
             comboConcurrent.FlatStyle = FlatStyle.System;
@@ -279,6 +276,8 @@
             // 
             // comboTargetSpeed
             // 
+            comboTargetSpeed.AccessibleDescription = "A menu to set your desired download speed while testing IPs";
+            comboTargetSpeed.AccessibleName = "Target download speed";
             comboTargetSpeed.AutoSize = false;
             comboTargetSpeed.DropDownStyle = ComboBoxStyle.DropDownList;
             comboTargetSpeed.FlatStyle = FlatStyle.System;
@@ -333,6 +332,8 @@
             // 
             // btnSkipCurRange
             // 
+            btnSkipCurRange.AccessibleDescription = "A button to allow you skipp current IP range and go for next range";
+            btnSkipCurRange.AccessibleName = "Skip current IP range";
             btnSkipCurRange.DisplayStyle = ToolStripItemDisplayStyle.Text;
             btnSkipCurRange.DropDownItems.AddRange(new ToolStripItem[] { mnuSkipAfterFoundIPs, mnuSkipAfterAWhile, toolStripSeparator6, mnuSkipAfter10Percent, mnuSkipAfter30Percent, mnuSkipAfter50Percent });
             btnSkipCurRange.Image = (Image)resources.GetObject("btnSkipCurRange.Image");
@@ -343,7 +344,7 @@
             btnSkipCurRange.RightToLeft = RightToLeft.No;
             btnSkipCurRange.Size = new Size(47, 30);
             btnSkipCurRange.Text = "Skip";
-            btnSkipCurRange.ToolTipText = "Skip curent IP range";
+            btnSkipCurRange.ToolTipText = "Skip curent IP range (Ctrl+N)";
             btnSkipCurRange.ButtonClick += btnSkipCurRange_ButtonClick;
             // 
             // mnuSkipAfterFoundIPs
@@ -398,7 +399,7 @@
             // 
             prgCurRange.AutoSize = false;
             prgCurRange.Name = "prgCurRange";
-            prgCurRange.Size = new Size(69, 19);
+            prgCurRange.Size = new Size(90, 25);
             prgCurRange.ToolTipText = "Current IP range progress";
             // 
             // toolStripLabel2
@@ -424,17 +425,22 @@
             // 
             // btnCopyFastestIP
             // 
+            btnCopyFastestIP.AccessibleDescription = "A button for copy fastest found IP address into the clipboard";
+            btnCopyFastestIP.AccessibleName = "Copy fastest IP address";
             btnCopyFastestIP.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnCopyFastestIP.Location = new Point(695, 55);
             btnCopyFastestIP.Name = "btnCopyFastestIP";
             btnCopyFastestIP.Size = new Size(151, 25);
-            btnCopyFastestIP.TabIndex = 10;
+            btnCopyFastestIP.TabIndex = 2;
             btnCopyFastestIP.Text = "Copy fastest IP";
             btnCopyFastestIP.UseVisualStyleBackColor = true;
             btnCopyFastestIP.Click += btnCopyFastestIP_Click;
             // 
             // txtFastestIP
             // 
+            txtFastestIP.AccessibleDescription = "A textbox to show fastest IP found by scanner";
+            txtFastestIP.AccessibleName = "Fastest IP found";
+            txtFastestIP.AccessibleRole = AccessibleRole.Text;
             txtFastestIP.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             txtFastestIP.BackColor = Color.White;
             txtFastestIP.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
@@ -444,7 +450,7 @@
             txtFastestIP.PlaceholderText = "Fastest IP";
             txtFastestIP.ReadOnly = true;
             txtFastestIP.Size = new Size(203, 23);
-            txtFastestIP.TabIndex = 11;
+            txtFastestIP.TabIndex = 3;
             // 
             // lblTotalWorkingIPs
             // 
@@ -495,6 +501,8 @@
             // 
             // btnLoadIPRanges
             // 
+            btnLoadIPRanges.AccessibleDescription = "A botton to allow you to load your custom Cloudflare IP ranges into the app";
+            btnLoadIPRanges.AccessibleName = "Load custom IP ranges";
             btnLoadIPRanges.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnLoadIPRanges.Location = new Point(542, 8);
             btnLoadIPRanges.Name = "btnLoadIPRanges";
@@ -508,28 +516,29 @@
             // listResults
             // 
             listResults.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            listResults.Columns.AddRange(new ColumnHeader[] { hdrDelay, hdrIP });
+            listResults.Columns.AddRange(new ColumnHeader[] { hdrIP, hdrDelay });
             listResults.FullRowSelect = true;
             listResults.GridLines = true;
             listResults.Location = new Point(0, 40);
             listResults.Name = "listResults";
-            listResults.Size = new Size(844, 220);
+            listResults.Size = new Size(844, 219);
             listResults.TabIndex = 4;
             listResults.UseCompatibleStateImageBehavior = false;
             listResults.View = View.Details;
             listResults.ColumnClick += listResults_ColumnClick;
+            listResults.SelectedIndexChanged += listResults_SelectedIndexChanged;
             listResults.MouseClick += listResults_MouseClick;
             listResults.MouseDoubleClick += listResults_MouseDoubleClick;
-            // 
-            // hdrDelay
-            // 
-            hdrDelay.Text = "Delay";
-            hdrDelay.Width = 90;
             // 
             // hdrIP
             // 
             hdrIP.Text = "IP Address";
             hdrIP.Width = 140;
+            // 
+            // hdrDelay
+            // 
+            hdrDelay.Text = "Delay";
+            hdrDelay.Width = 90;
             // 
             // mnuListView
             // 
@@ -600,6 +609,8 @@
             // 
             // tabControl1
             // 
+            tabControl1.AccessibleDescription = "";
+            tabControl1.AccessibleName = "";
             tabControl1.Controls.Add(tabPageCFRanges);
             tabControl1.Controls.Add(tabPageResults);
             tabControl1.Dock = DockStyle.Fill;
@@ -607,10 +618,12 @@
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
             tabControl1.Size = new Size(852, 294);
-            tabControl1.TabIndex = 9;
+            tabControl1.TabIndex = 4;
             // 
             // tabPageCFRanges
             // 
+            tabPageCFRanges.AccessibleDescription = "A tab to allow you see and choose which IP ranges you want to do scan on it.";
+            tabPageCFRanges.AccessibleName = "Cloudflare IP ranges list";
             tabPageCFRanges.BackColor = Color.Transparent;
             tabPageCFRanges.Controls.Add(listCFIPList);
             tabPageCFRanges.Controls.Add(btnLoadIPRanges);
@@ -619,7 +632,7 @@
             tabPageCFRanges.Controls.Add(btnSelectAllIPRanges);
             tabPageCFRanges.Location = new Point(4, 24);
             tabPageCFRanges.Name = "tabPageCFRanges";
-            tabPageCFRanges.Padding = new Padding(3, 3, 3, 3);
+            tabPageCFRanges.Padding = new Padding(3);
             tabPageCFRanges.Size = new Size(844, 266);
             tabPageCFRanges.TabIndex = 1;
             tabPageCFRanges.Text = "Cloudflare IP ranges";
@@ -659,6 +672,7 @@
             // 
             // btnSelectNoneIPRanges
             // 
+            btnSelectNoneIPRanges.AccessibleName = "Unselect all Cloudflare IP ranges";
             btnSelectNoneIPRanges.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnSelectNoneIPRanges.Location = new Point(653, 9);
             btnSelectNoneIPRanges.Name = "btnSelectNoneIPRanges";
@@ -670,6 +684,7 @@
             // 
             // btnSelectAllIPRanges
             // 
+            btnSelectAllIPRanges.AccessibleName = "Select all Cloudflare IP ranges";
             btnSelectAllIPRanges.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnSelectAllIPRanges.Location = new Point(750, 9);
             btnSelectAllIPRanges.Name = "btnSelectAllIPRanges";
@@ -681,6 +696,8 @@
             // 
             // tabPageResults
             // 
+            tabPageResults.AccessibleDescription = "A tab to display found IP addresses and also show previous results.";
+            tabPageResults.AccessibleName = "Scan Result tab";
             tabPageResults.Controls.Add(btnStopAvgTest);
             tabPageResults.Controls.Add(lblPrevListTotalIPs);
             tabPageResults.Controls.Add(lblPrevResults);
@@ -690,8 +707,8 @@
             tabPageResults.Controls.Add(listResults);
             tabPageResults.Location = new Point(4, 24);
             tabPageResults.Name = "tabPageResults";
-            tabPageResults.Padding = new Padding(3, 3, 3, 3);
-            tabPageResults.Size = new Size(844, 267);
+            tabPageResults.Padding = new Padding(3);
+            tabPageResults.Size = new Size(844, 266);
             tabPageResults.TabIndex = 0;
             tabPageResults.Text = "Scan Results";
             tabPageResults.UseVisualStyleBackColor = true;
@@ -727,6 +744,7 @@
             // 
             // btnResultsActions
             // 
+            btnResultsActions.AccessibleDescription = "Enter Space to open Actions menu";
             btnResultsActions.Location = new Point(540, 10);
             btnResultsActions.Name = "btnResultsActions";
             btnResultsActions.Size = new Size(115, 24);
@@ -734,6 +752,8 @@
             btnResultsActions.Text = "Actions";
             btnResultsActions.UseVisualStyleBackColor = true;
             btnResultsActions.Click += btnResultsActions_Click;
+            btnResultsActions.KeyDown += btnResultsActions_KeyDown;
+            btnResultsActions.KeyPress += btnResultsActions_KeyPress;
             btnResultsActions.MouseClick += btnResultsActions_MouseClick;
             // 
             // mnuMain
@@ -793,7 +813,7 @@
             // 
             // toolsToolStripMenuItem
             // 
-            toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { scanASingleIPAddressToolStripMenuItem, addCustomV2rayConfigToolStripMenuItem, downloadTimeoutToolStripMenuItem, toolStripSeparator5, checkForUpdateToolStripMenuItem, updateClientConfigCloudflareSubnetsToolStripMenuItem });
+            toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { scanASingleIPAddressToolStripMenuItem, addCustomV2rayConfigToolStripMenuItem, downloadTimeoutToolStripMenuItem, mnushowScanStatus, toolStripSeparator5, checkForUpdateToolStripMenuItem, updateClientConfigCloudflareSubnetsToolStripMenuItem });
             toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             toolsToolStripMenuItem.Size = new Size(46, 20);
             toolsToolStripMenuItem.Text = "Tools";
@@ -827,6 +847,14 @@
             comboDownloadTimeout.Name = "comboDownloadTimeout";
             comboDownloadTimeout.Size = new Size(121, 23);
             comboDownloadTimeout.SelectedIndexChanged += comboDownloadTimeout_SelectedIndexChanged;
+            // 
+            // mnushowScanStatus
+            // 
+            mnushowScanStatus.Name = "mnushowScanStatus";
+            mnushowScanStatus.ShortcutKeys = Keys.Control | Keys.I;
+            mnushowScanStatus.Size = new Size(297, 22);
+            mnushowScanStatus.Text = "Show scan status";
+            mnushowScanStatus.Click += mnushowScanStatus_Click;
             // 
             // toolStripSeparator5
             // 
@@ -883,28 +911,28 @@
             mnuResultsActions.ImageScalingSize = new Size(20, 20);
             mnuResultsActions.Items.AddRange(new ToolStripItem[] { exportResultsToolStripMenuItem, importResultsToolStripMenuItem, deleteResultsToolStripMenuItem });
             mnuResultsActions.Name = "mnuResultsActions";
-            mnuResultsActions.Size = new Size(148, 70);
+            mnuResultsActions.Size = new Size(181, 70);
             mnuResultsActions.Text = "Actions";
             // 
             // exportResultsToolStripMenuItem
             // 
             exportResultsToolStripMenuItem.Name = "exportResultsToolStripMenuItem";
-            exportResultsToolStripMenuItem.Size = new Size(147, 22);
+            exportResultsToolStripMenuItem.Size = new Size(180, 22);
             exportResultsToolStripMenuItem.Text = "Export results";
             exportResultsToolStripMenuItem.Click += exportResultsToolStripMenuItem_Click;
             // 
             // importResultsToolStripMenuItem
             // 
             importResultsToolStripMenuItem.Name = "importResultsToolStripMenuItem";
-            importResultsToolStripMenuItem.Size = new Size(147, 22);
+            importResultsToolStripMenuItem.Size = new Size(180, 22);
             importResultsToolStripMenuItem.Text = "Import results";
             importResultsToolStripMenuItem.Click += importResultsToolStripMenuItem_Click;
             // 
             // deleteResultsToolStripMenuItem
             // 
             deleteResultsToolStripMenuItem.Name = "deleteResultsToolStripMenuItem";
-            deleteResultsToolStripMenuItem.Size = new Size(147, 22);
-            deleteResultsToolStripMenuItem.Text = "Delete results";
+            deleteResultsToolStripMenuItem.Size = new Size(180, 22);
+            deleteResultsToolStripMenuItem.Text = "Delete current result";
             deleteResultsToolStripMenuItem.Click += deleteResultsToolStripMenuItem_Click;
             // 
             // toolStripBottom
@@ -1016,12 +1044,15 @@
             Controls.Add(splitContainer1);
             Controls.Add(groupBox1);
             Icon = (Icon)resources.GetObject("$this.Icon");
+            KeyPreview = true;
             MaximizeBox = false;
             MaximumSize = new Size(1200, 896);
             MinimumSize = new Size(894, 690);
             Name = "frmMain";
             Text = "Cloudflare Scan";
             FormClosing += frmMain_FormClosing;
+            KeyDown += frmMain_KeyDown;
+            KeyPress += frmMain_KeyPress;
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
             toolStrip1.ResumeLayout(false);
@@ -1133,7 +1164,6 @@
         private ToolStripMenuItem mnuHelpOurGitHub;
         private ToolStripLabel lblAutoSkipStatus;
         private ToolStripSeparator toolStripSeparator4;
-        private Label lblTempInfo;
         private ToolStripLabel lblRunningWorkers;
         private ToolStripLabel linkBuyMeCoffee;
         private ToolStripSeparator toolStripSeparator5;
@@ -1145,5 +1175,6 @@
         private ToolStripSeparator toolStripSeparator6;
         private Button btnStopAvgTest;
         private ToolStripMenuItem mnuTestThisIP;
+        private ToolStripMenuItem mnushowScanStatus;
     }
 }

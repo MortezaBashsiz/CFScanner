@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Security.Policy;
 using System.Windows.Forms;
+using System.Windows.Forms.Automation;
 using WinCFScan.Classes;
 using WinCFScan.Classes.Config;
 using WinCFScan.Classes.HTTPRequest;
@@ -31,6 +32,7 @@ namespace WinCFScan
         private Version appVersion;
         private AppUpdateChecker appUpdateChecker;
         private bool stopAvgTetingIsRequested;
+        private Stopwatch screenReaderStopWatch = new();
 
         public frmMain()
         {
@@ -71,6 +73,8 @@ namespace WinCFScan
             this.Text += displayableVersion;
 
             appUpdateChecker = new AppUpdateChecker();
+
+            screenReaderStopWatch.Start();
 
             // is debug mode enable? this line should be at bottom line
             checkEnableDebugMode();
@@ -129,22 +133,24 @@ namespace WinCFScan
         }
 
         // add text log to log textbox
-        delegate void SetTextCallback(string log);
-        public void addTextLog(string log)
+        delegate void SetTextCallback(string log, bool sendToScreenReaderToo = false);
+        public void addTextLog(string log, bool sendToScreenReaderToo = false)
         {
             try
             {
                 if (this.txtLog.InvokeRequired)
                 {
                     SetTextCallback d = new SetTextCallback(addTextLog);
-                    this.Invoke(d, new object[] { log });
+                    this.Invoke(d, new object[] { log, sendToScreenReaderToo });
                 }
                 else
                 {
                     txtLog.AppendText(log + Environment.NewLine);
+                    if (sendToScreenReaderToo)
+                        sendScreenReaderMsg(log);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
             }
         }
@@ -190,7 +196,7 @@ namespace WinCFScan
                         addTextLog("Current result list is empty!");
                         return;
                     }
-                    addTextLog($"Start scanning {currentScanResults.Count} IPs in previous results...");
+                    addTextLog($"Start scanning {currentScanResults.Count} IPs in previous results...", true);
                 }
                 else
                 {
@@ -205,7 +211,7 @@ namespace WinCFScan
                     }
                     currentScanResults = new();
                     scanEngine.setCFIPRangeList(ipRanges);
-                    addTextLog($"Start scanning {ipRanges.Length} Cloudflare IP ranges...");
+                    addTextLog($"Start scanning {ipRanges.Length} Cloudflare IP ranges...", true);
                 }
 
                 updateUIControlls(true);
@@ -227,7 +233,7 @@ namespace WinCFScan
                     {
                         scanFinshed = true;
                         this.currentScanResults = scanEngine.progressInfo.scanResults.workingIPs;
-                        addTextLog($"{scanEngine.progressInfo.totalCheckedIP:n0} IPs tested and found {scanEngine.progressInfo.scanResults.totalFoundWorkingIPs:n0} working IPs.");
+                        addTextLog($"{scanEngine.progressInfo.totalCheckedIP:n0} IPs tested and found {scanEngine.progressInfo.scanResults.totalFoundWorkingIPs:n0} working IPs.", true);
                     });
 
                 tabControl1.SelectTab(1);
@@ -251,6 +257,7 @@ namespace WinCFScan
                 loadLastResultsComboList();
                 listResults.Items.Clear();
                 btnStart.Text = "Stop Scan";
+                //sendScreenReaderMsg("Scan Started");
                 btnScanInPrevResults.Enabled = false;
                 btnResultsActions.Enabled = false;
                 comboConcurrent.Enabled = false;
@@ -264,6 +271,8 @@ namespace WinCFScan
             else
             {   // is stopping
                 btnStart.Text = "Start Scan";
+                //sendScreenReaderMsg("Scan Stopped");
+                //btnStart.AccessibilityObject.RaiseLiveRegionChanged();
                 btnStart.Enabled = true;
                 btnScanInPrevResults.Enabled = true;
                 btnResultsActions.Enabled = true;
@@ -300,9 +309,39 @@ namespace WinCFScan
 
                 // sort results list
                 listResultsColumnSorter.Order = SortOrder.Ascending;
-                listResultsColumnSorter.SortColumn = 0;
+                listResultsColumnSorter.SortColumn = 1;
                 listResults.Sort();
             }
+        }
+
+        private void sendScreenReaderMsg(string msg, bool skipIfTooFrequent = false, AutomationNotificationProcessing notifProcessing = AutomationNotificationProcessing.All)
+        {
+            var totalElapsed = screenReaderStopWatch.Elapsed.TotalSeconds;
+
+            // dont send it too frequent
+            if (totalElapsed < 5 && skipIfTooFrequent)
+            {
+                //addTextLog("sendScreenReaderMsg skipped " + totalElapsed);
+                return;
+            }
+
+
+            // if its to frequent wait afew
+            if (totalElapsed < 1)
+            {
+                var sw = new Stopwatch();
+                sw.Start();
+                do
+                {
+                    System.Windows.Forms.Application.DoEvents();
+                    Thread.Sleep(100);
+                } while (sw.Elapsed.TotalMilliseconds <= 1000);
+                //addTextLog($"waited for {sw.Elapsed.TotalMilliseconds} ms");
+
+            }
+            this.ActiveControl.AccessibilityObject.RaiseAutomationNotification(AutomationNotificationKind.Other, notifProcessing, msg);
+            //this.AccessibilityObject.RaiseAutomationNotification(AutomationNotificationKind.Other, notifProcessing, msg);
+            screenReaderStopWatch.Restart();
         }
 
         private void timerBase_Tick(object sender, EventArgs e)
@@ -366,6 +405,8 @@ namespace WinCFScan
             foreach (var message in messages)
             {
                 addTextLog(message);
+                if (message.StartsWith("Starting range: "))
+                    sendScreenReaderMsg("Starting next IP range...", true);
             }
         }
 
@@ -439,11 +480,14 @@ namespace WinCFScan
                 foreach (ResultItem resultItem in workingIPs)
                 {
                     index++;
-                    listResults.Items.Add(new ListViewItem(new string[] { resultItem.delay.ToString(), resultItem.ip }));
+                    listResults.Items.Add(new ListViewItem(new string[] { resultItem.ip, resultItem.delay.ToString() }));
                 }
                 listResults.EndUpdate();
                 listResults.ListViewItemSorter = listResultsColumnSorter;
                 lblPrevListTotalIPs.Text = $"{listResults.Items.Count:n0} IPs";
+
+                //if (screenReaderStopWatch.Elapsed.TotalSeconds > 5)
+                //    sendScreenReaderMsg($"Found {workingIPs.Count} new IP address.", true);
             }
         }
 
@@ -568,6 +612,11 @@ namespace WinCFScan
 
         // results actions
         private void btnResultsActions_MouseClick(object sender, MouseEventArgs e)
+        {
+            showResultsActionsMenu();
+        }
+
+        private void showResultsActionsMenu()
         {
             mnuResultsActions.Show(this, btnResultsActions.Left + 5, splitContainer1.Top + btnResultsActions.Top + btnResultsActions.Height + 25);
         }
@@ -704,7 +753,7 @@ namespace WinCFScan
         {
             try
             {
-                return listResults.SelectedItems[0].SubItems[1].Text;
+                return listResults.SelectedItems[0].SubItems[0].Text;
             }
             catch (Exception ex) { }
 
@@ -773,6 +822,7 @@ namespace WinCFScan
 
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
+            sendScreenReaderMsg("Exiting the App.");
             addTextLog("Exiting...");
             waitUntilScannerStoped();
         }
@@ -1287,7 +1337,7 @@ namespace WinCFScan
             stopAvgTetingIsRequested = false;
 
             var selectedIPs = listResults.SelectedItems.Cast<ListViewItem>()
-                                 .Select(item => item.SubItems[1].Text)
+                                 .Select(item => item.SubItems[0].Text)
                                  .ToArray<string>(); ;
 
 
@@ -1359,6 +1409,65 @@ namespace WinCFScan
         {
             stopAvgTetingIsRequested = true;
             btnStopAvgTest.Enabled = false;
+        }
+
+        // Global Hotkeys
+        private void frmMain_KeyDown(object sender, KeyEventArgs e)
+        {
+            // start stop
+            if (e.Control && e.KeyCode == Keys.F5)
+            {
+                startStopScan(false);
+            }
+
+            // skip
+            if (e.Control && e.KeyCode == Keys.N)
+            {
+                if (scanEngine.progressInfo.isScanRunning)
+                    scanEngine.skipCurrentIPRange();
+            }
+        }
+
+        // show scan status
+        private void mnushowScanStatus_Click(object sender, EventArgs e)
+        {
+            var sInf = scanEngine.progressInfo;
+            string status = "";
+            if (sInf.isScanRunning)
+            {
+                status = $"Found {sInf.scanResults.totalFoundWorkingIPs} working IPs out of {sInf.totalCheckedIP} scanned IPs." + Environment.NewLine +
+                    $"{sInf.getCurrentRangePercentIsDone():f0}% of current range is done. This is {sInf.currentIPRangesNumber} of total {sInf.totalIPRanges} IP ranges.";
+            }
+            else
+            {
+                status = "Scan is not running.";
+            }
+
+            addTextLog(status);
+            sendScreenReaderMsg(status, false, AutomationNotificationProcessing.ImportantAll);
+        }
+
+        private void btnResultsActions_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Space)
+            {
+                showResultsActionsMenu();
+            }
+        }
+
+        private void btnResultsActions_KeyPress(object sender, KeyPressEventArgs e)
+        {
+
+        }
+
+        private void frmMain_KeyPress(object sender, KeyPressEventArgs e)
+        {
+
+        }
+
+        private void listResults_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            //sendScreenReaderMsg(getSelectedIPAddress() ?? "");
         }
     }
 

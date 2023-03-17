@@ -100,6 +100,7 @@ namespace WinCFScan.Classes
 
                 progressInfo.totalCheckedIPInCurIPRange = 0;
                 progressInfo.scanResults.totalFoundWorkingIPsCurrentRange = 0;
+                progressInfo.currentIPRangesNumber = 1;
 
                 if (isValidIPRange(cfIP))
                 {
@@ -107,7 +108,7 @@ namespace WinCFScan.Classes
                     progressInfo.currentIPRange = cfIP;
                     progressInfo.currentIPRangeTotalIPs = ipRange.Count();
                     LogControl.Write(String.Format("Start scanning {0} ip in {1}", ipRange.Count, cfIP));
-                    logMessages.Add($"Starting {cfIP} ...");
+                    logMessages.Add($"Starting range: {cfIP} ...");
                     curRangeTimer = Stopwatch.StartNew();
                     parallelScan(ipRange);
                     LogControl.Write(String.Format("End of scanning {0} {1} ip in {2} sec\n\n", cfIP, ipRange.Count, curRangeTimer.Elapsed.TotalSeconds));
