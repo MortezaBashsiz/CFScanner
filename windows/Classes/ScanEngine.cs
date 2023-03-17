@@ -172,7 +172,7 @@ namespace WinCFScan.Classes
                     // should we auto skip?
                     checkForAutoSkips();
 
-                    // monitoring excpetions rate
+                    // monitoring exceptions rate
                     monitoExceptions(checker);
                 }
                 );
@@ -193,7 +193,7 @@ namespace WinCFScan.Classes
 
         private void monitoExceptions(CheckIPWorking checker)
         {
-            // monitoring excpetions rate
+            // monitoring exceptions rate
             if (checker.downloadException != "")
                 progressInfo.downloadExceptions.addError(checker.downloadException);
             else
@@ -268,7 +268,7 @@ namespace WinCFScan.Classes
                 return true;
             }
 
-            progressInfo.lastErrMessage = "Invalid couldflare IP list";
+            progressInfo.lastErrMessage = "Invalid cloudflare IP list";
             progressInfo.hasError = true;
             return false;
         }

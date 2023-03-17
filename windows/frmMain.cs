@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Security.Policy;
@@ -61,7 +62,7 @@ namespace WinCFScan
             scanEngine = new ScanEngine();
 
             loadLastResultsComboList();
-            comboTargetSpeed.SelectedIndex = 2; // 100kb/s
+            comboTargetSpeed.SelectedIndex = 3; // 100kb/s
             comboDownloadTimeout.SelectedIndex = 0; //2 seconds timeout
             loadCustomConfigsComboList();
 
@@ -112,7 +113,7 @@ namespace WinCFScan
                 return (CustomConfigInfo)comboConfigs.SelectedItem;
             }
 
-            // return defualt config if nothing is selected
+            // return default config if nothing is selected
             return new CustomConfigInfo("Default", "Default");
         }
 
@@ -127,7 +128,7 @@ namespace WinCFScan
                 addTextLog("To exit debug mode delete 'enable-debug' file from the app directory and then re-open the app.");
 
                 string systemInfo = $"OS: {System.Runtime.InteropServices.RuntimeInformation.OSDescription} {System.Runtime.InteropServices.RuntimeInformation.OSArchitecture}, " +
-                    $"Cpu Arch: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}, Framework: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}";
+                    $"CPU Arch: {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}, Framework: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}";
                 Tools.logStep($"\n\nApp started. Version: {appVersion}\n{systemInfo}");
             }
         }
@@ -301,7 +302,7 @@ namespace WinCFScan
                 }
                 else
                 {
-                    // delete result file if there is no woriking ip
+                    // delete result file if there is no working ip
                     scanResults.remove();
                 }
 
@@ -326,7 +327,7 @@ namespace WinCFScan
             }
 
 
-            // if its to frequent wait afew
+            // if its to frequent wait a few
             if (totalElapsed < 1)
             {
                 var sw = new Stopwatch();
@@ -410,7 +411,7 @@ namespace WinCFScan
             }
         }
 
-        // fetch new woriking ips and add to the list view while scanning
+        // fetch new working ips and add to the list view while scanning
         private void fetchWorkingIPResults()
         {
             List<ResultItem> scanResults = scanEngine.progressInfo.scanResults.fetchWorkingIPs();
@@ -512,7 +513,7 @@ namespace WinCFScan
                     var checker = new CheckIPWorking();
                     if (!checker.checkFronting(false, 5))
                     {
-                        addTextLog($"Fronting domain is not accessible! you might need to get new fronting url from our github or check your internet connection.");
+                        addTextLog($"Fronting domain is not accessible! you might need to get new fronting url from our github or check your Internet connection.");
                     }
                 });
 
@@ -544,7 +545,7 @@ namespace WinCFScan
             }
             else
             {
-                addTextLog("Failed to update client config. check your internet connection or maybe client config url is blocked by your ISP!");
+                addTextLog("Failed to update client config. check your Internet connection or maybe client config url is blocked by your ISP!");
             }
 
             return result;
@@ -745,8 +746,12 @@ namespace WinCFScan
 
         private ScanSpeed getTargetSpeed()
         {
-            int speed = int.Parse(comboTargetSpeed.SelectedItem.ToString().Replace(" KB/s", ""));
-            return new ScanSpeed(speed);
+            int speed;
+
+            if (int.TryParse(comboTargetSpeed.SelectedItem.ToString().Replace(" KB/s", ""), out speed))
+                return new ScanSpeed(speed);
+            else
+                return new ScanSpeed(0);
         }
 
         private string? getSelectedIPAddress()
@@ -899,7 +904,7 @@ namespace WinCFScan
         // test user provided ip
         private void scanASingleIPAddressToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string input = Tools.ShowDialog("Enter a valid IP address:", "Test Sigle IP Address");
+            string input = Tools.ShowDialog("Enter a valid IP address:", "Test Single IP Address");
 
             if (input == "" || input == null) { return; }
 
@@ -980,7 +985,7 @@ namespace WinCFScan
                 return;
             }
 
-            saveFileDialog1.Title = $"Saving {resultIPs.Count} IP addressses";
+            saveFileDialog1.Title = $"Saving {resultIPs.Count} IP addresses";
             saveFileDialog1.FileName = $"scan-results-{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")}.txt";
             saveFileDialog1.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
             var result = saveFileDialog1.ShowDialog();
@@ -1083,7 +1088,7 @@ namespace WinCFScan
         {
             if (setClipboard(scanEngine.progressInfo.downloadExceptions.getTopExceptions(7)))
             {
-                addTextLog("Errors coppied to the clipboard.");
+                addTextLog("Errors copied to the clipboard.");
             }
             else
             {
@@ -1095,7 +1100,7 @@ namespace WinCFScan
         {
             if (setClipboard(scanEngine.progressInfo.frontingExceptions.getTopExceptions(7)))
             {
-                addTextLog("Errors coppied to the clipboard.");
+                addTextLog("Errors copied to the clipboard.");
             }
             else
             {
@@ -1109,7 +1114,7 @@ namespace WinCFScan
 
             if (timeout > 2)
             {
-                addTextLog($"Download timeout is set to {timeout} seconds. Only use higher timeout values if your v2ray server's responce is slow.");
+                addTextLog($"Download timeout is set to {timeout} seconds. Only use higher timeout values if your v2ray server's response is slow.");
             }
         }
 
@@ -1215,7 +1220,7 @@ namespace WinCFScan
 
         private void setAutoSkip(bool enabled, string message)
         {
-            string enabledStatus = enabled ? "enabled" : "disbaled";
+            string enabledStatus = enabled ? "enabled" : "disabled";
             addTextLog($"{message} {enabledStatus}.");
 
         }
@@ -1295,7 +1300,7 @@ namespace WinCFScan
                 averageDLDuration = totalDLDuration / totalSuccessCount;
                 averageFrontingDuration = totalFrontingDuration / totalSuccessCount;
 
-                string results = $"{IPAddress} => {totalSuccessCount}/{rounds} was successfull." + Environment.NewLine +
+                string results = $"{IPAddress} => {totalSuccessCount}/{rounds} was successful." + Environment.NewLine +
                     $"\tDownload: Best {bestDLDuration:n0} ms, Average: {averageDLDuration:n0} ms" + Environment.NewLine +
                     $"\tFronting: Best {bestFrontingDuration:n0} ms, Average: {averageFrontingDuration:n0} ms" + Environment.NewLine;
 
@@ -1347,6 +1352,11 @@ namespace WinCFScan
 
             addTextLog($"Start testing {selectedIPs.Length} IPs for {rounds} rounds..." + Environment.NewLine +
                 $"\tTest spec: download size: {speed.getTargetFileSizeInt(timeout) / 1000} KB in {timeout} seconds." + Environment.NewLine);
+
+            if (speed.isSpeedZero())
+            {
+                addTextLog("** Warning: Testing in NO VPN mode. Choose a target download speed from above settings so we can test base on that target speed.");
+            }
 
             btnStopAvgTest.Visible = true;
             btnStopAvgTest.Enabled = true;
@@ -1468,6 +1478,14 @@ namespace WinCFScan
         private void listResults_SelectedIndexChanged(object sender, EventArgs e)
         {
             //sendScreenReaderMsg(getSelectedIPAddress() ?? "");
+        }
+
+        private void comboTargetSpeed_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboTargetSpeed.SelectedIndex == 0)
+            {
+                addTextLog("By selecting this option we wont test download speed via VPN and just quickly return all resolvable IPs.");
+            }
         }
     }
 

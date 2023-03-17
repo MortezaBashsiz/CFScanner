@@ -107,7 +107,7 @@ namespace WinCFScan.Classes
 
                 if (isRemoteVersionValid())
                 {
-                    // whenever check remote version then update timestamp of local version file
+                    // whenever check remote version then update timestamps of local version file
                     // to prevent frequent remote checks
                     saveCurrentLocalVersion();
 
