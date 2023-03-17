@@ -188,8 +188,8 @@ namespace WinCFScan
                 waitUntilScannerStoped();
                 updateUIControlls(false);
             }
-            else
-            {   // start scan
+            else// start scan
+            {
                 if (inPrevResult)
                 {
                     if (currentScanResults.Count == 0)
@@ -688,12 +688,20 @@ namespace WinCFScan
         // user selected ip list of cloudflare
         private string[] getCheckedCFIPList(bool getIPCount = false)
         {
-            return listCFIPList.CheckedItems.Cast<ListViewItem>()
+            var ipList = listCFIPList.CheckedItems.Cast<ListViewItem>()
                                  .Select(item =>
                                  {
                                      return getIPCount ? item.SubItems[1].Text : item.SubItems[0].Text;
                                  })
                                  .ToArray<string>();
+
+            if (checkScanInRandomOrder.Checked)
+            {
+                Random rnd = new Random();
+                ipList = ipList.OrderBy(x => rnd.Next()).ToArray();
+            }
+
+            return ipList;
 
 
         }
@@ -1411,7 +1419,7 @@ namespace WinCFScan
 
             if (ip != null)
             {
-                testSingleIPAddress(ip);
+                testAvgSingleIP(ip, 1, getTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
             }
         }
 
@@ -1484,7 +1492,7 @@ namespace WinCFScan
         {
             if (comboTargetSpeed.SelectedIndex == 0)
             {
-                addTextLog("By selecting this option we wont test download speed via VPN and just quickly return all resolvable IPs.");
+                addTextLog("By selecting this option we won't test download speed via VPN and just quickly return all resolvable IPs.");
             }
         }
     }

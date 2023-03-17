@@ -80,6 +80,7 @@
             splitContainer1 = new SplitContainer();
             tabControl1 = new TabControl();
             tabPageCFRanges = new TabPage();
+            checkScanInRandomOrder = new CheckBox();
             listCFIPList = new ListView();
             headIPRange = new ColumnHeader();
             headTotalIPs = new ColumnHeader();
@@ -244,7 +245,7 @@
             // mnuPauseScan
             // 
             mnuPauseScan.Name = "mnuPauseScan";
-            mnuPauseScan.Size = new Size(134, 22);
+            mnuPauseScan.Size = new Size(180, 22);
             mnuPauseScan.Text = "Pause Scan";
             mnuPauseScan.Visible = false;
             // 
@@ -522,7 +523,7 @@
             listResults.GridLines = true;
             listResults.Location = new Point(0, 40);
             listResults.Name = "listResults";
-            listResults.Size = new Size(898, 219);
+            listResults.Size = new Size(852, 219);
             listResults.TabIndex = 4;
             listResults.UseCompatibleStateImageBehavior = false;
             listResults.View = View.Details;
@@ -626,6 +627,7 @@
             tabPageCFRanges.AccessibleDescription = "A tab to allow you see and choose which IP ranges you want to do scan on it.";
             tabPageCFRanges.AccessibleName = "Cloudflare IP ranges list";
             tabPageCFRanges.BackColor = Color.Transparent;
+            tabPageCFRanges.Controls.Add(checkScanInRandomOrder);
             tabPageCFRanges.Controls.Add(listCFIPList);
             tabPageCFRanges.Controls.Add(btnLoadIPRanges);
             tabPageCFRanges.Controls.Add(lblCFIPListStatus);
@@ -637,6 +639,18 @@
             tabPageCFRanges.Size = new Size(852, 266);
             tabPageCFRanges.TabIndex = 1;
             tabPageCFRanges.Text = "Cloudflare IP ranges";
+            // 
+            // checkScanInRandomOrder
+            // 
+            checkScanInRandomOrder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            checkScanInRandomOrder.AutoSize = true;
+            checkScanInRandomOrder.Location = new Point(352, 11);
+            checkScanInRandomOrder.Name = "checkScanInRandomOrder";
+            checkScanInRandomOrder.Size = new Size(194, 19);
+            checkScanInRandomOrder.TabIndex = 5;
+            checkScanInRandomOrder.Text = "Scan IP ranges in random order.";
+            toolTip1.SetToolTip(checkScanInRandomOrder, "By selecting this option we randomize IP ranges before scanning");
+            checkScanInRandomOrder.UseVisualStyleBackColor = true;
             // 
             // listCFIPList
             // 
@@ -709,7 +723,7 @@
             tabPageResults.Location = new Point(4, 24);
             tabPageResults.Name = "tabPageResults";
             tabPageResults.Padding = new Padding(3);
-            tabPageResults.Size = new Size(898, 266);
+            tabPageResults.Size = new Size(852, 266);
             tabPageResults.TabIndex = 0;
             tabPageResults.Text = "Scan Results";
             tabPageResults.UseVisualStyleBackColor = true;
@@ -1177,5 +1191,6 @@
         private Button btnStopAvgTest;
         private ToolStripMenuItem mnuTestThisIP;
         private ToolStripMenuItem mnushowScanStatus;
+        private CheckBox checkScanInRandomOrder;
     }
 }
