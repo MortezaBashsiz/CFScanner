@@ -64,7 +64,7 @@ python3 cfFindIP.py --upload-test --threads 8 --config ./myconfig.json --subnets
 ```
 
 
-Each line of the subnets file must be a Cloudflare subnets in CIDR notation or a single IP:
+Each line of the subnets file must be a Cloudflare subnet (IPv4 or IPv6) in CIDR notation or a single IP (IPv4 or IPv6):
 ```
 1.0.0.0/24
 108.162.218.0/24
@@ -72,13 +72,15 @@ Each line of the subnets file must be a Cloudflare subnets in CIDR notation or a
 162.158.8.0/21
 162.158.60.0/24
 162.158.82.12
+2606:4700::/120
+2606:4700:3032::6815:3819
 ...
 ```
 
 ## **Arguments:**
 **--threads|-thr**: Number of threads to use for parallel computing<br>
 **--config|-c**: The path to the config file. For confg file example, see [ClientConfig.json](https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/ClientConfig.json)<br>
-**--subnets|-sn**: The path to the custom subnets file. each line<br> should be in the form of ip.ip.ip.ip/subnet_mask. If not provided, the program will read the cidrs from asn lookup <br>
+**--subnets|-sn**: The path to the custom subnets file. each line<br> should be either a single ip (v4 or v6) or a subnet in cidr notation (v4 or v6). If not provided, the program will read the cidrs (v4 only) from asn lookup <br>
 **--tries**: Number of times to try each IP. An IP is marked as OK if **all** tries are successful. <br>
 **--download-speed**: Minimum acceptable download speed in kilobytes per second <br>
 **--upload-test**: If True, upload test will be conducted as well <br>
@@ -87,6 +89,7 @@ Each line of the subnets file must be a Cloudflare subnets in CIDR notation or a
 **--upload-time**: Maximum (effective, excluding latency) time to spend for each upload <br>
 **--download-latency**: Maximum allowed latency (seconds) for download <br>
 **--upload-latency**: Maximum allowed latency (seconds) for upload <br>
+**--use-xray**: If true, xray will be used, otherwise v2ray
 
 ---
 

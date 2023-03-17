@@ -1,10 +1,12 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math"
 	"net"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -55,6 +57,83 @@ func StringifySlice(s []interface{}) []string {
 	return out
 }
 
+func isDomainName(str string) (bool, error) {
+	// Normalize input by adding "http://" if it is missing
+	if !strings.HasPrefix(str, "http://") && !strings.HasPrefix(str, "https://") {
+		str = "http://" + str
+	}
+	// Parse URL to extract host name
+	u, err := url.Parse(str)
+	if err != nil {
+		return false, err
+	}
+	_, err = net.LookupHost(u.Hostname())
+
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func GetIpFromDomain(domain string) (string, error) {
+	var DomainError error
+	var DomainName bool
+
+	DomainName, DomainError = isDomainName(domain)
+	if !DomainName {
+		return "", DomainError
+	}
+
+	ip, err := getIPFromDomainTimeout(domain)
+	if err != nil {
+		log.Printf("%vFail Ns Lookup IP %v%15s%v\n",
+			Colors.FAIL, Colors.OKBLUE, err.Error(), Colors.ENDC)
+		return "", err
+	}
+
+	return ip, nil
+}
+
+func getIPFromDomainTimeout(domain string) (string, error) {
+	resolver := net.Resolver{
+		PreferGo: true,
+	}
+	var ips []net.IP
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	ips, err := resolver.LookupIP(ctx, "ip", domain)
+	if err != nil {
+		return "", err
+	}
+	return ips[0].String(), nil
+}
+
+func IPParser(list []string) []string {
+	var IPList []string
+	for _, ip := range list {
+
+		// CIDR Parser
+		if strings.Contains(ip, "/") {
+			ips, err := cidrToIPList(ip)
+			if err != nil {
+				log.Print("Error : ", err)
+			}
+			IPList = append(IPList, ips...)
+
+			// Parse IP
+		} else if net.ParseIP(ip) != nil {
+			IPList = append(IPList, ip)
+
+			// Parse domain and convert it to ip
+		} else if domain, _ := GetIpFromDomain(ip); domain != "" {
+			if net.ParseIP(domain) != nil {
+				IPList = append(IPList, domain)
+			}
+		}
+	}
+	return IPList
+}
+
 func GetNumIPsInCIDR(cidr string) int {
 	parts := strings.Split(cidr, "/")
 
@@ -82,22 +161,6 @@ func cidrToIPList(cidr string) ([]string, error) {
 		ips = append(ips, ip.String())
 	}
 	return ips, nil
-}
-
-func IPParser(list []string) []string {
-	var IPList []string
-	for _, ip := range list {
-		if strings.Contains(ip, "/") {
-			ips, err := cidrToIPList(ip)
-			if err != nil {
-				log.Print("Error : ", err)
-			}
-			IPList = append(IPList, ips...)
-		} else if net.ParseIP(ip) != nil {
-			IPList = append(IPList, ip)
-		}
-	}
-	return IPList
 }
 
 // Validate IP Input
