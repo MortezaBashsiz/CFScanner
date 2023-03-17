@@ -47,8 +47,16 @@ namespace WinCFScan.Classes
             // first of all quick test on fronting domain through cloudflare
             if(checkFronting())
             {
-                // then test quality of connection by downloading small file through v2ray vpn
-                success = checkV2ray();
+                // don't speed test is selected by user
+                if (targetSpeed.isSpeedZero())
+                {
+                    success = true;
+                }
+                else
+                {
+                    // then test quality of connection by downloading small file through v2ray vpn
+                    success = checkV2ray();
+                }
 
             }
 

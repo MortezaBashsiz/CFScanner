@@ -68,7 +68,7 @@ namespace WinCFScan.Classes.Config
 
                 v2rayConfigTemplateText = File.ReadAllText(v2rayTemplateConfigFileName);
 
-                // check existance of v2ray.exe
+                // check existence of v2ray.exe
                 if (!File.Exists("v2ray.exe"))
                 {
                     errorMessage = "v2ray.exe in not exists in app directory.";

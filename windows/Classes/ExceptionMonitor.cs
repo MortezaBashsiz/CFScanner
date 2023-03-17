@@ -42,10 +42,15 @@ namespace WinCFScan.Classes
         private void addErrMessage(string errMessage)
         {
 
-            if (errorsList.ContainsKey(errMessage))
-                errorsList[errMessage]++;
-            else
-                errorsList.Add(errMessage, 1);
+            try
+            {
+                if (errorsList.ContainsKey(errMessage))
+                    errorsList[errMessage]++;
+                else
+                    errorsList.Add(errMessage, 1);
+            }
+            catch (Exception)
+            {}
         }
 
         public float getErrorRate()

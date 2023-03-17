@@ -29,5 +29,10 @@ namespace WinCFScan.Classes
         {
             return targetSpeed * 1000;
         }
+
+        public bool isSpeedZero()
+        {
+            return targetSpeed == 0;
+        }
     }
 }
