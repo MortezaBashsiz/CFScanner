@@ -379,7 +379,7 @@ namespace WinCFScan
                 lblRunningWorkers.Text = $"Threads: {pInf.curentWorkingThreads}";
 
                 prgOveral.Maximum = pInf.totalIPRanges;
-                prgOveral.Value = pInf.currentIPRangesNumber;
+                prgOveral.Value = Math.Max(pInf.currentIPRangesNumber - 1, 0);
 
                 prgCurRange.Maximum = pInf.currentIPRangeTotalIPs;
                 prgCurRange.Value = pInf.totalCheckedIPInCurIPRange;

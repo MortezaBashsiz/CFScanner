@@ -78,7 +78,7 @@ namespace WinCFScan.Classes
             Stopwatch sw = Stopwatch.StartNew();
             parallelScan(listIP);
             LogControl.Write($"End of scanning {listIP.Count:n0} ip in {sw.Elapsed.TotalSeconds:n0} sec\n");
-            progressInfo.currentIPRangesNumber = 1;
+            progressInfo.currentIPRangesNumber = 2;
         }
 
         // scan in all cloudflare ip range
@@ -89,6 +89,8 @@ namespace WinCFScan.Classes
                 return;
 
             progressInfo.totalIPRanges = cfIPRangeList.Count();
+            progressInfo.currentIPRangesNumber = 1;
+
 
             foreach (var cfIP in cfIPRangeList)
             {
@@ -100,7 +102,6 @@ namespace WinCFScan.Classes
 
                 progressInfo.totalCheckedIPInCurIPRange = 0;
                 progressInfo.scanResults.totalFoundWorkingIPsCurrentRange = 0;
-                progressInfo.currentIPRangesNumber = 1;
 
                 if (isValidIPRange(cfIP))
                 {
