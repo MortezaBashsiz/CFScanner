@@ -1,5 +1,3 @@
-from clog.clog import CLogger
-
 SUPPORTED = [
     ('android', 'arm64', 'v8a'),
     ('linux', 'arm32', 'v5'),
@@ -21,3 +19,5 @@ SUPPORTED = [
     ('macos', 'arm64', 'v8a'),
     ('macos', '64')
 ]
+
+LATEST_SUPPORTED_VERSION = "1.7.5"
