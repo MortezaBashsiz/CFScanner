@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import argparse
-import functools
 import ipaddress
 import json
 import multiprocessing
@@ -14,15 +13,16 @@ import time
 import traceback
 from datetime import datetime
 from functools import partial
-from threading import Thread
 from typing import Tuple
 
 import requests
-from clog.clog import CLogger
-from utils.sockettools import get_free_port, wait_for_port
-from utils.systemtools import detect_system, create_dir
 
-log = CLogger("CFScanner-python")
+from clog.clog import CLogger
+from utils.decorators import timeout_fun
+from utils.os import create_dir, detect_system
+from utils.socket import get_free_port, wait_for_port
+
+log = CLogger("cfscanner-python")
 
 
 SCRIPTDIR = os.path.dirname(os.path.realpath(__file__))
@@ -289,33 +289,6 @@ class _FakeProcess:
         pass
 
 
-def _timeout(timeout):
-    def deco(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            res = [TimeoutError(f'Timeout {timeout} exceeded')]
-
-            def newFunc():
-                try:
-                    res[0] = func(*args, **kwargs)
-                except Exception as e:
-                    res[0] = e
-            t = Thread(target=newFunc)
-            t.daemon = True
-            try:
-                t.start()
-                t.join(timeout)
-            except Exception as je:
-                print('error starting thread')
-                raise je
-            ret = res[0]
-            if isinstance(ret, BaseException):
-                raise ret
-            return ret
-        return wrapper
-    return deco
-
-
 def check_ip(
     ip: str,
     test_config: TestConfig
@@ -359,8 +332,8 @@ def check_ip(
         process = _FakeProcess()
         proxies = None
 
-    @_timeout(test_config.max_dl_latency + test_config.max_dl_time)
-    def time_out_download():
+    @timeout_fun(test_config.max_dl_latency + test_config.max_dl_time)
+    def timeout_download_fun():
         return download_speed_test(
             n_bytes=n_bytes,
             proxies=proxies,
@@ -371,7 +344,7 @@ def check_ip(
         # check download speed
         n_bytes = test_config.min_dl_speed * 1000 * test_config.max_dl_time
         try:
-            dl_speed, dl_latency = time_out_download()
+            dl_speed, dl_latency = timeout_download_fun()
         except TimeoutError as e:
             print(
                 f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download timeout exceeded{_COLORS.ENDC}")
