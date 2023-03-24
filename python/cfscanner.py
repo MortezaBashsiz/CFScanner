@@ -5,28 +5,27 @@ import ipaddress
 import json
 import multiprocessing
 import os
-import re
 import statistics
-import subprocess
 import sys
-import time
-import traceback
 from datetime import datetime
 from functools import partial
-from typing import Tuple
 
 import requests
 
-from clog.clog import CLogger
+from report.clog import CLogger
+from report.print import print_and_kill, print_ok
+from speedtest import download_speed_test, fronting_test, upload_speed_test
+from speedtest.tools import mean_jitter
+from subnets import read_cidrs
 from utils.decorators import timeout_fun
 from utils.os import create_dir, detect_system
 from utils.socket import get_free_port, wait_for_port
+from xray.binary import download_binary
+from xray.service import start_proxy_service
 
 log = CLogger("cfscanner-python")
 
-
 SCRIPTDIR = os.path.dirname(os.path.realpath(__file__))
-BINDIR = f"{SCRIPTDIR}/../bin"
 CONFIGDIR = f"{SCRIPTDIR}/../config"
 RESULTDIR = f"{SCRIPTDIR}/../result"
 START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
@@ -50,17 +49,9 @@ class TestConfig:
     fronting_timeout = -1.0  # seconds
     startprocess_timeout = -1.0  # seconds
     n_tries = -1
-    no_vpn = False
+    novpn = False
     use_xray = False
     proxy_config_template = ""
-
-
-class _COLORS:
-    OKBLUE = '\033[94m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
 
 
 def create_proxy_config(
@@ -92,193 +83,6 @@ def create_proxy_config(
         configFile.write(config)
 
     return config_path
-
-
-def fronting_test(
-    ip: str,
-    timeout: float
-) -> bool:
-    """conducts a fronting test on an ip and return true if status 200 is received
-
-    Args:
-        ip (str): ip for testing
-        timeout (float): the timeout to wait for ``requests.get`` result
-
-    Returns:
-        bool: True if ``status_code`` is 200, False otherwise
-    """
-    s = requests.Session()
-    s.get_adapter(
-        'https://').poolmanager.connection_pool_kw['server_hostname'] = "speed.cloudflare.com"
-    s.get_adapter(
-        'https://').poolmanager.connection_pool_kw['assert_hostname'] = "speed.cloudflare.com"
-
-    success = False
-    try:
-        compatible_ip = f"[{ip}]" if ":" in ip else ip
-        r = s.get(
-            f"https://{compatible_ip}",
-            timeout=timeout,
-            headers={"Host": "speed.cloudflare.com"}
-        )
-        if r.status_code != 200:
-            print(
-                f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} fronting error {r.status_code} {_COLORS.ENDC}")
-        else:
-            success = True
-    except requests.exceptions.ConnectTimeout as e:
-        print(
-            f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} fronting connect timeout{_COLORS.ENDC}"
-        )
-    except requests.exceptions.ReadTimeout as e:
-        print(
-            f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} fronting read timeout{_COLORS.ENDC}"
-        )
-    except requests.exceptions.ConnectionError as e:
-        print(
-            f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} fronting connection error{_COLORS.ENDC}"
-        )
-    except Exception as e:
-        f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s}fronting Unknown error{_COLORS.ENDC}"
-        log.error(f"Fronting test Unknown error {ip:15}")
-        log.exception(e)
-
-    return success
-
-
-def start_proxy_service(
-    proxy_conf_path: str,
-    timeout=5,
-    use_xray=False
-) -> Tuple[subprocess.Popen, dict]:
-    """starts the proxy (v2ray/xray) service and waits for the respective port to open
-
-    Args:
-        proxy_conf_path (str): the path to the proxy (v2ray or xray) config json file
-        timeout (int, optional): total time in seconds to wait for the proxy service to start. Defaults to 5.
-        use_xray (bool, optional): if true, xray will be used, otherwise v2ray
-
-    Returns:
-        Tuple[subprocess.Popen, dict]: the v2 ray process object and a dictionary containing the proxies to use with ``requests.get`` 
-    """
-    if use_xray:
-        if detect_system()[0].startswith("mac"):
-            binaryfile = os.path.join(BINDIR, "xray-mac")
-        elif detect_system()[0] == "linux":
-            binaryfile = os.path.join(BINDIR, "xray")
-    else:
-        if detect_system()[0].startswith("mac"):
-            binaryfile = os.path.join(BINDIR, "v2ray-mac")
-            v2ctl_binary = os.path.join(BINDIR, "v2ctl-mac")
-        elif detect_system()[0] == "linux":
-            binaryfile = os.path.join(BINDIR, "v2ray")
-            v2ctl_binary = os.path.join(BINDIR, "v2ctl")
-        else:
-            log.error(
-                f"Platform {'-'.join(detect_system())} is not supported yet.")
-            return None
-
-    with open(proxy_conf_path, "r") as infile:
-        proxy_conf = json.load(infile)
-
-    proxy_listen = proxy_conf["inbounds"][0]["listen"]
-    proxy_port = proxy_conf["inbounds"][0]["port"]
-
-    if use_xray:
-        proxy_process = subprocess.Popen(
-            [binaryfile, "-c", proxy_conf_path],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-    else:
-        v2ctl_process = subprocess.Popen(
-            [v2ctl_binary, "config", proxy_conf_path],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL
-        )
-        proxy_process = subprocess.Popen(
-            [binaryfile, "-config=stdin:", "-format=pb"],
-            stdin=v2ctl_process.stdout,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL
-        )
-
-    wait_for_port(host=proxy_listen, port=proxy_port, timeout=timeout)
-
-    proxies = dict(
-        http=f"socks5://{proxy_listen}:{proxy_port}",
-        https=f"socks5://{proxy_listen}:{proxy_port}"
-    )
-
-    return proxy_process, proxies
-
-
-def download_speed_test(
-    n_bytes: int,
-    proxies: dict,
-    timeout: int
-) -> Tuple[float, float]:
-    """tests the download speed using cloudflare servers
-
-    Args:
-        n_bytes (int): size of file to download in bytes
-        proxies (dict): the proxies to use for ``requests.get``
-        timeout (int): the timeout for the download request        
-
-    Returns:
-        download_speed (float): the download speed in mbps
-        latency (float): the round trip time latency in seconds
-    """
-    start_time = time.perf_counter()
-    r = requests.get(
-        url="https://speed.cloudflare.com/__down",
-        params={"bytes": n_bytes},
-        timeout=timeout,
-        proxies=proxies
-    )
-    total_time = time.perf_counter() - start_time
-    cf_time = float(r.headers.get("Server-Timing").split("=")[1]) / 1000
-    latency = r.elapsed.total_seconds() - cf_time
-    download_time = total_time - latency
-
-    mb = n_bytes * 8 / (10 ** 6)
-    download_speed = mb / download_time
-
-    return download_speed, latency
-
-
-def upload_speed_test(
-    n_bytes: int,
-    proxies: dict,
-    timeout: int,
-) -> Tuple[float, float]:
-    """tests the upload speed using cloudflare servers
-
-    Args:
-        n_bytes (int): size of file to upload in bytes
-        proxies (dict): the proxies to use for ``requests.post``
-        timeout (int): the timeout for the download ``requests.post``   
-
-    Returns:
-        upload_speed (float): the upload speed in mbps
-        latency (float): the rount trip time latency in seconds
-    """
-
-    start_time = time.perf_counter()
-    r = requests.post(
-        url="https://speed.cloudflare.com/__up",
-        data="0" * n_bytes,
-        timeout=timeout,
-        proxies=proxies
-    )
-    total_time = time.perf_counter() - start_time
-    cf_time = float(r.headers.get("Server-Timing").split("=")[1]) / 1000
-    latency = total_time - cf_time
-
-    mb = n_bytes * 8 / (10 ** 6)
-    upload_speed = mb / cf_time
-
-    return upload_speed, latency
 
 
 class _FakeProcess:
@@ -314,20 +118,24 @@ def check_ip(
     except Exception as e:
         log.error("Could not save proxy (xray/v2ray) config to file", ip)
         log.exception(e)
-        return False
+        return print_and_kill(
+            ip=ip,
+            message="Could not save proxy (xray/v2ray) config to file",
+            process=process
+        )
 
-    if not test_config.no_vpn:
+    if not test_config.novpn:
         try:
             process, proxies = start_proxy_service(
                 proxy_conf_path=proxy_config_path,
-                timeout=test_config.startprocess_timeout,
-                use_xray=test_config.use_xray
+                binarypath=test_config.binpath,
+                timeout=test_config.startprocess_timeout
             )
         except Exception as e:
-            print(
-                f"{_COLORS.FAIL}ERROR - {_COLORS.WARNING}Could not start proxy (v2ray/xray) service{_COLORS.ENDC}")
+            message = "Could not start proxy (v2ray/xray) service"
+            log.error(message, ip)
             log.exception(e)
-            return False
+            print_and_kill(ip=ip, message=message, process=process)
     else:
         process = _FakeProcess()
         proxies = None
@@ -337,7 +145,7 @@ def check_ip(
         return download_speed_test(
             n_bytes=n_bytes,
             proxies=proxies,
-            timeout=test_config.max_dl_latency  # not sure if this is too generous or not
+            timeout=test_config.max_dl_latency
         )
 
     for try_idx in range(test_config.n_tries):
@@ -346,22 +154,13 @@ def check_ip(
         try:
             dl_speed, dl_latency = timeout_download_fun()
         except TimeoutError as e:
-            print(
-                f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download timeout exceeded{_COLORS.ENDC}")
-            process.kill()
-            return False
-        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError, requests.ConnectTimeout, TimeoutError) as e:
-            print(
-                f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download error{_COLORS.ENDC}")
-            process.kill()
-            return False
+            return print_and_kill(ip=ip, message="download timeout exceeded", process=process)
+        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError, requests.ConnectTimeout) as e:
+            return print_and_kill(ip=ip, message="download error", process=process)
         except Exception as e:
-            print(
-                f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download unknown error{_COLORS.ENDC}")
             log.error("Download - unknown error", ip)
             log.exception(e)
-            process.kill()
-            return False
+            return print_and_kill(ip=ip, message="download unknown error", process=process)
 
         if dl_latency <= test_config.max_dl_latency:
             dl_speed_kBps = dl_speed / 8 * 1000
@@ -370,14 +169,11 @@ def check_ip(
                 result["download"]["latency"][try_idx] = round(
                     dl_latency * 1000)
             else:
-                print(
-                    f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download too slow {dl_speed_kBps:.4f} kBps < {test_config.min_dl_speed:.4f} kBps{_COLORS.ENDC}")
-                process.kill()
-                return False
+                message = f"download too slow {dl_speed_kBps:.2f} < {test_config.min_dl_speed:.2f} kBps"
+                return print_and_kill(ip=ip, message=message, process=process)
         else:
-            print(f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} high download latency {dl_latency:.4f} s > {test_config.max_dl_latency:.4f} s{_COLORS.ENDC}")
-            process.kill()
-            return False
+            message = f"high download latency {dl_latency:.4f} s > {test_config.max_dl_latency:.4f} s"
+            return print_and_kill(ip=ip, message=message, process=process)
 
         # upload speed test
         if test_config.do_upload_test:
@@ -389,39 +185,28 @@ def check_ip(
                     timeout=test_config.max_ul_latency + test_config.max_ul_time
                 )
             except requests.exceptions.ReadTimeout:
-                return _extracted_from_check_ip_(ip, ' upload read timeout', process)
+                return print_and_kill(ip, 'upload read timeout', process)
             except requests.exceptions.ConnectTimeout:
-                return _extracted_from_check_ip_(ip, ' upload connect timeout', process)
+                return print_and_kill(ip, 'upload connect timeout', process)
             except requests.exceptions.ConnectionError:
-                return _extracted_from_check_ip_(ip, ' upload connection error', process)
+                return print_and_kill(ip, 'upload connection error', process)
             except Exception as e:
-                print(
-                    f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s}upload unknown error{_COLORS.ENDC}")
                 log.error("Upload - unknown error", ip)
                 log.exception(e)
-                process.kill()
-                return False
+                return print_and_kill(ip, 'upload unknown error', process)
 
             if up_latency > test_config.max_ul_latency:
-                return _extracted_from_check_ip_(ip, ' upload latency too high', process)
+                return print_and_kill(ip, ' upload latency too high', process)
             up_speed_kBps = up_speed / 8 * 1000
             if up_speed_kBps >= test_config.min_ul_speed:
                 result["upload"]["speed"][try_idx] = up_speed
                 result["upload"]["latency"][try_idx] = round(up_latency * 1000)
             else:
-                print(
-                    f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s} download too slow {dl_speed_kBps:.4f} kBps < {test_config.min_dl_speed:.4f} kBps{_COLORS.ENDC}")
-                process.kill()
-                return False
+                message = f"download too slow {dl_speed_kBps:.2f} kBps < {test_config.min_dl_speed:.2f} kBps"
+                return print_and_kill(ip, message, process)
+
     process.kill()
     return result
-
-
-# TODO Rename this here and in `check_ip`
-def _extracted_from_check_ip_(ip, message, process):
-    print(f"{_COLORS.FAIL}NO {_COLORS.WARNING}{ip:15s}{message}{_COLORS.ENDC}")
-    process.kill()
-    return False
 
 
 def create_test_config(args):
@@ -437,7 +222,7 @@ def create_test_config(args):
     test_config.sni = jsonfilecontent["serverName"]
     test_config.user_id = jsonfilecontent["id"]
     test_config.ws_header_path = "/" + (jsonfilecontent["path"].lstrip("/"))
-    test_config.use_xray = args.use_xray
+
     with open(args.template_path, "r") as infile:
         test_config.proxy_config_template = infile.read()
 
@@ -452,7 +237,17 @@ def create_test_config(args):
     test_config.max_dl_latency = args.max_dl_latency
     test_config.max_ul_latency = args.max_ul_latency
     test_config.n_tries = args.n_tries
-    test_config.no_vpn = args.no_vpn
+    test_config.novpn = args.no_vpn
+
+    system_info = detect_system()
+
+    if test_config.novpn:
+        test_config.binpath = None
+    else:
+        test_config.binpath = args.binpath or download_binary(
+            system_info=system_info,
+            bin_dir=SCRIPTDIR
+        )
 
     return test_config
 
@@ -489,7 +284,7 @@ def parse_args(args=sys.argv[1:]):
         help="(optional) The path to the custom subnets file. each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip. If not provided, the program will read the cidrs from asn lookup",
         type=str,
         metavar="subnets-path",
-        dest="subnets_path",
+        dest="subnets",
         required=False
     ),
     parser.add_argument(
@@ -578,10 +373,12 @@ def parse_args(args=sys.argv[1:]):
         default=5
     )
     parser.add_argument(
-        "--use-xray",
-        help="Use xray instead of v2ray",
-        action="store_true",
-        dest="use_xray"
+        "--binpath",
+        help="Path to the v2ray/xray binary file",
+        type=str,
+        metavar="binpath",
+        dest="binpath",
+        required=False
     )
     parser.add_argument(
         "--template",
@@ -599,34 +396,6 @@ def parse_args(args=sys.argv[1:]):
         parser.error("Either use novpn mode or provide a config file")
 
     return parse_args
-
-
-def read_cidrs_from_asnlookup(
-    asn_list: list = ["AS13335", "AS209242"]
-) -> list:
-    """reads cidrs from asn lookup 
-
-    Args:
-        asn_list (list, optional): a list of ASN codes to read from asn lookup. Defaults to ["AS13335", "AS209242"].
-
-    Returns:
-        list: The list of cidrs associated with ``asn_list``
-    """
-    cidrs = []
-    for asn in asn_list:
-        url = f"https://asnlookup.com/asn/{asn}/"
-
-        try:
-            r = requests.get(url)
-            cidr_regex = r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}\/[\d]+"
-            this_cidrs = re.findall(cidr_regex, r.text)
-            cidrs.extend(this_cidrs)
-        except Exception as e:
-            traceback.print_exc()
-            print(
-                f"{_COLORS.FAIL}ERROR {_COLORS.WARNING}Could not read asn {asn} from asnlookup{_COLORS.ENDC}")
-
-    return cidrs
 
 
 def cidr_to_ip_list(
@@ -690,13 +459,6 @@ def save_results(
         outfile.write("\n")
 
 
-def mean_jitter(latencies: list):
-    if len(latencies) <= 1:
-        return -1
-    jitters = [abs(a - b) for a, b in zip(latencies[1:], latencies[:-1])]
-    return statistics.mean(jitters)
-
-
 if __name__ == "__main__":
     args = parse_args()
 
@@ -721,12 +483,12 @@ if __name__ == "__main__":
 
     threadsCount = args.threads
 
-    if args.subnets_path:
-        subnetFilePath = args.subnets_path
-        with open(str(subnetFilePath), 'r') as subnetFile:
-            cidr_list = [l.strip() for l in subnetFile.readlines()]
+    if args.subnets:
+        cidr_list = read_cidrs(args.subnets)
     else:
-        cidr_list = read_cidrs_from_asnlookup()
+        cidr_list = read_cidrs(
+            "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/cf.local.iplist"
+        )
 
     test_config = create_test_config(args)
 
@@ -748,18 +510,7 @@ if __name__ == "__main__":
                 mean_up_latency = statistics.mean(
                     res["upload"]["latency"]) if test_config.do_upload_test else -1
 
-                print(
-                    f"{_COLORS.OKGREEN}"
-                    f"OK {res['ip']:15s} "
-                    f"{_COLORS.OKBLUE}"
-                    f"avg_down_speed: {mean_down_speed:7.4f}mbps "
-                    f"avg_up_speed: {mean_up_speed:7.4f}mbps "
-                    f"avg_down_latency: {mean_down_latency:6.2f}ms "
-                    f"avg_up_latency: {mean_up_latency:6.2f}ms ",
-                    f"avg_down_jitter: {down_mean_jitter:6.2f}ms ",
-                    f"avg_up_jitter: {up_mean_jitter:4.2f}ms"
-                    f"{_COLORS.ENDC}"
-                )
+                print_ok(scan_result=res)
 
                 with open(INTERIM_RESULTS_PATH, "a") as outfile:
                     res_parts = [
