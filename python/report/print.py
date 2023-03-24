@@ -40,9 +40,9 @@ def print_ok(
         f"{Colors.OKBLUE}"
         f"avg_down_speed: {mean_down_speed:7.4f}mbps "
         f"avg_up_speed: {mean_up_speed:7.4f}mbps "
-        f"avg_down_latency: {mean_down_latency:6.2f}ms "
-        f"avg_up_latency: {mean_up_latency:6.2f}ms ",
-        f"avg_down_jitter: {down_mean_jitter:6.2f}ms ",
+        f"avg_down_latency: {mean_down_latency:7.2f}ms "
+        f"avg_up_latency: {mean_up_latency:7.2f}ms ",
+        f"avg_down_jitter: {down_mean_jitter:7.2f}ms ",
         f"avg_up_jitter: {up_mean_jitter:4.2f}ms"
         f"{Colors.ENDC}"
     )
