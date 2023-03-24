@@ -19,7 +19,7 @@ from speedtest.tools import mean_jitter
 from subnets import read_cidrs
 from utils.decorators import timeout_fun
 from utils.os import create_dir, detect_system
-from utils.socket import get_free_port, wait_for_port
+from utils.socket import get_free_port
 from xray.binary import download_binary
 from xray.service import start_proxy_service
 
