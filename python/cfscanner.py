@@ -196,7 +196,7 @@ def check_ip(
                 return print_and_kill(ip, 'upload unknown error', process)
 
             if up_latency > test_config.max_ul_latency:
-                return print_and_kill(ip, ' upload latency too high', process)
+                return print_and_kill(ip, 'upload latency too high', process)
             up_speed_kBps = up_speed / 8 * 1000
             if up_speed_kBps >= test_config.min_ul_speed:
                 result["upload"]["speed"][try_idx] = up_speed
