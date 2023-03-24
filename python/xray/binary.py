@@ -7,6 +7,7 @@ from report.clog import CLogger
 from utils.decorators import timeout_fun
 from utils.exceptions import *
 from utils.requests import download_file
+import traceback
 
 from . import LATEST_SUPPORTED_VERSION, SUPPORTED
 
@@ -19,8 +20,8 @@ def download_binary(
     system_info: tuple,
     bin_dir: str,
     version: str = None,
-    timeout: float = 10,
-    max_latency: float = 1
+    timeout: float = 3600,
+    max_latency: float = 20
 ) -> None:
     """Download a binary from a url to a path.
 
@@ -46,12 +47,14 @@ def download_binary(
     # if windows, add .exe
     if system_info[0] == "windows":
         bin_path += ".exe"
+        
     if not os.path.exists(bin_path):
-        try:      
-            logger.debug(bin_path)
+        try:  
+            logger.info("Downloading xray...", bin_path)    
             timeout_fun(timeout=timeout)(download_file)(
                 zip_url, zip_path, timeout=max_latency
             )
+            logger.success("Downloaded xray", bin_path)
             with zipfile.ZipFile(zip_path, "r") as archive:
                 if system_info[0] == "windows":
                     xray_file = archive.read("xray.exe")
@@ -59,7 +62,6 @@ def download_binary(
                     xray_file = archive.read("xray")
             with open(bin_path, "wb") as binoutfile:
                 binoutfile.write(xray_file)
-            # TODO check if change is required in windows or mac
             os.chmod(bin_path, 0o775)
             return bin_path
         except FileDownloadError as e:
@@ -74,6 +76,7 @@ def download_binary(
         except Exception as e:
             logger.error("Unknown error", str(system_info))
             logger.exception(e)
+            traceback.print_exc()
             return False
     else:
         logger.info("Binary file already exists", bin_path)
@@ -96,3 +99,4 @@ def get_latest_release() -> dict:
         raise e
 
     return release_info
+
