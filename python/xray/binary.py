@@ -43,6 +43,9 @@ def download_binary(
     zip_path = os.path.join(zipdir, f"{platform_str}.zip")
     bin_fname = f"xray-{'-'.join(system_info)}"        
     bin_path = os.path.join(bin_dir, bin_fname)  
+    # if windows, add .exe
+    if system_info[0] == "windows":
+        bin_path += ".exe"
     if not os.path.exists(bin_path):
         try:      
             logger.debug(bin_path)
@@ -50,7 +53,10 @@ def download_binary(
                 zip_url, zip_path, timeout=max_latency
             )
             with zipfile.ZipFile(zip_path, "r") as archive:
-                xray_file = archive.read("xray")
+                if system_info[0] == "windows":
+                    xray_file = archive.read("xray.exe")
+                else:
+                    xray_file = archive.read("xray")
             with open(bin_path, "wb") as binoutfile:
                 binoutfile.write(xray_file)
             # TODO check if change is required in windows or mac
