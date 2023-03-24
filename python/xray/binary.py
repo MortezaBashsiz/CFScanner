@@ -3,8 +3,7 @@ import zipfile
 
 import requests
 
-from cfscanner import BINDIR, SCRIPTDIR
-from clog.clog import CLogger
+from report.clog import CLogger
 from utils.decorators import timeout_fun
 from utils.exceptions import *
 from utils.requests import download_file
@@ -13,11 +12,13 @@ from . import LATEST_SUPPORTED_VERSION, SUPPORTED
 
 logger = CLogger("xraybinary")
 
+PATH = os.path.dirname(os.path.abspath(__file__))
+
 
 def download_binary(
     system_info: tuple,
+    bin_dir: str,
     version: str = None,
-    bin_dir: str = None,
     timeout: float = 10,
     max_latency: float = 1
 ) -> None:
@@ -25,47 +26,52 @@ def download_binary(
 
     Args:
         system_info (tuple): (system, arch, abi)
+        bin_dir (str, optional): path to the binary to be downloaded to
         version (str): the version of xray to download
-        binary_savepath (str, optional): path to the binary to be downloaded to
         timeout (float, optional): total allowed time (including RTT) for the download in seconds. Defaults to 10.
         max_latency (float, optional): max allowed RTT for the download in seconds. Defaults to 1.
     """
     if system_info not in SUPPORTED:
         raise OSError(f"System {system_info} not supported")
 
-    if bin_dir is None:
-        bin_dir = BINDIR
-
     if version is None:
         version = LATEST_SUPPORTED_VERSION
     platform_str = "-".join(system_info)
     zip_url = f"https://github.com/XTLS/Xray-core/releases/download/v{version}/Xray-{platform_str}.zip"
-    zipdir = os.path.join(SCRIPTDIR, ".tmp")
+    zipdir = os.path.join(PATH, ".tmp")
     os.makedirs(zipdir, exist_ok=True)
     zip_path = os.path.join(zipdir, f"{platform_str}.zip")
-    try:
-        timeout_fun(timeout=timeout)(download_file)(
-            zip_url, zip_path, timeout=max_latency)
-        with zipfile.ZipFile(zip_path, "r") as archive:
-            xray_file = archive.read("xray")
-        bin_fname = f"xray-{'-'.join(system_info)}"
-        with open(os.path.join(bin_dir, bin_fname), "wb") as binoutfile:
-            binoutfile.write(xray_file)
-        # TODO check if change is required in windows or mac
-        os.chmod(os.path.join(bin_dir, bin_fname), 0o775)
-    except FileDownloadError as e:
-        logger.error(
-            "Failed to download the release zip file from xtls xray-core github repo", str(system_info))
-        logger.exception(e)
-        return False
-    except KeyError as e:
-        logger.error("Failed to get binary from zip file", zip_url)
-        logger.exception(e)
-        return False
-    except Exception as e:
-        logger.error("Unknown error", str(system_info))
-        logger.exception(e)
-        return False
+    bin_fname = f"xray-{'-'.join(system_info)}"        
+    bin_path = os.path.join(bin_dir, bin_fname)  
+    if not os.path.exists(bin_path):
+        try:      
+            logger.debug(bin_path)
+            timeout_fun(timeout=timeout)(download_file)(
+                zip_url, zip_path, timeout=max_latency
+            )
+            with zipfile.ZipFile(zip_path, "r") as archive:
+                xray_file = archive.read("xray")
+            with open(bin_path, "wb") as binoutfile:
+                binoutfile.write(xray_file)
+            # TODO check if change is required in windows or mac
+            os.chmod(bin_path, 0o775)
+            return bin_path
+        except FileDownloadError as e:
+            logger.error(
+                "Failed to download the release zip file from xtls xray-core github repo", str(system_info))
+            logger.exception(e)
+            return False
+        except KeyError as e:
+            logger.error("Failed to get binary from zip file", zip_url)
+            logger.exception(e)
+            return False
+        except Exception as e:
+            logger.error("Unknown error", str(system_info))
+            logger.exception(e)
+            return False
+    else:
+        logger.info("Binary file already exists", bin_path)
+        return bin_path
 
 
 def get_latest_release() -> dict:
