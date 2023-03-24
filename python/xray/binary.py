@@ -20,7 +20,7 @@ def download_binary(
     system_info: tuple,
     bin_dir: str,
     version: str = None,
-    timeout: float = 3600,
+    timeout: float = 300,
     max_latency: float = 20
 ) -> None:
     """Download a binary from a url to a path.
