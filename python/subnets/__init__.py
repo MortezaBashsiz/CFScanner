@@ -67,8 +67,14 @@ def read_cidrs_from_file(
     Returns:
         list: The list of cidrs found in the file
     """
-    with open(filepath, "r") as f:
-        cidrs = f.read().splitlines()
+    try:
+        with open(filepath, "r") as f:
+            cidrs = f.read().splitlines()
+        if len(cidrs) == 0:
+            raise SubnetsReadError(f"Could not find any cidr in file {filepath}")
+    except Exception as e:
+        raise SubnetsReadError(f"Could not read cidrs from file {filepath}")
+    return cidrs
 
 
 def read_cidrs(
@@ -87,6 +93,7 @@ def read_cidrs(
         cidrs = read_cidrs_from_url(url_or_path, timeout)
     elif os.path.isfile(url_or_path):
         cidrs = read_cidrs_from_file(url_or_path)
+        print(cidrs)
     else:
         logger.error("url_or_path is neither a valid url or a file path.", url_or_path)
         raise SubnetsReadError(f"{url_or_path} is neither a valid url or a file path.")
