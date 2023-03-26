@@ -182,7 +182,7 @@ def check_ip(
                 result["upload"]["speed"][try_idx] = up_speed
                 result["upload"]["latency"][try_idx] = round(up_latency * 1000)
             else:
-                message = f"download too slow {dl_speed_kBps:.2f} kBps < {test_config.min_dl_speed:.2f} kBps"
+                message = f"upload too slow {up_speed_kBps:.2f} kBps < {test_config.min_ul_speed:.2f} kBps"
                 return print_and_kill(ip, message, process)
 
     process.kill()
