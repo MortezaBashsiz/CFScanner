@@ -56,7 +56,6 @@ class TestConfig:
             except FileNotFoundError:
                 raise TemplateReadError("template file not found")
             except IsADirectoryError:
-                logger.debug(args.template_path)
                 raise TemplateReadError(
                     "template file is a directory. please provide the path to the file")
             except PermissionError:
