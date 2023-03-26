@@ -1,26 +1,27 @@
 #!/usr/bin/env python
 
-import argparse
 import ipaddress
 import json
 import multiprocessing
 import os
+import signal
 import statistics
 import sys
 from datetime import datetime
 from functools import partial
 
 import requests
-
+from args.parser import parse_args
+from args.testconfig import TestConfig
 from report.clog import CLogger
 from report.print import print_and_kill, print_ok
 from speedtest import download_speed_test, fronting_test, upload_speed_test
 from speedtest.tools import mean_jitter
 from subnets import read_cidrs
 from utils.decorators import timeout_fun
-from utils.os import create_dir, detect_system
+from utils.exceptions import BinaryNotFoundError, TemplateReadError
+from utils.os import create_dir
 from utils.socket import get_free_port
-from xray.binary import download_binary
 from xray.service import start_proxy_service
 
 log = CLogger("cfscanner-python")
@@ -30,28 +31,6 @@ CONFIGDIR = f"{SCRIPTDIR}/../config"
 RESULTDIR = f"{SCRIPTDIR}/../result"
 START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
 INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
-
-
-class TestConfig:
-    local_port = 0
-    address_port = 0
-    user_id = ""
-    ws_header_host = ""
-    ws_header_path = ""
-    sni = ""
-    do_upload_test = False
-    min_dl_speed = 99999.0  # kilobytes per second
-    min_ul_speed = 99999.0  # kilobytes per second
-    max_dl_time = -2.0  # seconds
-    max_ul_time = -2.0  # seconds
-    max_dl_latency = -1.0  # seconds
-    max_ul_latency = -1.0  # seconds
-    fronting_timeout = -1.0  # seconds
-    startprocess_timeout = -1.0  # seconds
-    n_tries = -1
-    novpn = False
-    use_xray = False
-    proxy_config_template = ""
 
 
 def create_proxy_config(
@@ -113,16 +92,17 @@ def check_ip(
         if not fronting_test(ip, timeout=test_config.fronting_timeout):
             return False
 
-    try:
-        proxy_config_path = create_proxy_config(ip, test_config)
-    except Exception as e:
-        log.error("Could not save proxy (xray/v2ray) config to file", ip)
-        log.exception(e)
-        return print_and_kill(
-            ip=ip,
-            message="Could not save proxy (xray/v2ray) config to file",
-            process=process
-        )
+    if not test_config.novpn:
+        try:
+            proxy_config_path = create_proxy_config(ip, test_config)
+        except Exception as e:
+            log.error("Could not save proxy (xray/v2ray) config to file", ip)
+            log.exception(e)
+            return print_and_kill(
+                ip=ip,
+                message="Could not save proxy (xray/v2ray) config to file",
+                process=process
+            )
 
     if not test_config.novpn:
         try:
@@ -207,195 +187,6 @@ def check_ip(
 
     process.kill()
     return result
-
-
-def create_test_config(args):
-    with open(args.config_path, 'r') as infile:
-        jsonfilecontent = json.load(infile)
-
-    test_config = TestConfig()
-
-    # proxy related config
-    test_config.user_id = jsonfilecontent["id"]
-    test_config.ws_header_host = jsonfilecontent["host"]
-    test_config.address_port = int(jsonfilecontent["port"])
-    test_config.sni = jsonfilecontent["serverName"]
-    test_config.user_id = jsonfilecontent["id"]
-    test_config.ws_header_path = "/" + (jsonfilecontent["path"].lstrip("/"))
-
-    with open(args.template_path, "r") as infile:
-        test_config.proxy_config_template = infile.read()
-
-    # speed related config
-    test_config.startprocess_timeout = args.startprocess_timeout
-    test_config.do_upload_test = args.do_upload_test
-    test_config.min_dl_speed = args.min_dl_speed
-    test_config.min_ul_speed = args.min_ul_speed
-    test_config.max_dl_time = args.max_dl_time
-    test_config.max_ul_time = args.max_ul_time
-    test_config.fronting_timeout = args.fronting_timeout
-    test_config.max_dl_latency = args.max_dl_latency
-    test_config.max_ul_latency = args.max_ul_latency
-    test_config.n_tries = args.n_tries
-    test_config.novpn = args.no_vpn
-
-    system_info = detect_system()
-
-    if test_config.novpn:
-        test_config.binpath = None
-    else:
-        test_config.binpath = args.binpath or download_binary(
-            system_info=system_info,
-            bin_dir=SCRIPTDIR
-        )
-
-    return test_config
-
-
-def parse_args(args=sys.argv[1:]):
-    parser = argparse.ArgumentParser(
-        description='Cloudflare edge ips scanner to use with v2ray or xray')
-    parser.add_argument(
-        "--threads", "-thr",
-        dest="threads",
-        metavar="threads",
-        help="Number of threads to use for parallel computing",
-        type=int,
-        required=True
-    )
-    parser.add_argument(
-        "--config", "-c",
-        help="The path to the config file. For confg file example, see https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/ClientConfig.json",
-        metavar="config-path",
-        dest="config_path",
-        type=str,
-        required=False
-    ),
-    parser.add_argument(
-        "--novpn",
-        help="If passed, test without creating vpn connections",
-        action="store_true",
-        dest="no_vpn",
-        default=False,
-        required=False
-    )
-    parser.add_argument(
-        "--subnets", "-sn",
-        help="(optional) The path to the custom subnets file. each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip. If not provided, the program will read the cidrs from asn lookup",
-        type=str,
-        metavar="subnets-path",
-        dest="subnets",
-        required=False
-    ),
-    parser.add_argument(
-        "--upload-test",
-        help="If True, upload test will be conducted",
-        dest="do_upload_test",
-        action="store_true",
-        default=False,
-        required=False
-    )
-    parser.add_argument(
-        "--tries",
-        metavar="n-tries",
-        help="Number of times to try each IP. An IP is marked as OK if all tries are successful",
-        dest="n_tries",
-        default=1,
-        type=int,
-        required=False
-    )
-
-    parser.add_argument(
-        "--download-speed", "-ds",
-        help="Minimum acceptable download speed in kilobytes per second",
-        type=int,
-        dest="min_dl_speed",
-        default=50,
-        required=False
-    )
-    parser.add_argument(
-        "--upload-speed", "-us",
-        help="Maximum acceptable upload speed in kilobytes per second",
-        type=int,
-        dest="min_ul_speed",
-        default=50,
-        required=False
-    )
-    parser.add_argument(
-        "--download-time", "-dt",
-        help="Maximum (effective, excluding http time) time to spend for each download",
-        type=int,
-        dest="max_dl_time",
-        default=2,
-        required=False
-    )
-    parser.add_argument(
-        "--upload-time", "-ut",
-        metavar="max-upload-time",
-        help="Maximum (effective, excluding http time) time to spend for each upload",
-        type=int,
-        dest="max_ul_time",
-        default=2,
-        required=False
-    )
-    parser.add_argument(
-        "--fronting-timeout",
-        metavar="fronting-timeout",
-        help="Maximum time to wait for fronting response",
-        type=float,
-        dest="fronting_timeout",
-        default=1,
-        required=False
-    )
-    parser.add_argument(
-        "--download-latency",
-        help="Maximum allowed latency for download",
-        metavar="max-upload-latency",
-        type=int,
-        dest="max_dl_latency",
-        default=2,
-        required=False
-    )
-    parser.add_argument(
-        "--upload-latency",
-        help="Maximum allowed latency for download",
-        type=int,
-        metavar="max-upload-latency",
-        dest="max_ul_latency",
-        default=2,
-        required=False
-    )
-    parser.add_argument(
-        "--startprocess-timeout",
-        help=argparse.SUPPRESS,
-        type=float,
-        dest="startprocess_timeout",
-        default=5
-    )
-    parser.add_argument(
-        "--binpath",
-        help="Path to the v2ray/xray binary file",
-        type=str,
-        metavar="binpath",
-        dest="binpath",
-        required=False
-    )
-    parser.add_argument(
-        "--template",
-        type=str,
-        help="Path to the proxy (v2ray/xra) template file. By default vmess_ws_tls is used",
-        required=False,
-        dest="template_path",
-        default=os.path.join(SCRIPTDIR, "config_templates",
-                             "vmess_ws_tls_template.json")
-    )
-
-    parse_args = parser.parse_args()
-
-    if not parse_args.no_vpn and parse_args.config_path is None:
-        parser.error("Either use novpn mode or provide a config file")
-
-    return parse_args
 
 
 def cidr_to_ip_list(
@@ -490,7 +281,18 @@ if __name__ == "__main__":
             "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/cf.local.iplist"
         )
 
-    test_config = create_test_config(args)
+    try:
+        test_config = TestConfig.from_args(args)
+    except TemplateReadError:
+        log.error("Could not read template from file.")
+        exit(1)
+    except BinaryNotFoundError:
+        log.error("Could not find xray/v2ray binary.", args.binpath)
+        exit(1)
+    except Exception as e:
+        log.error("Unknown error while reading template.")
+        log.exception(e)
+        exit(1)
 
     n_total_ips = sum(get_num_ips_in_cidr(cidr) for cidr in cidr_list)
     print(f"Starting to scan {n_total_ips} ips...")
