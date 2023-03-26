@@ -131,7 +131,6 @@ def parse_args():
         metavar="",
         type=int,
         dest="min_dl_speed",
-        nargs=1,
         default=50,
         required=False
     )
@@ -142,8 +141,7 @@ def parse_args():
         metavar="",
         dest="max_dl_latency",
         default=2,
-        required=False,
-        nargs=1
+        required=False
     )
     downspeed_grp.add_argument(
         "--download-time", "-DT",
@@ -152,8 +150,7 @@ def parse_args():
         type=int,
         dest="max_dl_time",
         default=2,
-        required=False,
-        nargs=1
+        required=False
     )
     ############################################################
     # upload options
@@ -174,7 +171,6 @@ def parse_args():
         metavar="",
         type=int,
         dest="min_ul_speed",
-        nargs=1,
         default=50,
         required=False
     )
@@ -185,8 +181,7 @@ def parse_args():
         metavar="",
         dest="max_ul_latency",
         default=2,
-        required=False,
-        nargs=1
+        required=False
     )
     upspeed_grp.add_argument(
         "--upload-time", "-UT",
@@ -196,8 +191,7 @@ def parse_args():
         type=int,
         dest="max_ul_time",
         default=2,
-        required=False,
-        nargs=1
+        required=False
     )
     ############################################################
 
