@@ -674,7 +674,7 @@ then
 			-r) tryCount="$2" ; shift 2 ;;
 			-c) config="$2" ; shift 2 ;;
 			-s) speed="$2" ; shift 2 ;;
-			-r) randomNumber="$2" ; shift 2 ;;
+			-d) randomNumber="$2" ; shift 2 ;;
 			-f) subnetIPFile="$2" ; shift 2 ;;
 			-h) fncUsage ;;
 			--) shift; break ;;
@@ -694,7 +694,7 @@ then
 			-try|--tryCount) tryCount="$2" ; shift 2 ;;
 			-c|--config) config="$2" ; shift 2 ;;
 			-s|--speed) speed="$2" ; shift 2 ;;
-			-r|--random) randomNumber="$2" ; shift 2 ;;
+			-d|--random) randomNumber="$2" ; shift 2 ;;
 			-f|--file) subnetIPFile="$2" ; shift 2 ;;
 			-h|--help) fncUsage ;;
 			--) shift; break ;;
