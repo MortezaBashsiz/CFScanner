@@ -91,10 +91,20 @@ fncSubnetToIP() {
         bytes[2]="$(( k+(iparr[2] & maskarr[2]) ))"
         for l in $(seq 1 $((255-maskarr[3]))); do
           bytes[3]="$(( l+(iparr[3] & maskarr[3]) ))"
-          printf "%d.%d.%d.%d\n" "${bytes[@]}"
+          ip="$(printf "%d.%d.%d.%d" "${bytes[@]}")"
+          IP_LIST+=("$ip")
         done
       done
     done
+  done
+
+  # Choose random IP addresses from generated IP list
+  if test -v randomNumber; then
+    IP_LIST=($(shuf -e "${IP_LIST[@]}"))
+    IP_LIST=($(echo "${IP_LIST[@]:0:$randomNumber}"))
+  fi
+  for i in ${IP_LIST[@]}; do 
+    echo $i 
   done
 }
 # End of Function fncSubnetToIP
@@ -664,6 +674,7 @@ then
 			-r) tryCount="$2" ; shift 2 ;;
 			-c) config="$2" ; shift 2 ;;
 			-s) speed="$2" ; shift 2 ;;
+			-r) randomNumber="$2" ; shift 2 ;;
 			-f) subnetIPFile="$2" ; shift 2 ;;
 			-h) fncUsage ;;
 			--) shift; break ;;
@@ -683,6 +694,7 @@ then
 			-try|--tryCount) tryCount="$2" ; shift 2 ;;
 			-c|--config) config="$2" ; shift 2 ;;
 			-s|--speed) speed="$2" ; shift 2 ;;
+			-r|--random) randomNumber="$2" ; shift 2 ;;
 			-f|--file) subnetIPFile="$2" ; shift 2 ;;
 			-h|--help) fncUsage ;;
 			--) shift; break ;;
