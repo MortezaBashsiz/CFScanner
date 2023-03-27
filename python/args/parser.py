@@ -171,7 +171,6 @@ def parse_args():
         metavar="",
         type=int,
         dest="min_ul_speed",
-        default=50,
         required=False
     )
     upspeed_grp.add_argument(

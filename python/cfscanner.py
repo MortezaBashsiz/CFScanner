@@ -298,6 +298,8 @@ if __name__ == "__main__":
     print(f"Starting to scan {n_total_ips} ips...")
 
     big_ip_list = [ip for cidr in cidr_list for ip in cidr_to_ip_list(cidr)]
+    
+    log.debug(f"{test_config.min_ul_speed, test_config.do_upload_test}")
 
     with multiprocessing.Pool(processes=threadsCount) as pool:
         for res in pool.imap(partial(check_ip, test_config=test_config), big_ip_list):

@@ -67,9 +67,9 @@ class TestConfig:
 
         # speed related config
         test_config.startprocess_timeout = args.startprocess_timeout
-        test_config.do_upload_test = args.do_upload_test
+        test_config.do_upload_test = args.do_upload_test or args.min_ul_speed is not None
+        test_config.min_ul_speed = args.min_ul_speed or 50
         test_config.min_dl_speed = args.min_dl_speed
-        test_config.min_ul_speed = args.min_ul_speed
         test_config.max_dl_time = args.max_dl_time
         test_config.max_ul_time = args.max_ul_time
         test_config.fronting_timeout = args.fronting_timeout
@@ -93,5 +93,6 @@ class TestConfig:
                 system_info=system_info,
                 bin_dir=PARENT_PATH
             )
+
 
         return test_config
