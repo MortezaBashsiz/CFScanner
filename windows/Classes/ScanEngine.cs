@@ -32,6 +32,7 @@ namespace WinCFScan.Classes
         private List<string> logMessages = new List<string>();
         private bool skipAfterPercentDone;
         private int skipMinPercent;
+        public bool isDiagnosing = false;
 
         public ScanEngine()
         {
@@ -105,7 +106,7 @@ namespace WinCFScan.Classes
 
                 if (isValidIPRange(cfIP))
                 {
-                    List<string> ipRange = IPAddressExtensions.getIPRange(cfIP);
+                    List<string> ipRange = IPAddressExtensions.getAllIPInRange(cfIP);
                     progressInfo.currentIPRange = cfIP;
                     progressInfo.currentIPRangeTotalIPs = ipRange.Count();
                     LogControl.Write(String.Format("Start scanning {0} ip in {1}", ipRange.Count, cfIP));
@@ -152,7 +153,7 @@ namespace WinCFScan.Classes
                     lock (locker) {
                         progressInfo.curentWorkingThreads++;
                     }
-                    var checker = new CheckIPWorking(ip, targetSpeed, scanConfig, downloadTimeout);
+                    var checker = new CheckIPWorking(ip, targetSpeed, scanConfig, downloadTimeout, isDiagnosing);
                     bool isOK = checker.check();
 
                     lock (locker) {
@@ -314,6 +315,7 @@ namespace WinCFScan.Classes
     enum ScanType
     {
         SCAN_CLOUDFLARE_IPS,
-        SCAN_IN_PERV_RESULTS
+        SCAN_IN_PERV_RESULTS,
+        DIAGNOSING
     }
 }

@@ -10,9 +10,22 @@ namespace WinCFScan.Classes
 {
     internal class Tools
     {
+        public static List<string> diagnoseLogs = new List<string>();
 
-        public static void logStep(string message)
+        public static void clearDiagnoseLogs()
         {
+            diagnoseLogs.Clear();
+        }
+
+
+        public static void logStep(string message , bool isDiagnosing = false)
+        {
+            // add diagnose logs
+            if(isDiagnosing)
+            {
+                diagnoseLogs.Add(message);
+            }
+
             if(ConfigManager.Instance != null && ConfigManager.Instance.enableDebug)
             {
                 LogControl.Write(message, "debug.txt");
@@ -32,7 +45,7 @@ namespace WinCFScan.Classes
             };
             Label textLabel = new Label() { Left = 30, Top = 20, Text = text, Width = 150 };
             TextBox textBox = new TextBox() { Left = 30, Top = 40, Width = 200 };
-            Button confirmation = new Button() { Text = "Ok", Left = 130, Width = 100, Top = 80, DialogResult = DialogResult.OK };
+            Button confirmation = new Button() { Text = "OK", Left = 130, Width = 100, Top = 80, DialogResult = DialogResult.OK };
             confirmation.Click += (sender, e) => { prompt.Close(); };
             prompt.Controls.Add(textBox);
             prompt.Controls.Add(confirmation);

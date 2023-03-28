@@ -67,6 +67,7 @@
             comboResults = new ComboBox();
             btnScanInPrevResults = new Button();
             btnLoadIPRanges = new Button();
+            checkScanInRandomOrder = new CheckBox();
             listResults = new ListView();
             hdrIP = new ColumnHeader();
             hdrDelay = new ColumnHeader();
@@ -77,10 +78,10 @@
             mnuTesIP2Times = new ToolStripMenuItem();
             mnuTesIP3Times = new ToolStripMenuItem();
             mnuTesIP5Times = new ToolStripMenuItem();
+            diagnoseWithThisIPAddressToolStripMenuItem = new ToolStripMenuItem();
             splitContainer1 = new SplitContainer();
             tabControl1 = new TabControl();
             tabPageCFRanges = new TabPage();
-            checkScanInRandomOrder = new CheckBox();
             listCFIPList = new ListView();
             headIPRange = new ColumnHeader();
             headTotalIPs = new ColumnHeader();
@@ -109,6 +110,10 @@
             toolStripSeparator5 = new ToolStripSeparator();
             checkForUpdateToolStripMenuItem = new ToolStripMenuItem();
             updateClientConfigCloudflareSubnetsToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator7 = new ToolStripSeparator();
+            toolStripMenuItem3 = new ToolStripMenuItem();
+            mnuDiagnoseRandomIP = new ToolStripMenuItem();
+            mnuDiagnoseWithUserIP = new ToolStripMenuItem();
             helpToolStripMenuItem = new ToolStripMenuItem();
             mnuHelpCustomConfig = new ToolStripMenuItem();
             mnuHelpOurGitHub = new ToolStripMenuItem();
@@ -245,7 +250,7 @@
             // mnuPauseScan
             // 
             mnuPauseScan.Name = "mnuPauseScan";
-            mnuPauseScan.Size = new Size(180, 22);
+            mnuPauseScan.Size = new Size(134, 22);
             mnuPauseScan.Text = "Pause Scan";
             mnuPauseScan.Visible = false;
             // 
@@ -515,6 +520,18 @@
             btnLoadIPRanges.UseVisualStyleBackColor = true;
             btnLoadIPRanges.Click += btnLoadIPRanges_Click;
             // 
+            // checkScanInRandomOrder
+            // 
+            checkScanInRandomOrder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            checkScanInRandomOrder.AutoSize = true;
+            checkScanInRandomOrder.Location = new Point(352, 11);
+            checkScanInRandomOrder.Name = "checkScanInRandomOrder";
+            checkScanInRandomOrder.Size = new Size(194, 19);
+            checkScanInRandomOrder.TabIndex = 5;
+            checkScanInRandomOrder.Text = "Scan IP ranges in random order.";
+            toolTip1.SetToolTip(checkScanInRandomOrder, "By selecting this option we randomize IP ranges before scanning");
+            checkScanInRandomOrder.UseVisualStyleBackColor = true;
+            // 
             // listResults
             // 
             listResults.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
@@ -545,9 +562,9 @@
             // mnuListView
             // 
             mnuListView.ImageScalingSize = new Size(20, 20);
-            mnuListView.Items.AddRange(new ToolStripItem[] { mnuListViewCopyIP, mnuTestThisIP, mnuListViewTestThisIPAddress });
+            mnuListView.Items.AddRange(new ToolStripItem[] { mnuListViewCopyIP, mnuTestThisIP, mnuListViewTestThisIPAddress, diagnoseWithThisIPAddressToolStripMenuItem });
             mnuListView.Name = "mnuListView";
-            mnuListView.Size = new Size(253, 70);
+            mnuListView.Size = new Size(253, 92);
             // 
             // mnuListViewCopyIP
             // 
@@ -560,7 +577,7 @@
             // 
             mnuTestThisIP.Name = "mnuTestThisIP";
             mnuTestThisIP.Size = new Size(252, 22);
-            mnuTestThisIP.Text = "Test this IP address";
+            mnuTestThisIP.Text = "Speed Test this IP address";
             mnuTestThisIP.Click += testThisIPAddressToolStripMenuItem_Click;
             // 
             // mnuListViewTestThisIPAddress
@@ -590,6 +607,13 @@
             mnuTesIP5Times.Size = new Size(135, 22);
             mnuTesIP5Times.Text = "Test 5 times";
             mnuTesIP5Times.Click += mnuTesIP5Times_Click;
+            // 
+            // diagnoseWithThisIPAddressToolStripMenuItem
+            // 
+            diagnoseWithThisIPAddressToolStripMenuItem.Name = "diagnoseWithThisIPAddressToolStripMenuItem";
+            diagnoseWithThisIPAddressToolStripMenuItem.Size = new Size(252, 22);
+            diagnoseWithThisIPAddressToolStripMenuItem.Text = "Diagnose with this IP address";
+            diagnoseWithThisIPAddressToolStripMenuItem.Click += diagnoseWithThisIPAddressToolStripMenuItem_Click;
             // 
             // splitContainer1
             // 
@@ -639,18 +663,6 @@
             tabPageCFRanges.Size = new Size(852, 266);
             tabPageCFRanges.TabIndex = 1;
             tabPageCFRanges.Text = "Cloudflare IP ranges";
-            // 
-            // checkScanInRandomOrder
-            // 
-            checkScanInRandomOrder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            checkScanInRandomOrder.AutoSize = true;
-            checkScanInRandomOrder.Location = new Point(352, 11);
-            checkScanInRandomOrder.Name = "checkScanInRandomOrder";
-            checkScanInRandomOrder.Size = new Size(194, 19);
-            checkScanInRandomOrder.TabIndex = 5;
-            checkScanInRandomOrder.Text = "Scan IP ranges in random order.";
-            toolTip1.SetToolTip(checkScanInRandomOrder, "By selecting this option we randomize IP ranges before scanning");
-            checkScanInRandomOrder.UseVisualStyleBackColor = true;
             // 
             // listCFIPList
             // 
@@ -828,7 +840,7 @@
             // 
             // toolsToolStripMenuItem
             // 
-            toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { scanASingleIPAddressToolStripMenuItem, addCustomV2rayConfigToolStripMenuItem, downloadTimeoutToolStripMenuItem, mnushowScanStatus, toolStripSeparator5, checkForUpdateToolStripMenuItem, updateClientConfigCloudflareSubnetsToolStripMenuItem });
+            toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { scanASingleIPAddressToolStripMenuItem, addCustomV2rayConfigToolStripMenuItem, downloadTimeoutToolStripMenuItem, mnushowScanStatus, toolStripSeparator5, checkForUpdateToolStripMenuItem, updateClientConfigCloudflareSubnetsToolStripMenuItem, toolStripSeparator7, toolStripMenuItem3 });
             toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             toolsToolStripMenuItem.Size = new Size(46, 20);
             toolsToolStripMenuItem.Text = "Tools";
@@ -837,7 +849,7 @@
             // 
             scanASingleIPAddressToolStripMenuItem.Name = "scanASingleIPAddressToolStripMenuItem";
             scanASingleIPAddressToolStripMenuItem.Size = new Size(297, 22);
-            scanASingleIPAddressToolStripMenuItem.Text = "Test a single IP address";
+            scanASingleIPAddressToolStripMenuItem.Text = "Test a single IP address...";
             scanASingleIPAddressToolStripMenuItem.Click += scanASingleIPAddressToolStripMenuItem_Click;
             // 
             // addCustomV2rayConfigToolStripMenuItem
@@ -889,6 +901,32 @@
             updateClientConfigCloudflareSubnetsToolStripMenuItem.Size = new Size(297, 22);
             updateClientConfigCloudflareSubnetsToolStripMenuItem.Text = "Update ClientConfig && Cloudflare subnets";
             updateClientConfigCloudflareSubnetsToolStripMenuItem.Click += updateClientConfigCloudflareSubnetsToolStripMenuItem_Click;
+            // 
+            // toolStripSeparator7
+            // 
+            toolStripSeparator7.Name = "toolStripSeparator7";
+            toolStripSeparator7.Size = new Size(294, 6);
+            // 
+            // toolStripMenuItem3
+            // 
+            toolStripMenuItem3.DropDownItems.AddRange(new ToolStripItem[] { mnuDiagnoseRandomIP, mnuDiagnoseWithUserIP });
+            toolStripMenuItem3.Name = "toolStripMenuItem3";
+            toolStripMenuItem3.Size = new Size(297, 22);
+            toolStripMenuItem3.Text = "Diagnose";
+            // 
+            // mnuDiagnoseRandomIP
+            // 
+            mnuDiagnoseRandomIP.Name = "mnuDiagnoseRandomIP";
+            mnuDiagnoseRandomIP.Size = new Size(209, 22);
+            mnuDiagnoseRandomIP.Text = "With a random IP address";
+            mnuDiagnoseRandomIP.Click += mnuDiagnoseRandomIP_Click;
+            // 
+            // mnuDiagnoseWithUserIP
+            // 
+            mnuDiagnoseWithUserIP.Name = "mnuDiagnoseWithUserIP";
+            mnuDiagnoseWithUserIP.Size = new Size(209, 22);
+            mnuDiagnoseWithUserIP.Text = "With specific IP address...";
+            mnuDiagnoseWithUserIP.Click += mnuDiagnoseWithUserEnteredIP_Click;
             // 
             // helpToolStripMenuItem
             // 
@@ -1192,5 +1230,10 @@
         private ToolStripMenuItem mnuTestThisIP;
         private ToolStripMenuItem mnushowScanStatus;
         private CheckBox checkScanInRandomOrder;
+        private ToolStripSeparator toolStripSeparator7;
+        private ToolStripMenuItem toolStripMenuItem3;
+        private ToolStripMenuItem mnuDiagnoseRandomIP;
+        private ToolStripMenuItem mnuDiagnoseWithUserIP;
+        private ToolStripMenuItem diagnoseWithThisIPAddressToolStripMenuItem;
     }
 }
