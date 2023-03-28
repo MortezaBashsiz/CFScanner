@@ -187,7 +187,7 @@ namespace WinCFScan
             // stop scan
             if (isScanRunning())
             {
-               
+
                 btnStart.Enabled = false;
                 waitUntilScannerStoped();
                 updateUIControlls(false);
@@ -756,8 +756,8 @@ namespace WinCFScan
         {
             if (e.Button == MouseButtons.Right)
             {
-                mnuListViewCopyIP.Text = "Copy IP Address " + getSelectedIPAddress();
-                mnuTestThisIP.Text = "Test this IP Address " + getSelectedIPAddress();
+                mnuListViewCopyIP.Text = "Copy IP address " + getSelectedIPAddress();
+                mnuTestThisIP.Text = "Test this IP address " + getSelectedIPAddress();
                 mnuListView.Show(listResults, e.X, e.Y);
             }
         }
@@ -889,7 +889,7 @@ namespace WinCFScan
                 System.Windows.Forms.Application.Exit();
             }
             catch (Exception)
-            {}
+            { }
         }
 
         private void waitUntilScannerStoped()
@@ -1140,7 +1140,7 @@ namespace WinCFScan
                 else
                 {
                     addTextLog($"Adding custom config is failed: {errorMessage}");
-                }                
+                }
             };
         }
 
@@ -1598,10 +1598,10 @@ namespace WinCFScan
         private void diagnoseWithThisIPAddressToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var selectedIP = getSelectedIPAddress();
-            if(selectedIP != null)
+            if (selectedIP != null)
             {
                 doDiagnose(selectedIP);
-            }            
+            }
         }
 
         private void doDiagnose(string ipAddress)
@@ -1615,6 +1615,16 @@ namespace WinCFScan
             diagnoseIPAddress = ipAddress;
 
             startStopScan(ScanType.DIAGNOSING);
+        }
+
+        private void mnuAddIPToList_Click(object sender, EventArgs e)
+        {
+            string ipAddr;
+            if (getIPFromUser(out ipAddr, "Add IP To List"))
+            {
+                listResults.Items.Add(new ListViewItem(new string[] { ipAddr, "0" }));
+                currentScanResults.Add(new ResultItem(0, ipAddr));
+            }
         }
     }
 

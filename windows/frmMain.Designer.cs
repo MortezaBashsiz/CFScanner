@@ -120,6 +120,7 @@
             openFileDialog1 = new OpenFileDialog();
             saveFileDialog1 = new SaveFileDialog();
             mnuResultsActions = new ContextMenuStrip(components);
+            mnuAddIPToList = new ToolStripMenuItem();
             exportResultsToolStripMenuItem = new ToolStripMenuItem();
             importResultsToolStripMenuItem = new ToolStripMenuItem();
             deleteResultsToolStripMenuItem = new ToolStripMenuItem();
@@ -803,38 +804,38 @@
             // loadCustomIPRangesToolStripMenuItem
             // 
             loadCustomIPRangesToolStripMenuItem.Name = "loadCustomIPRangesToolStripMenuItem";
-            loadCustomIPRangesToolStripMenuItem.Size = new Size(194, 22);
+            loadCustomIPRangesToolStripMenuItem.Size = new Size(200, 22);
             loadCustomIPRangesToolStripMenuItem.Text = "Load custom IP ranges";
             loadCustomIPRangesToolStripMenuItem.Click += loadCustomIPRangesToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(191, 6);
+            toolStripMenuItem1.Size = new Size(197, 6);
             // 
             // importScanResultsToolStripMenuItem
             // 
             importScanResultsToolStripMenuItem.Name = "importScanResultsToolStripMenuItem";
-            importScanResultsToolStripMenuItem.Size = new Size(194, 22);
-            importScanResultsToolStripMenuItem.Text = "Import scan results";
+            importScanResultsToolStripMenuItem.Size = new Size(200, 22);
+            importScanResultsToolStripMenuItem.Text = "Import IPs (scan results)";
             importScanResultsToolStripMenuItem.Click += importScanResultsToolStripMenuItem_Click;
             // 
             // exportScanResultsToolStripMenuItem
             // 
             exportScanResultsToolStripMenuItem.Name = "exportScanResultsToolStripMenuItem";
-            exportScanResultsToolStripMenuItem.Size = new Size(194, 22);
-            exportScanResultsToolStripMenuItem.Text = "Export scan results";
+            exportScanResultsToolStripMenuItem.Size = new Size(200, 22);
+            exportScanResultsToolStripMenuItem.Text = "Export IPs (scan results)";
             exportScanResultsToolStripMenuItem.Click += exportScanResultsToolStripMenuItem_Click;
             // 
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new Size(191, 6);
+            toolStripMenuItem2.Size = new Size(197, 6);
             // 
             // exitToolStripMenuItem
             // 
             exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            exitToolStripMenuItem.Size = new Size(194, 22);
+            exitToolStripMenuItem.Size = new Size(200, 22);
             exitToolStripMenuItem.Text = "Exit";
             exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
             // 
@@ -917,14 +918,15 @@
             // mnuDiagnoseRandomIP
             // 
             mnuDiagnoseRandomIP.Name = "mnuDiagnoseRandomIP";
-            mnuDiagnoseRandomIP.Size = new Size(209, 22);
+            mnuDiagnoseRandomIP.ShortcutKeys = Keys.Control | Keys.R;
+            mnuDiagnoseRandomIP.Size = new Size(250, 22);
             mnuDiagnoseRandomIP.Text = "With a random IP address";
             mnuDiagnoseRandomIP.Click += mnuDiagnoseRandomIP_Click;
             // 
             // mnuDiagnoseWithUserIP
             // 
             mnuDiagnoseWithUserIP.Name = "mnuDiagnoseWithUserIP";
-            mnuDiagnoseWithUserIP.Size = new Size(209, 22);
+            mnuDiagnoseWithUserIP.Size = new Size(250, 22);
             mnuDiagnoseWithUserIP.Text = "With specific IP address...";
             mnuDiagnoseWithUserIP.Click += mnuDiagnoseWithUserEnteredIP_Click;
             // 
@@ -962,29 +964,36 @@
             // mnuResultsActions
             // 
             mnuResultsActions.ImageScalingSize = new Size(20, 20);
-            mnuResultsActions.Items.AddRange(new ToolStripItem[] { exportResultsToolStripMenuItem, importResultsToolStripMenuItem, deleteResultsToolStripMenuItem });
+            mnuResultsActions.Items.AddRange(new ToolStripItem[] { mnuAddIPToList, exportResultsToolStripMenuItem, importResultsToolStripMenuItem, deleteResultsToolStripMenuItem });
             mnuResultsActions.Name = "mnuResultsActions";
-            mnuResultsActions.Size = new Size(181, 70);
+            mnuResultsActions.Size = new Size(194, 92);
             mnuResultsActions.Text = "Actions";
+            // 
+            // mnuAddIPToList
+            // 
+            mnuAddIPToList.Name = "mnuAddIPToList";
+            mnuAddIPToList.Size = new Size(193, 22);
+            mnuAddIPToList.Text = "Add IP address to list...";
+            mnuAddIPToList.Click += mnuAddIPToList_Click;
             // 
             // exportResultsToolStripMenuItem
             // 
             exportResultsToolStripMenuItem.Name = "exportResultsToolStripMenuItem";
-            exportResultsToolStripMenuItem.Size = new Size(180, 22);
+            exportResultsToolStripMenuItem.Size = new Size(193, 22);
             exportResultsToolStripMenuItem.Text = "Export results";
             exportResultsToolStripMenuItem.Click += exportResultsToolStripMenuItem_Click;
             // 
             // importResultsToolStripMenuItem
             // 
             importResultsToolStripMenuItem.Name = "importResultsToolStripMenuItem";
-            importResultsToolStripMenuItem.Size = new Size(180, 22);
+            importResultsToolStripMenuItem.Size = new Size(193, 22);
             importResultsToolStripMenuItem.Text = "Import results";
             importResultsToolStripMenuItem.Click += importResultsToolStripMenuItem_Click;
             // 
             // deleteResultsToolStripMenuItem
             // 
             deleteResultsToolStripMenuItem.Name = "deleteResultsToolStripMenuItem";
-            deleteResultsToolStripMenuItem.Size = new Size(180, 22);
+            deleteResultsToolStripMenuItem.Size = new Size(193, 22);
             deleteResultsToolStripMenuItem.Text = "Delete current result";
             deleteResultsToolStripMenuItem.Click += deleteResultsToolStripMenuItem_Click;
             // 
@@ -1235,5 +1244,6 @@
         private ToolStripMenuItem mnuDiagnoseRandomIP;
         private ToolStripMenuItem mnuDiagnoseWithUserIP;
         private ToolStripMenuItem diagnoseWithThisIPAddressToolStripMenuItem;
+        private ToolStripMenuItem mnuAddIPToList;
     }
 }
