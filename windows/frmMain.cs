@@ -572,13 +572,16 @@ namespace WinCFScan
             }
         }
 
-        // update clinet config and cf ip list
+        // update client config and cf ip list
         private bool remoteUpdateClientConfig()
         {
             addTextLog("Updating client config from remote...");
             bool result = configManager.getClientConfig().remoteUpdateClientConfig();
             if (result)
             {
+                // get new client config
+                configManager.reloadClientConfig(); // important
+
                 addTextLog("Client config and Cloudflare subnets are successfully updated.");
                 if (!configManager.getClientConfig().isConfigValid())
                 {
@@ -1129,7 +1132,7 @@ namespace WinCFScan
                     addTextLog("New custom v2ray config is added.");
 
                     // diagnose with this config
-                    result = MessageBox.Show($"Do you want to diagnose with this config to see if it works?",
+                    result = MessageBox.Show($"Your custom config is successfully added.\nDo you want to diagnose with this config to see if it works?",
                             "Diagnose Custom Config", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                     if (result == DialogResult.Yes)
