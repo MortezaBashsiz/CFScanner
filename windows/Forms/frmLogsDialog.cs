@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,8 @@ namespace WinCFScan.Forms
 {
     public partial class frmLogsDialog : Form
     {
-        
+        private const string helpDiagnoseUrl = "https://github.com/MortezaBashsiz/CFScanner/discussions/331";
+
         public frmLogsDialog()
         {
             InitializeComponent();
@@ -26,6 +28,22 @@ namespace WinCFScan.Forms
         private void btnCopy_Click(object sender, EventArgs e)
         {
             setClipboard(txtLogs.Text);
+        }
+
+        // only when testing new custom config file
+        public void showResultsMessage(string message, bool success)
+        {
+            if (success)
+            {
+                MessageBox.Show(message,
+                            "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show(message,
+                            "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+
         }
 
         public string LogText
@@ -48,7 +66,7 @@ namespace WinCFScan.Forms
                 {
                     txtLogs.AppendText(log + Environment.NewLine);
                     //if (sendToScreenReaderToo)
-                        //sendScreenReaderMsg(log);
+                    //sendScreenReaderMsg(log);
                 }
             }
             catch (Exception ex)
@@ -66,6 +84,24 @@ namespace WinCFScan.Forms
             catch (Exception ex) { }
 
             return false;
+        }
+
+        private void linkLabelHowTo_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            openUrl(helpDiagnoseUrl);
+        }
+
+        private void openUrl(string url)
+        {
+            try
+            {
+                ProcessStartInfo sInfo = new ProcessStartInfo(url) { UseShellExecute = true };
+                Process.Start(sInfo);
+            }
+            catch (Exception)
+            {
+                setTextLog($"Open this url in your browser: {url}");
+            }
         }
     }
 }

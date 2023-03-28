@@ -67,9 +67,9 @@ namespace WinCFScan.Classes
             }
 
             Tools.logStep(
-                string.Format(Environment.NewLine +  "Fronting  Result: {0}", frontingSuccess ? "SUCCESS" : "FAILED") + Environment.NewLine +
+                string.Format(Environment.NewLine +  "Fronting  Result:    {0}", frontingSuccess ? "SUCCESS" : "FAILED") + Environment.NewLine +
                 string.Format("v2ray.exe Execution: {0}", isV2rayExecutionSuccess ? "SUCCESS" : "FAILED") + Environment.NewLine +
-                string.Format("Download  Result: {0}", v2rayDLSuccess ? "SUCCESS" : "FAILED"), isDiagnosing
+                string.Format("Download  Result:    {0}", v2rayDLSuccess ? "SUCCESS" : "FAILED"), isDiagnosing
                 );
 
             Tools.logStep("\n------------ End IP Check ------------\n", isDiagnosing);

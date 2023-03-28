@@ -135,6 +135,7 @@
             seperatorAutoSkip = new ToolStripSeparator();
             lblRunningWorkers = new ToolStripLabel();
             linkBuyMeCoffee = new ToolStripLabel();
+            mnuHelpDiagnose = new ToolStripMenuItem();
             groupBox1.SuspendLayout();
             toolStrip1.SuspendLayout();
             mnuListView.SuspendLayout();
@@ -932,7 +933,7 @@
             // 
             // helpToolStripMenuItem
             // 
-            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { mnuHelpCustomConfig, mnuHelpOurGitHub });
+            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { mnuHelpCustomConfig, mnuHelpDiagnose, mnuHelpOurGitHub });
             helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             helpToolStripMenuItem.Size = new Size(44, 20);
             helpToolStripMenuItem.Text = "Help";
@@ -1096,6 +1097,13 @@
             linkBuyMeCoffee.ToolTipText = "Buy me a coffee";
             linkBuyMeCoffee.Click += linkBuyMeCoffee_Click;
             // 
+            // mnuHelpDiagnose
+            // 
+            mnuHelpDiagnose.Name = "mnuHelpDiagnose";
+            mnuHelpDiagnose.Size = new Size(252, 22);
+            mnuHelpDiagnose.Text = "How to diagnose errors";
+            mnuHelpDiagnose.Click += mnuHelpDiagnose_Click;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -1245,5 +1253,6 @@
         private ToolStripMenuItem mnuDiagnoseWithUserIP;
         private ToolStripMenuItem diagnoseWithThisIPAddressToolStripMenuItem;
         private ToolStripMenuItem mnuAddIPToList;
+        private ToolStripMenuItem mnuHelpDiagnose;
     }
 }

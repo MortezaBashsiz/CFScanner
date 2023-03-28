@@ -22,6 +22,9 @@ namespace WinCFScan.Classes
         public ScanProgressInfo progressInfo { get; protected set; }
         private CancellationTokenSource cts;
         public List<ResultItem>? workingIPsFromPrevScan { get; set; }
+        public string v2rayDiagnosingMessage { get; private set; }
+        public bool isV2rayExecutionSuccess { get; private set; }
+
         public int concurrentProcess = 4;
         public ScanSpeed targetSpeed;
         public CustomConfigInfo scanConfig;
@@ -150,13 +153,15 @@ namespace WinCFScan.Classes
                 object locker = new object();
                 Parallel.ForEach(ipRange, po, (ip, state, index) =>
                 {
-                    lock (locker) {
+                    lock (locker)
+                    {
                         progressInfo.curentWorkingThreads++;
                     }
                     var checker = new CheckIPWorking(ip, targetSpeed, scanConfig, downloadTimeout, isDiagnosing);
                     bool isOK = checker.check();
 
-                    lock (locker) {
+                    lock (locker)
+                    {
                         progressInfo.curentWorkingThreads--;
                         progressInfo.lastCheckedIP = ip;
                         progressInfo.totalCheckedIPInCurIPRange++;
@@ -171,11 +176,13 @@ namespace WinCFScan.Classes
                         progressInfo.scanResults.addIPResult(checker.downloadDuration, ip);
                     }
 
+                    setDiagnoseMessage(checker);
+
                     // should we auto skip?
                     checkForAutoSkips();
 
                     // monitoring exceptions rate
-                    monitoExceptions(checker);
+                    monitorExceptions(checker);
                 }
                 );
             }
@@ -193,7 +200,19 @@ namespace WinCFScan.Classes
             }
         }
 
-        private void monitoExceptions(CheckIPWorking checker)
+        private void setDiagnoseMessage(CheckIPWorking checker)
+        {
+            if (isDiagnosing)
+            {
+                this.isV2rayExecutionSuccess = checker.isV2rayExecutionSuccess;
+                if (checker.isV2rayExecutionSuccess == false && checker.downloadException != "")
+                {
+                    this.v2rayDiagnosingMessage = checker.downloadException;
+                }
+            }
+        }
+
+        private void monitorExceptions(CheckIPWorking checker)
         {
             // monitoring exceptions rate
             if (checker.downloadException != "")

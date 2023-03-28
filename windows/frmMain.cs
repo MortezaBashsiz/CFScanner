@@ -21,6 +21,7 @@ namespace WinCFScan
     {
         private const string ourGitHubUrl = "https://github.com/MortezaBashsiz/CFScanner";
         private const string helpCustomConfigUrl = "https://github.com/MortezaBashsiz/CFScanner/discussions/210";
+        private const string helpDiagnoseUrl = "https://github.com/MortezaBashsiz/CFScanner/discussions/331";
         private const string buyMeCoffeeUrl = "https://www.buymeacoffee.com/Bashsiz";
         ConfigManager configManager;
         bool oneTimeChecked = false; // config checked once?
@@ -37,6 +38,8 @@ namespace WinCFScan
         private bool stopAvgTetingIsRequested;
         private Stopwatch screenReaderStopWatch = new();
         private string diagnoseIPAddress = ""; // ip to use for diagnosing tests
+        private bool showDiagnosResultMessageBox = false; // only when new config is added
+        private bool isInDiagnosingMode = false;
 
         public frmMain()
         {
@@ -268,18 +271,36 @@ namespace WinCFScan
                     this.currentScanResults = scanEngine.progressInfo.scanResults.workingIPs;
                     if (isDiagnosing)
                     {
-                        addTextLog("Diagnosing finished.");
-
-                        // show diagnose results window
-
-                        diagnoseFrm.LogText = string.Join(Environment.NewLine, Tools.diagnoseLogs);
-                        Tools.clearDiagnoseLogs();
-                        //diagnoseFrm.ShowDialog();
+                        isInDiagnosingMode = true;
+                        showDiagnoseResults(diagnoseFrm);
                     }
                     else
                         addTextLog($"{scanEngine.progressInfo.totalCheckedIP:n0} IPs tested and found {scanEngine.progressInfo.scanResults.totalFoundWorkingIPs:n0} working IPs.", true);
                 });
 
+        }
+
+        // after diagnose is finished we show the results
+        private void showDiagnoseResults(frmLogsDialog diagnoseFrm)
+        {
+            addTextLog("Diagnosing finished.");
+
+            // show diagnose results window
+            diagnoseFrm.LogText = string.Join(Environment.NewLine, Tools.diagnoseLogs);
+
+            // show msg box only for diagnosing custom config for first time
+            if (showDiagnosResultMessageBox)
+            {
+                var msg = scanEngine.isV2rayExecutionSuccess ?
+                    "It seems your custom config is working and v2ray.exe could run with your config." :
+                    "v2ray.exe could not run with your custom config:\n\n" + scanEngine.v2rayDiagnosingMessage;
+                showDiagnosResultMessageBox = false;
+                diagnoseFrm.showResultsMessage(msg, scanEngine.isV2rayExecutionSuccess);
+
+            }
+
+            Tools.clearDiagnoseLogs();
+            //diagnoseFrm.ShowDialog();
         }
 
         private int getDownloadTimeout()
@@ -335,28 +356,32 @@ namespace WinCFScan
                 comboConfigs.Enabled = true;
                 tabPageCFRanges.Enabled = true;
 
-                // save result file if found working IPs
-                var scanResults = scanEngine.progressInfo.scanResults;
-                if (scanResults.totalFoundWorkingIPs != 0)
+                // dot do this stuff in diagnosing mode
+                if (scanType != ScanType.DIAGNOSING)
                 {
-                    // save results into disk
-                    if (!scanResults.save())
+                    // save result file if found working IPs
+                    var scanResults = scanEngine.progressInfo.scanResults;
+                    if (scanResults.totalFoundWorkingIPs != 0)
                     {
-                        addTextLog($"Could not save scan result into the file: {scanResults.resultsFileName}");
+                        // save results into disk
+                        if (!scanResults.save())
+                        {
+                            addTextLog($"Could not save scan result into the file: {scanResults.resultsFileName}");
+                        }
                     }
-                }
-                else
-                {
-                    // delete result file if there is no working ip
-                    scanResults.remove();
-                }
+                    else
+                    {
+                        // delete result file if there is no working ip
+                        scanResults.remove();
+                    }
 
-                loadLastResultsComboList();
+                    loadLastResultsComboList();
 
-                // sort results list
-                listResultsColumnSorter.Order = SortOrder.Ascending;
-                listResultsColumnSorter.SortColumn = 1;
-                listResults.Sort();
+                    // sort results list
+                    listResultsColumnSorter.Order = SortOrder.Ascending;
+                    listResultsColumnSorter.SortColumn = 1;
+                    listResults.Sort();
+                }
             }
         }
 
@@ -397,7 +422,8 @@ namespace WinCFScan
             {
                 scanFinshed = false;
                 updateConrtolsProgress(true);
-                updateUIControlls(false);
+                updateUIControlls(false, isInDiagnosingMode ? ScanType.DIAGNOSING : ScanType.SCAN_CLOUDFLARE_IPS);
+                isInDiagnosingMode = false;
             }
 
             btnStopAvgTest.Visible = isManualTesting;
@@ -1137,6 +1163,7 @@ namespace WinCFScan
 
                     if (result == DialogResult.Yes)
                     {
+                        showDiagnosResultMessageBox = true;
                         doRandomIPDiagnose();
                     }
                 }
@@ -1310,6 +1337,11 @@ namespace WinCFScan
         private void mnuHelpCustomConfig_Click(object sender, EventArgs e)
         {
             openUrl(helpCustomConfigUrl);
+        }
+
+        private void mnuHelpDiagnose_Click(object sender, EventArgs e)
+        {
+            openUrl(helpDiagnoseUrl);
         }
 
         private void mnuHelpOurGitHub_Click(object sender, EventArgs e)
@@ -1629,6 +1661,8 @@ namespace WinCFScan
                 currentScanResults.Add(new ResultItem(0, ipAddr));
             }
         }
+
+
     }
 
 }

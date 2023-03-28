@@ -31,6 +31,7 @@
             btnOK = new Button();
             btnCopy = new Button();
             txtLogs = new TextBox();
+            linkLabelHowTo = new LinkLabel();
             SuspendLayout();
             // 
             // btnOK
@@ -69,11 +70,23 @@
             txtLogs.Size = new Size(723, 347);
             txtLogs.TabIndex = 2;
             // 
+            // linkLabelHowTo
+            // 
+            linkLabelHowTo.AutoSize = true;
+            linkLabelHowTo.Location = new Point(14, 364);
+            linkLabelHowTo.Name = "linkLabelHowTo";
+            linkLabelHowTo.Size = new Size(158, 15);
+            linkLabelHowTo.TabIndex = 3;
+            linkLabelHowTo.TabStop = true;
+            linkLabelHowTo.Text = "Read about diagnose results.";
+            linkLabelHowTo.LinkClicked += linkLabelHowTo_LinkClicked;
+            // 
             // frmLogsDialog
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(724, 396);
+            Controls.Add(linkLabelHowTo);
             Controls.Add(txtLogs);
             Controls.Add(btnCopy);
             Controls.Add(btnOK);
@@ -88,5 +101,6 @@
         private Button btnOK;
         private Button btnCopy;
         private TextBox txtLogs;
+        private LinkLabel linkLabelHowTo;
     }
 }
