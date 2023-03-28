@@ -7,7 +7,8 @@ You have to install the following packages:
 [tput](https://command-not-found.com/tput)<br>
 [bc](https://www.gnu.org/software/bc/)<br>
 [curl](https://curl.se/download.html)<br>
-[parallel (version > 20220515)](https://www.gnu.org/software/parallel/)
+[parallel (version > 20220515)](https://www.gnu.org/software/parallel/)<br>
+[shuf](https://www.gnu.org/software/coreutils/)
 
 ## How to run
 ### 1. clone

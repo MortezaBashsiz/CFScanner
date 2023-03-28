@@ -91,20 +91,19 @@ fncSubnetToIP() {
         bytes[2]="$(( k+(iparr[2] & maskarr[2]) ))"
         for l in $(seq 1 $((255-maskarr[3]))); do
           bytes[3]="$(( l+(iparr[3] & maskarr[3]) ))"
-          ip="$(printf "%d.%d.%d.%d" "${bytes[@]}")"
-          IP_LIST+=("$ip")
+		  ipList+=("$(printf "%d.%d.%d.%d" "${bytes[@]}")")
         done
       done
     done
   done
 
   # Choose random IP addresses from generated IP list
-  if test -v randomNumber; then
-    IP_LIST=($(shuf -e "${IP_LIST[@]}"))
-    IP_LIST=($(echo "${IP_LIST[@]:0:$randomNumber}"))
+  if [[ -v randomNumber ]]; then
+	mapfile -t ipList < <(shuf -e "${ipList[@]}")
+	mapfile -t ipList < <(shuf -e "${ipList[@]:0:$randomNumber}")
   fi
-  for i in ${IP_LIST[@]}; do 
-    echo $i 
+  for i in "${ipList[@]}"; do 
+    echo "$i"
   done
 }
 # End of Function fncSubnetToIP
@@ -625,6 +624,7 @@ function fncUsage {
 			[ -r <int> ]
 			[ -c <configfile> ]
 			[ -s <int> ] 
+			[ -d <int> ]
 			[ -f <custome-ip-file> (if you chose IP mode)]\n"
 		exit 2
 	elif [[ "$osVersion" == "Linux" ]]
@@ -636,6 +636,7 @@ function fncUsage {
 			[ -try|--tryCount <int> ]
 			[ -c|--config <configfile> ]
 			[ -s|--speed <int> ] 
+			[ -d|--random <int> ]
 			[ -f|--file <custome-ip-file> (if you chose IP mode)]\n"
 		 exit 2
 	fi
@@ -655,10 +656,10 @@ subnetIPFile="custom.subnets"
 
 if [[ "$osVersion" == "Mac" ]]
 then
-	parsedArguments=$(getopt v:m:t:p:r:c:s:f:h "$@")
+	parsedArguments=$(getopt v:m:t:p:r:c:s:d:f:h "$@")
 elif [[ "$osVersion" == "Linux" ]]
 then
-	parsedArguments=$(getopt -a -n  cfScanner -o vpn:m:t:thr:try:c:s:f: --long vpn-mode:,mode:,test-type:,thread:,tryCount:,config:,speed:,file: -- "$@")
+	parsedArguments=$(getopt -a -n  cfScanner -o vpn:m:t:thr:try:c:s:d:f: --long vpn-mode:,mode:,test-type:,thread:,tryCount:,config:,speed:,random:,file: -- "$@")
 fi
 
 eval set -- "$parsedArguments"
