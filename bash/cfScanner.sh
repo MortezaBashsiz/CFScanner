@@ -229,11 +229,10 @@ function fncCheckIPList {
 							fi
 							if [[ "$downloadOrUpload" == "UP" ]] || [[  "$downloadOrUpload" == "BOTH" ]]
 							then
-								result=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "\nTIME: %{time_total}\n" --data "@$uploadFile" https://speed.cloudflare.com/__up)
-  	            resultAnswer="$(echo "$result" | grep -v "TIME")"
-  	            if [[ "$resultAnswer" ]]
+								result=$($timeoutCommand 2 curl -x "socks5://127.0.0.1:3$port" -s -w "\nTIME: %{time_total}\n" --data "@$uploadFile" https://speed.cloudflare.com/__up | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc)
+  	            if [[ "$result" ]]
   	            then
-									upTimeMil="$(echo "$result" | grep -i "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc)"
+									upTimeMil="$result"
 									if [[ $upTimeMil -gt 100 ]]
 									then
 										upSuccessedCount=$(( upSuccessedCount+1 ))
@@ -319,11 +318,10 @@ function fncCheckIPList {
 							fi
 							if [[ "$downloadOrUpload" == "UP" ]] || [[  "$downloadOrUpload" == "BOTH" ]]
 							then
-								result=$($timeoutCommand 2 curl -s -w "\nTIME: %{time_total}\n" --data "@$uploadFile" https://speed.cloudflare.com/__up)
-  	            resultAnswer="$(echo "$result" | grep -v "TIME")"
-  	            if [[ "$resultAnswer" ]]
+								result=$($timeoutCommand 2 curl -s -w "\nTIME: %{time_total}\n" -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" --data "@$uploadFile" https://speed.cloudflare.com/__up | grep "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc)
+  	            if [[ "$result" ]]
   	            then
-									upTimeMil="$(echo "$result" | grep -i "TIME" | tail -n 1 | awk '{print $2}' | xargs -I {} echo "{} * 1000 /1" | bc)"
+									upTimeMil="$result"
 									if [[ $upTimeMil -gt 100 ]]
 									then
 										upSuccessedCount=$(( upSuccessedCount+1 ))
