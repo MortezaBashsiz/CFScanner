@@ -93,10 +93,19 @@ fncSubnetToIP() {
         bytes[2]="$(( k+(iparr[2] & maskarr[2]) ))"
         for l in $(seq 1 $((255-maskarr[3]))); do
           bytes[3]="$(( l+(iparr[3] & maskarr[3]) ))"
-          printf "%d.%d.%d.%d\n" "${bytes[@]}"
+		  ipList+=("$(printf "%d.%d.%d.%d" "${bytes[@]}")")
         done
       done
     done
+  done
+
+  # Choose random IP addresses from generated IP list
+  if [[ -v randomNumber ]]; then
+	mapfile -t ipList < <(shuf -e "${ipList[@]}")
+	mapfile -t ipList < <(shuf -e "${ipList[@]:0:$randomNumber}")
+  fi
+  for i in "${ipList[@]}"; do 
+    echo "$i"
   done
 }
 # End of Function fncSubnetToIP
@@ -614,6 +623,7 @@ function fncUsage {
 			[ -r <int> ]
 			[ -c <configfile> ]
 			[ -s <int> ] 
+			[ -d <int> ]
 			[ -f <custome-ip-file> (if you chose IP mode)]\n"
 		exit 2
 	elif [[ "$osVersion" == "Linux" ]]
@@ -625,6 +635,7 @@ function fncUsage {
 			[ -try|--tryCount <int> ]
 			[ -c|--config <configfile> ]
 			[ -s|--speed <int> ] 
+			[ -d|--random <int> ]
 			[ -f|--file <custome-ip-file> (if you chose IP mode)]\n"
 		 exit 2
 	fi
@@ -644,10 +655,10 @@ subnetIPFile="custom.subnets"
 
 if [[ "$osVersion" == "Mac" ]]
 then
-	parsedArguments=$(getopt v:m:t:p:r:c:s:f:h "$@")
+	parsedArguments=$(getopt v:m:t:p:r:c:s:d:f:h "$@")
 elif [[ "$osVersion" == "Linux" ]]
 then
-	parsedArguments=$(getopt -a -n  cfScanner -o vpn:m:t:thr:try:c:s:f: --long vpn-mode:,mode:,test-type:,thread:,tryCount:,config:,speed:,file: -- "$@")
+	parsedArguments=$(getopt -a -n  cfScanner -o vpn:m:t:thr:try:c:s:d:f: --long vpn-mode:,mode:,test-type:,thread:,tryCount:,config:,speed:,random:,file: -- "$@")
 fi
 
 eval set -- "$parsedArguments"
@@ -663,6 +674,7 @@ then
 			-r) tryCount="$2" ; shift 2 ;;
 			-c) config="$2" ; shift 2 ;;
 			-s) speed="$2" ; shift 2 ;;
+			-d) randomNumber="$2" ; shift 2 ;;
 			-f) subnetIPFile="$2" ; shift 2 ;;
 			-h) fncUsage ;;
 			--) shift; break ;;
@@ -682,6 +694,7 @@ then
 			-try|--tryCount) tryCount="$2" ; shift 2 ;;
 			-c|--config) config="$2" ; shift 2 ;;
 			-s|--speed) speed="$2" ; shift 2 ;;
+			-d|--random) randomNumber="$2" ; shift 2 ;;
 			-f|--file) subnetIPFile="$2" ; shift 2 ;;
 			-h|--help) fncUsage ;;
 			--) shift; break ;;

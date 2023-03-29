@@ -7,7 +7,8 @@ You have to install the following packages:
 [tput](https://command-not-found.com/tput)<br>
 [bc](https://www.gnu.org/software/bc/)<br>
 [curl](https://curl.se/download.html)<br>
-[parallel (version > 20220515)](https://www.gnu.org/software/parallel/)
+[parallel (version > 20220515)](https://www.gnu.org/software/parallel/)<br>
+[shuf](https://www.gnu.org/software/coreutils/)
 
 ## How to run
 ### 1. clone
@@ -68,6 +69,8 @@ You have following switches to define the arguments
 
 -f: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
 
+-d: This is an integer that specifies randomness. Instead of testing all IPs in a subnet, It will test random amount of IPs.
+
 ```shell
 [~/CFScanner/bash]>$ bash cfScanner.sh -vpn <YES/NO>  -m <SUBNET/IP> -t <DOWN/UP/BOTH> -thr <int> -try <int> -c <config file> -s <int> [-f <Custome Subnet File> ]
 ```
@@ -87,6 +90,8 @@ You have following switches to define the arguments
 -s: This is the filter that you can define to list the IPs based on download speed. The value is in KBPS (Kilo Bytes Per Second). For example, if you set it to 50, it means that you will only list the IPs which have a download speed of more than 50 KB/S.
 
 -f: This is an optional argument which is a file address if you want to execute only some specific subnets. Then put your subnets in a file and pass the file as an argument to the command.
+
+-d: This is an integer that specifies randomness. Instead of testing all IPs in a subnet, It will test random amount of IPs.
 
 ```shell
 [~/CFScanner/bash]>$ bash cfScanner.sh -v <YES/NO>  -m <SUBNET/IP> -t <DOWN/UP/BOTH> -p <int> -r <int> -c <config file> -s <int> [-f <Custome Subnet File> ]
