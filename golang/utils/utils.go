@@ -165,11 +165,13 @@ func IPValidator(ip string) string {
 }
 
 func inc(ip net.IP) {
-	for j := len(ip) - 1; j >= 0; j-- {
-		ip[j]++
-		if ip[j] > 0 {
-			break
+	for i := len(ip) - 1; i >= 0; i-- {
+		if ip[i] == 255 {
+			ip[i] = 0
+			continue
 		}
+		ip[i]++
+		break
 	}
 }
 

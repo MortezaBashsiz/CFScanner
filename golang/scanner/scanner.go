@@ -261,7 +261,7 @@ func scannerMap(testConfig *config.ConfigStruct, worker *config.Worker, ip strin
 	}
 }
 
-func Scanner(testConfig *config.ConfigStruct, worker *config.Worker, cidrList []string, threadsCount int) {
+func Worker(testConfig *config.ConfigStruct, worker *config.Worker, cidrList []string, threadsCount int) {
 	var wg sync.WaitGroup
 
 	n := len(cidrList)
