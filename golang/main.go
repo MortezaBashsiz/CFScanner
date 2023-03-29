@@ -91,20 +91,21 @@ func main() {
 
 			}
 
-			// Total number of IPS
-			numip := utils.TotalIps(IPLIST)
-
 			// Parsing and Validanting IPLISTS
 			bigIPList = utils.IPParser(IPLIST)
 
+			// Total number of IPS
+			numip := utils.TotalIps(bigIPList)
+
 			fmt.Printf("Starting to scan %v%d%v IPS.\n\n", utils.Colors.OKGREEN, numip, utils.Colors.ENDC)
 			// Begin scanning process
-			scan.Scanner(&Config, &worker, bigIPList, threadsCount)
+			scan.Worker(&Config, &worker, bigIPList, threadsCount)
 
 			fmt.Println("Results Written in :", configuration.INTERIM_RESULTS_PATH)
 			fmt.Println("Sorted IPS Written in :", configuration.FINAL_RESULTS_PATH_SORTED)
 		},
 	}
+
 	Registercommands(rootCmd)
 
 	if len(os.Args) <= 1 {

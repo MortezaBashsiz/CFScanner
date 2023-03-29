@@ -126,8 +126,14 @@ func IPParser(list []string) []string {
 	return IPList
 }
 
-func GetNumIPsInCIDR(cidr string) int {
-	parts := strings.Split(cidr, "/")
+func GetNumIPs(cidrOrIP string) int {
+	if ip := net.ParseIP(cidrOrIP); ip != nil {
+		// input is an IP address
+		return 1
+	}
+
+	// input is CIDR notation
+	parts := strings.Split(cidrOrIP, "/")
 
 	subnetMask := 32
 	if len(parts) > 1 {
@@ -141,7 +147,6 @@ func GetNumIPsInCIDR(cidr string) int {
 
 	return numIPs
 }
-
 func cidrToIPList(cidr string) ([]string, error) {
 	ip, ipNet, err := net.ParseCIDR(cidr)
 	if err != nil {
@@ -211,7 +216,7 @@ func TotalIps(IPLIST []string) int {
 	var nTotalIPs int
 
 	for _, ips := range IPLIST {
-		numIPs := GetNumIPsInCIDR(ips)
+		numIPs := GetNumIPs(ips)
 		nTotalIPs += numIPs
 	}
 	return nTotalIPs
