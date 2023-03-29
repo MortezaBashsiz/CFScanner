@@ -79,7 +79,7 @@ func Checkip(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 
 		// Check download speed
 		var err error
-		nBytes := Download.Min_dl_speed * 1000 * Download.Max_dl_time
+		nBytes := Download.Min_dl_speed * 1000
 		downloadSpeed, downloadLatency, err = speedtest.DownloadSpeedTest(int(nBytes), proxies, time.Duration(Download.Max_dl_time))
 		if err != nil {
 			if strings.Contains(strings.ToLower(err.Error()), "download/upload too slow") {
@@ -122,7 +122,7 @@ func Checkip(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 		// upload speed test
 		if Config.Do_upload_test {
 			var err error
-			nBytes := Upload.Min_ul_speed * 1000 * Upload.Max_ul_time
+			nBytes := Upload.Min_ul_speed * 1000
 			uploadSpeed, uploadLatency, err = speedtest.UploadSpeedTest(int(nBytes), proxies, time.Duration(Upload.Max_ul_time))
 			if err != nil {
 				log.Printf("%sFAIL %v%15s Upload error : %v%v\n", utils.Colors.FAIL, utils.Colors.WARNING, ip, err, utils.Colors.ENDC)
