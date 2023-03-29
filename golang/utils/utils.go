@@ -107,30 +107,22 @@ func getIPFromDomainTimeout(domain string) (string, error) {
 	}
 	return ips[0].String(), nil
 }
-
 func IPParser(list []string) []string {
 	var IPList []string
+
 	for _, ip := range list {
-
-		// CIDR Parser
-		if strings.Contains(ip, "/") {
-			ips, err := cidrToIPList(ip)
-			if err != nil {
-				log.Print("Error : ", err)
-			}
+		// Parse CIDR
+		if ips, err := cidrToIPList(ip); err == nil {
 			IPList = append(IPList, ips...)
-
-			// Parse IP
-		} else if net.ParseIP(ip) != nil {
+		} else if ipAddr := net.ParseIP(ip); ipAddr != nil { // Parse IP address
 			IPList = append(IPList, ip)
-
-			// Parse domain and convert it to ip
-		} else if domain, _ := GetIpFromDomain(ip); domain != "" {
-			if net.ParseIP(domain) != nil {
-				IPList = append(IPList, domain)
+		} else if domainIP, _ := GetIpFromDomain(ip); domainIP != "" { // Parse domain
+			if ipAddr := net.ParseIP(domainIP); ipAddr != nil {
+				IPList = append(IPList, domainIP)
 			}
 		}
 	}
+
 	return IPList
 }
 
@@ -211,4 +203,14 @@ func WaitForPort(host string, port int, timeout time.Duration) error {
 		}
 		time.Sleep(time.Millisecond * 10)
 	}
+}
+
+func TotalIps(IPLIST []string) int {
+	var nTotalIPs int
+
+	for _, ips := range IPLIST {
+		numIPs := GetNumIPsInCIDR(ips)
+		nTotalIPs += numIPs
+	}
+	return nTotalIPs
 }
