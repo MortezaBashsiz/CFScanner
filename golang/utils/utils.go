@@ -38,7 +38,21 @@ func MeanJitter(latencies []float64) float64 {
 }
 
 func Float64ToKBps(bytes float64) float64 {
-	return bytes / 8 * 1000
+	return bytes * 8 / (1000000.0)
+}
+
+func Round(val float64, roundOn float64, places int) (newVal float64) {
+	var round float64
+	pow := math.Pow(10, float64(places))
+	digit := pow * val
+	_, div := math.Modf(digit)
+	if div >= roundOn {
+		round = math.Ceil(digit)
+	} else {
+		round = math.Floor(digit)
+	}
+	newVal = round / pow
+	return
 }
 
 func CreateDir(dirPath string) {

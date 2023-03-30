@@ -62,6 +62,14 @@ func Checkip(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 			log.Fatal(err)
 			return nil
 		}
+
+		defer process.Process.Kill()
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("%sFAIL %v%15s Panic: %v%v\n", utils.Colors.FAIL, utils.Colors.WARNING, ip, r, utils.Colors.ENDC)
+			}
+		}()
+
 	} else {
 		process = nil
 		proxies = nil
@@ -79,8 +87,10 @@ func Checkip(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 
 		// Check download speed
 		var err error
-		nBytes := Download.Min_dl_speed * 1000
-		downloadSpeed, downloadLatency, err = speedtest.DownloadSpeedTest(int(nBytes), proxies, time.Duration(Download.Max_dl_time))
+		nBytes := Download.Min_dl_speed * 1000 * Download.Max_dl_time
+		downloadSpeed, downloadLatency, err = speedtest.DownloadSpeedTest(int(nBytes), proxies,
+			time.Duration(Download.Max_dl_latency)*time.Second)
+
 		if err != nil {
 			if strings.Contains(strings.ToLower(err.Error()), "download/upload too slow") {
 				log.Printf("%vFAIL %v%15s Download too slow\n",
@@ -88,9 +98,6 @@ func Checkip(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 			} else {
 				log.Printf("%vFAIL %v%15s Download error%v\n",
 					utils.Colors.FAIL, utils.Colors.WARNING, ip, utils.Colors.ENDC)
-			}
-			if Worker.Vpn {
-				process.Process.Kill()
 			}
 			return nil
 		}
@@ -101,34 +108,28 @@ func Checkip(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 				result["download"].(map[string]interface{})["speed"] =
 					append(result["download"].(map[string]interface{})["speed"].([]float64), downloadSpeed)
 				result["download"].(map[string]interface{})["latency"] =
-					append(result["download"].(map[string]interface{})["latency"].([]int), int(math.Round(downloadLatency)))
+					append(result["download"].(map[string]interface{})["latency"].([]int), int(math.Round(downloadLatency*1000)))
 
 			} else {
 				log.Printf("%vFAIL %v%15s Download too slow %.4f kBps < %.4f kBps%v\n",
 					utils.Colors.FAIL, utils.Colors.WARNING, ip, downloadSpeedKBps, Download.Min_dl_speed, utils.Colors.ENDC)
-				if Worker.Vpn {
-					process.Process.Kill()
-				}
 				return nil
 			}
 		} else {
-			log.Printf("%vFAIL %v%15s High Worker latency %.4f s > %.4f s%v\n",
+			log.Printf("%vFAIL %v%15s High Download latency %.4f s > %.4f s%v\n",
 				utils.Colors.FAIL, utils.Colors.WARNING, ip, downloadLatency, Download.Max_dl_latency, utils.Colors.ENDC)
-			if Worker.Vpn {
-				process.Process.Kill()
-			}
 			return nil
 		}
 		// upload speed test
 		if Config.Do_upload_test {
 			var err error
-			nBytes := Upload.Min_ul_speed * 1000
-			uploadSpeed, uploadLatency, err = speedtest.UploadSpeedTest(int(nBytes), proxies, time.Duration(Upload.Max_ul_time))
+			nBytes := Upload.Min_ul_speed * 1000 * Upload.Max_ul_time
+			uploadSpeed, uploadLatency, err = speedtest.UploadSpeedTest(int(nBytes), proxies,
+				time.Duration(Upload.Max_ul_latency)*time.Second)
+
 			if err != nil {
 				log.Printf("%sFAIL %v%15s Upload error : %v%v\n", utils.Colors.FAIL, utils.Colors.WARNING, ip, err, utils.Colors.ENDC)
-				if Worker.Vpn {
-					process.Process.Kill()
-				}
+
 				return nil
 			}
 			if uploadLatency <= Upload.Max_ul_latency {
@@ -137,37 +138,26 @@ func Checkip(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 					result["upload"].(map[string]interface{})["speed"] =
 						append(result["upload"].(map[string]interface{})["speed"].([]float64), uploadSpeed)
 					result["upload"].(map[string]interface{})["latency"] =
-						append(result["upload"].(map[string]interface{})["latency"].([]int), int(math.Round(uploadLatency)))
+						append(result["upload"].(map[string]interface{})["latency"].([]int), int(math.Round(uploadLatency*1000)))
 
 				} else {
 					log.Printf("%sFAIL %v%15s Upload too slow %f kBps < %f kBps%s\n",
 						utils.Colors.FAIL, utils.Colors.WARNING, ip, uploadSpeedKbps, Upload.Min_ul_speed, utils.Colors.ENDC)
-					if Worker.Vpn {
-						process.Process.Kill()
-					}
+
 					return nil
 				}
 			} else {
 				log.Printf("%sFAIL %v%15s Upload latency too high  %s\n",
 					utils.Colors.FAIL, utils.Colors.WARNING, ip, utils.Colors.ENDC)
-				if Worker.Vpn {
-					process.Process.Kill()
-				}
+
 				return nil
 			}
 		}
 
-		dltimeLatency := math.Round(downloadLatency)
-		uptimeLatency := math.Round(uploadLatency)
-		log.Printf("%vOK IP: %v , Download: %.2fkBps , Upload: %.2fkbps , UP_Latency: %v , DL_Latency: %v%v\n",
-			utils.Colors.OKGREEN, ip, utils.Float64ToKBps(downloadSpeed), utils.Float64ToKBps(uploadSpeed), uptimeLatency, dltimeLatency, utils.Colors.ENDC)
-		if Worker.Vpn {
-			process.Process.Kill()
-		}
-
-	}
-	if Worker.Vpn {
-		process.Process.Kill()
+		dltimeLatency := math.Round(downloadLatency * 1000)
+		uptimeLatency := math.Round(uploadLatency * 1000)
+		log.Printf("%vOK IP: %v , Download: %7.4fmbps , Upload: %7.4fmbps , UP_Latency: %vms , DL_Latency: %vms%v\n",
+			utils.Colors.OKGREEN, ip, downloadSpeed, uploadSpeed, uptimeLatency, dltimeLatency, utils.Colors.ENDC)
 	}
 	return result
 }
@@ -210,15 +200,11 @@ func scannerMap(testConfig *config.ConfigStruct, worker *config.Worker, ip strin
 
 		downSpeed, ok := res["download"].(map[string]interface{})["speed"].([]float64)
 
-		// make downSpeedKbps to return kbps
-		downSpeedKbps := make([]float64, len(downSpeed))
-		for i, v := range downSpeed {
-			downSpeedKbps[i] = utils.Float64ToKBps(v)
-		}
 		if !ok {
 			log.Printf("Error getting download speed for IP %s , %v", ip, ok)
 		}
-		meanDownSpeed := utils.Mean(downSpeedKbps)
+
+		meanDownSpeed := utils.Mean(downSpeed)
 		meanuploadSpeed := -1.0
 
 		uploadSpeed, ok := res["upload"].(map[string]interface{})["speed"].([]float64)
@@ -227,13 +213,8 @@ func scannerMap(testConfig *config.ConfigStruct, worker *config.Worker, ip strin
 			log.Printf("Error getting upload speed for IP %s", ip)
 		}
 
-		// make downSpeedKbps to return kbps
-		uploadSpeedKbps := make([]float64, len(uploadSpeed))
-		for i, v := range uploadSpeed {
-			uploadSpeedKbps[i] = utils.Float64ToKBps(v)
-		}
 		if testConfig.Do_upload_test {
-			meanuploadSpeed = utils.Mean(uploadSpeedKbps)
+			meanuploadSpeed = utils.Mean(uploadSpeed)
 		}
 
 		meanDownLatency := utils.Mean(downLatency)
@@ -282,6 +263,7 @@ func Worker(testConfig *config.ConfigStruct, worker *config.Worker, cidrList []s
 		go func(batch []string) {
 			defer wg.Done()
 			for _, ip := range batch {
+
 				scannerMap(testConfig, worker, ip)
 			}
 
@@ -297,7 +279,7 @@ func InterimOutput(res map[string]interface{}, ip string, downMeanJitter float64
 	meanDownSpeed float64, meanuploadSpeed float64,
 	meanDownLatency float64, meanuploadLatency float64) {
 
-	log.Printf("%sOK %-15s %s avg_down_speed: %7.2fkbps avg_up_speed: %7.4fkbps avg_down_latency: %6.2fms avg_up_latency: %6.2fms avg_down_jitter: %6.2fms avg_up_jitter: %4.2fms%s\n",
+	log.Printf("%sOK %-15s %s avg_down_speed: %7.2fmbps avg_up_speed: %7.4fmbps avg_down_latency: %6.2fms avg_up_latency: %6.2fms avg_down_jitter: %6.2fms avg_up_jitter: %4.2fms%s\n",
 		utils.Colors.OKGREEN,
 		res["ip"].(string),
 		utils.Colors.OKBLUE,

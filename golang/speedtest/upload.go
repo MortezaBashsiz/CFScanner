@@ -1,7 +1,9 @@
 package speedtest
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -22,19 +24,24 @@ func UploadSpeedTest(nBytes int, proxies map[string]string, timeout time.Duratio
 		return 0, 0, err
 	}
 	defer resp.Body.Close()
+
 	totalTime := time.Since(startTime).Seconds()
-	cfTime := time.Duration(0)
-	serverTiming := resp.Header.Get("Server-Timing")
+	cfTime := float64(0)
+
+	serverTiming := req.Header.Get("Server-Timing")
 	if serverTiming != "" {
-		// parse cf timing from server-timing header
-		for _, timing := range strings.Split(serverTiming, ",") {
-			if strings.HasPrefix(timing, "cf") {
-				cfTime, _ = time.ParseDuration(timing[3:])
+		timings := strings.Split(serverTiming, "=")
+		if len(timings) > 1 {
+			cfTiming, err := strconv.ParseFloat(timings[1], 64)
+			if err == nil {
+				cfTime = cfTiming / 1000.0
+				fmt.Println(cfTime)
 			}
 		}
+
 	}
-	latency := totalTime - cfTime.Seconds()
-	mb := float64(nBytes*8) / (10 * 10 * 10 * 10 * 10 * 10)
+	latency := totalTime - cfTime
+	var mb float64 = float64(nBytes) * 8 / (1000000.0)
 	uploadSpeed := mb / latency
 
 	return uploadSpeed, latency, nil
