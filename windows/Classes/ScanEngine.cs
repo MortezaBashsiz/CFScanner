@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -36,6 +37,7 @@ namespace WinCFScan.Classes
         private bool skipAfterPercentDone;
         private int skipMinPercent;
         public bool isDiagnosing = false;
+        public bool isRandomScan = false;
 
         public ScanEngine()
         {
@@ -63,7 +65,7 @@ namespace WinCFScan.Classes
                 return false;
             }
 
-            // dont reset stats if we are resuming
+            // don't reset stats if we are resuming
             if (!progressInfo.resumeRequested)
             {
                 resetProgressInfo();
@@ -193,6 +195,11 @@ namespace WinCFScan.Classes
             // if scan paused then exclude already done IPs
             allIPs = excludeDoneIPs(allIPs);
 
+            if (isRandomScan) {
+                Random rnd = new Random();
+                allIPs = allIPs.OrderBy(x => rnd.Next()).ToList();
+            }
+                    
             return allIPs;
         }
 

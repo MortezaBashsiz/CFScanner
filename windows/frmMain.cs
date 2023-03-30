@@ -256,11 +256,17 @@ namespace WinCFScan
             scanEngine.scanConfig = getSelectedV2rayConfig(); // set scan config
             scanEngine.downloadTimeout = getDownloadTimeout(); // set download timeout
             scanEngine.isDiagnosing = isDiagnosing; // is diagnosing
-            string scanConfigContent = scanEngine.scanConfig.content;
+            scanEngine.isRandomScan = checkScanInRandomOrder.Checked; // is random scan
 
+            string scanConfigContent = scanEngine.scanConfig.content;
             Tools.logStep($"Starting scan engine with target speed: {scanEngine.targetSpeed.getTargetSpeed():n0}, dl timeout: {scanEngine.downloadTimeout}, " +
                 $"config: '{scanEngine.scanConfig}' => " +
                 $"{scanConfigContent.Substring(0, Math.Min(150, scanConfigContent.Length))}...", isDiagnosing);
+
+            if(scanEngine.isRandomScan && scanType == ScanType.SCAN_CLOUDFLARE_IPS)
+            {
+                addTextLog("Scan in random order is enabled.", true);
+            }
 
             tabControl1.SelectTab(1);
 

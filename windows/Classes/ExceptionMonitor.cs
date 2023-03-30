@@ -120,7 +120,7 @@ namespace WinCFScan.Classes
             // yellow warning
             else if (errRate <= warningErrRate)
             {
-                control.ForeColor = Color.Orange;
+                control.ForeColor = Color.OrangeRed;
             }
             // red danger
             else
