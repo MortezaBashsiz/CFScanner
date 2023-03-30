@@ -42,18 +42,11 @@ In the config file the variables are
 }
 ```
 
-NOTE: If you want to use your custom config DO NOT use it as config.real since script will update this file. Store your config in another file and pass it as an argument to script instead of config.real
-
 ### 4. Execute it
-
-
 
 #### in Linux:
 
-At following command pay attention to the arguments **vpn** **SUBNET or IP** **DOWN or UP or BOTH**, **threads**, **tryCount**, **speed** and **Custom Subnet File**.
 You have following switches to define the arguments 
-
-
 
 -vpn: YES or NO, you are able to define for script to test with your vmess or not
 
@@ -72,7 +65,7 @@ You have following switches to define the arguments
 -d: This is an integer that specifies randomness. Instead of testing all IPs in a subnet, It will test random amount of IPs.
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh -vpn <YES/NO>  -m <SUBNET/IP> -t <DOWN/UP/BOTH> -thr <int> -try <int> -c <config file> -s <int> [-f <Custome Subnet File> ]
+[~/CFScanner/bash]>$ bash cfScanner.sh -vpn <YES/NO>  -m <SUBNET/IP> -t <DOWN/UP/BOTH> -thr <int> -try <int> -d <int> -c <config file> -s <int> [-f <Custome Subnet File> ]
 ```
 
 #### in MacOS:
@@ -94,10 +87,10 @@ You have following switches to define the arguments
 -d: This is an integer that specifies randomness. Instead of testing all IPs in a subnet, It will test random amount of IPs.
 
 ```shell
-[~/CFScanner/bash]>$ bash cfScanner.sh -v <YES/NO>  -m <SUBNET/IP> -t <DOWN/UP/BOTH> -p <int> -r <int> -c <config file> -s <int> [-f <Custome Subnet File> ]
+[~/CFScanner/bash]>$ bash cfScanner.sh -v <YES/NO>  -m <SUBNET/IP> -t <DOWN/UP/BOTH> -p <int> -r <int> -d <int> -c <config file> -s <int> [-f <Custome Subnet File> ]
 ```
 
-#### EXAMPLE: without custom subnet download
+#### EXAMPLE: Download test without custom subnet
 
 ##### in Linux:
 
@@ -111,7 +104,8 @@ You have following switches to define the arguments
 [~/CFScanner/bash]>$ bash cfScanner.sh -v YES -m SUBNET -t DOWN -p 8 -r 1 -c config.real -s 100
 ```
 
-#### EXAMPLE: without custom subnet upload
+#### EXAMPLE: Upload test without custom subnet
+
 
 ##### in Linux:
 
@@ -125,8 +119,7 @@ You have following switches to define the arguments
 [~/CFScanner/bash]>$ bash cfScanner.sh -v YES -m SUBNET -t UP -p 8 -r 1 -c config.real -s 100
 ```
 
-
-#### EXAMPLE: without custom subnet upload and download
+#### EXAMPLE: Upload and Download test without custom subnet
 
 ##### in Linux:
 
@@ -140,8 +133,7 @@ You have following switches to define the arguments
 [~/CFScanner/bash]>$ bash cfScanner.sh -v YES -m SUBNET -t BOTH -p 8 -r 1 -c config.real -s 100
 ```
 
-
-#### EXAMPLE: with custom subnet
+#### EXAMPLE: Use your custom subnet file
 
 ##### in Linux:
 
@@ -164,7 +156,7 @@ Which the `custom.subnets` is like as follows. You can edit this file and add yo
 [~/CFScanner/bash]>$
 ```
 
-#### EXAMPLE: with custom ip file
+#### EXAMPLE: Use your custom ip file
 
 #### in Linux:
 
@@ -172,34 +164,13 @@ Which the `custom.subnets` is like as follows. You can edit this file and add yo
 [~/CFScanner/bash]>$ bash cfScanner.sh -vpn YES -m IP -t DOWN -thr 8 -try 1 -c config.real -s 100 -f ip.list
 ```
 
-Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
-
-```shell
-[~/CFScanner/bash]>$ cat ip.list
-23.227.37.250 
-23.227.37.252 
-23.227.37.253 
-23.227.37.254 
-23.227.37.255 
-23.227.38.1 
-23.227.38.8 
-23.227.38.2 
-23.227.38.3 
-23.227.38.6 
-23.227.38.14 
-23.227.38.11 
-23.227.38.9 
-23.227.38.4 
-23.227.38.10 
-23.227.38.7 
-[~/CFScanner/bash]>$
-```
-
 #### in MacOS:
 
 ```shell
 [~/CFScanner/bash]>$ bash cfScanner.sh -v YES -m IP -t DOWN -p 8 -r 1 -c config.real -s 100 -f ip.list
 ```
+
+Which the `custom.subnets` is like as follows. You can edit this file and add your subnets in each line.
 
 ```shell
 [~/CFScanner/bash]>$ cat ip.list
