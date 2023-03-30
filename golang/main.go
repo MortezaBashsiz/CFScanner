@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"runtime"
 	"strings"
@@ -40,10 +41,10 @@ func main() {
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(VersionStatement())
 			// Create Configuration file
-			Config, worker := configuration.CreateTestConfig(configPath, startProcessTimeout, doUploadTest,
+			Config, worker, _ := configuration.CreateTestConfig(configPath, startProcessTimeout, doUploadTest,
 				minDLSpeed, minULSpeed, maxDLTime, maxULTime,
 				frontingTimeout, fronting, maxDLLatency, maxULLatency,
-				nTries, Vpn, threads)
+				nTries, Vpn, threads, shuffle)
 
 			if v2raypath != "" {
 				configuration.BIN = v2raypath
@@ -93,6 +94,13 @@ func main() {
 
 			// Parsing and Validanting IPLISTS
 			bigIPList = utils.IPParser(IPLIST)
+
+			// Shuffeling IPList
+			if shuffle {
+				rand.Shuffle(len(bigIPList), func(i, j int) {
+					bigIPList[i], bigIPList[j] = bigIPList[j], bigIPList[i]
+				})
+			}
 
 			// Total number of IPS
 			numip := utils.TotalIps(bigIPList)

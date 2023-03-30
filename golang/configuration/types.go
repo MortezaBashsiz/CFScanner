@@ -38,3 +38,5 @@ type Worker struct {
 	Threads              int
 	Vpn                  bool
 }
+
+type Shuffling bool

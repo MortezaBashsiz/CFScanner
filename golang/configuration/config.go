@@ -22,7 +22,7 @@ var (
 	FINAL_RESULTS_PATH_SORTED = filepath.Join(RESULTDIR, START_DT_STR+"_final.txt")
 )
 
-func PrintInformation(Config ConfigStruct, Worker Worker) {
+func PrintInformation(Config ConfigStruct, Worker Worker, shuffle Shuffling) {
 	fmt.Printf(`-------------------------------------
 Configuration :
 User ID : %v%v%v
@@ -42,6 +42,7 @@ Maximum Download Latency : %v%v%v
 Maximum Upload Latency : %v%v%v
 Number of Tries : %v%v%v
 VPN Mode : %v%v%v
+Shuffling : %v%v%v
 Total Threads : %v%v%v
 -------------------------------------
 `,
@@ -62,6 +63,7 @@ Total Threads : %v%v%v
 		utils.Colors.OKBLUE, Worker.Upload.Max_ul_latency, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, Config.N_tries, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, Worker.Vpn, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, shuffle, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, Worker.Threads, utils.Colors.ENDC,
 	)
 }
@@ -71,7 +73,7 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 	minUlSpeed float64, maxDlTime float64,
 	maxUlTime float64, frontingTimeout float64,
 	fronting bool, maxDlLatency float64,
-	maxUlLatency float64, nTries int, Vpn bool, threads int) (ConfigStruct, Worker) {
+	maxUlLatency float64, nTries int, Vpn bool, threads int, shuffle bool) (ConfigStruct, Worker, Shuffling) {
 
 	if configPath == "" {
 		log.Fatalf("Configuration file are not loaded please use the --config or -c flag to use the configuration file.")
@@ -119,8 +121,8 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 		Vpn:                  Vpn,
 	}
 
-	PrintInformation(ConfigObject, WorkerObject)
-	return ConfigObject, WorkerObject
+	PrintInformation(ConfigObject, WorkerObject, Shuffling(shuffle))
+	return ConfigObject, WorkerObject, Shuffling(shuffle)
 }
 
 func CreateInterimResultsFile(interimResultsPath string, nTries int) error {
