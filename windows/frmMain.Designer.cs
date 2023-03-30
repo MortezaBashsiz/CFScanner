@@ -116,6 +116,7 @@
             mnuDiagnoseWithUserIP = new ToolStripMenuItem();
             helpToolStripMenuItem = new ToolStripMenuItem();
             mnuHelpCustomConfig = new ToolStripMenuItem();
+            mnuHelpDiagnose = new ToolStripMenuItem();
             mnuHelpOurGitHub = new ToolStripMenuItem();
             openFileDialog1 = new OpenFileDialog();
             saveFileDialog1 = new SaveFileDialog();
@@ -135,7 +136,8 @@
             seperatorAutoSkip = new ToolStripSeparator();
             lblRunningWorkers = new ToolStripLabel();
             linkBuyMeCoffee = new ToolStripLabel();
-            mnuHelpDiagnose = new ToolStripMenuItem();
+            seperatorPaused = new ToolStripSeparator();
+            lblScanPaused = new ToolStripLabel();
             groupBox1.SuspendLayout();
             toolStrip1.SuspendLayout();
             mnuListView.SuspendLayout();
@@ -247,14 +249,13 @@
             btnStart.Text = "Start Scan";
             btnStart.ToolTipText = "Scan in selected IP ranges of Cloudflare (Ctrl + F5)";
             btnStart.ButtonClick += btnStart_ButtonClick;
-            btnStart.Click += btnStart_Click;
             // 
             // mnuPauseScan
             // 
             mnuPauseScan.Name = "mnuPauseScan";
             mnuPauseScan.Size = new Size(134, 22);
             mnuPauseScan.Text = "Pause Scan";
-            mnuPauseScan.Visible = false;
+            mnuPauseScan.Click += mnuPauseScan_Click;
             // 
             // toolStripSeparator2
             // 
@@ -499,6 +500,7 @@
             // 
             // btnScanInPrevResults
             // 
+            btnScanInPrevResults.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point);
             btnScanInPrevResults.Location = new Point(419, 10);
             btnScanInPrevResults.Name = "btnScanInPrevResults";
             btnScanInPrevResults.Size = new Size(115, 24);
@@ -945,6 +947,13 @@
             mnuHelpCustomConfig.Text = "How to add custom v2ray configs";
             mnuHelpCustomConfig.Click += mnuHelpCustomConfig_Click;
             // 
+            // mnuHelpDiagnose
+            // 
+            mnuHelpDiagnose.Name = "mnuHelpDiagnose";
+            mnuHelpDiagnose.Size = new Size(252, 22);
+            mnuHelpDiagnose.Text = "How to diagnose errors";
+            mnuHelpDiagnose.Click += mnuHelpDiagnose_Click;
+            // 
             // mnuHelpOurGitHub
             // 
             mnuHelpOurGitHub.Name = "mnuHelpOurGitHub";
@@ -1002,7 +1011,7 @@
             // 
             toolStripBottom.Dock = DockStyle.Bottom;
             toolStripBottom.ImageScalingSize = new Size(20, 20);
-            toolStripBottom.Items.AddRange(new ToolStripItem[] { btnFrontingErrors, toolStripSeparator3, btnDownloadErrors, toolStripSeparator4, lblAutoSkipStatus, seperatorAutoSkip, lblRunningWorkers, linkBuyMeCoffee, linkGithub });
+            toolStripBottom.Items.AddRange(new ToolStripItem[] { btnFrontingErrors, toolStripSeparator3, btnDownloadErrors, toolStripSeparator4, lblAutoSkipStatus, seperatorAutoSkip, lblRunningWorkers, linkBuyMeCoffee, linkGithub, seperatorPaused, lblScanPaused });
             toolStripBottom.Location = new Point(0, 628);
             toolStripBottom.Name = "toolStripBottom";
             toolStripBottom.Size = new Size(886, 33);
@@ -1097,12 +1106,20 @@
             linkBuyMeCoffee.ToolTipText = "Buy me a coffee";
             linkBuyMeCoffee.Click += linkBuyMeCoffee_Click;
             // 
-            // mnuHelpDiagnose
+            // seperatorPaused
             // 
-            mnuHelpDiagnose.Name = "mnuHelpDiagnose";
-            mnuHelpDiagnose.Size = new Size(252, 22);
-            mnuHelpDiagnose.Text = "How to diagnose errors";
-            mnuHelpDiagnose.Click += mnuHelpDiagnose_Click;
+            seperatorPaused.Name = "seperatorPaused";
+            seperatorPaused.Size = new Size(6, 33);
+            // 
+            // lblScanPaused
+            // 
+            lblScanPaused.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            lblScanPaused.ForeColor = Color.Crimson;
+            lblScanPaused.Name = "lblScanPaused";
+            lblScanPaused.Size = new Size(51, 30);
+            lblScanPaused.Text = "PAUSED";
+            lblScanPaused.ToolTipText = "Scan is Paused";
+            lblScanPaused.Visible = false;
             // 
             // frmMain
             // 
@@ -1254,5 +1271,7 @@
         private ToolStripMenuItem diagnoseWithThisIPAddressToolStripMenuItem;
         private ToolStripMenuItem mnuAddIPToList;
         private ToolStripMenuItem mnuHelpDiagnose;
+        private ToolStripLabel lblScanPaused;
+        private ToolStripSeparator seperatorPaused;
     }
 }

@@ -37,7 +37,7 @@
             // btnOK
             // 
             btnOK.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnOK.Location = new Point(637, 362);
+            btnOK.Location = new Point(657, 367);
             btnOK.Name = "btnOK";
             btnOK.Size = new Size(75, 23);
             btnOK.TabIndex = 0;
@@ -48,7 +48,7 @@
             // btnCopy
             // 
             btnCopy.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnCopy.Location = new Point(556, 362);
+            btnCopy.Location = new Point(576, 367);
             btnCopy.Name = "btnCopy";
             btnCopy.Size = new Size(75, 23);
             btnCopy.TabIndex = 1;
@@ -67,13 +67,14 @@
             txtLogs.Name = "txtLogs";
             txtLogs.ReadOnly = true;
             txtLogs.ScrollBars = ScrollBars.Both;
-            txtLogs.Size = new Size(723, 347);
+            txtLogs.Size = new Size(743, 352);
             txtLogs.TabIndex = 2;
             // 
             // linkLabelHowTo
             // 
+            linkLabelHowTo.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             linkLabelHowTo.AutoSize = true;
-            linkLabelHowTo.Location = new Point(14, 364);
+            linkLabelHowTo.Location = new Point(14, 368);
             linkLabelHowTo.Name = "linkLabelHowTo";
             linkLabelHowTo.Size = new Size(158, 15);
             linkLabelHowTo.TabIndex = 3;
@@ -85,11 +86,12 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(724, 396);
+            ClientSize = new Size(744, 401);
             Controls.Add(linkLabelHowTo);
             Controls.Add(txtLogs);
             Controls.Add(btnCopy);
             Controls.Add(btnOK);
+            MinimumSize = new Size(550, 300);
             Name = "frmLogsDialog";
             Text = "Logs";
             ResumeLayout(false);

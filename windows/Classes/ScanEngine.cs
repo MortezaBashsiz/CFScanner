@@ -44,25 +44,49 @@ namespace WinCFScan.Classes
             loadCFIPList();
         }
 
-        public bool start(ScanType scanType = ScanType.SCAN_CLOUDFLARE_IPS)
+        public bool resume(ScanType scanType = ScanType.SCAN_CLOUDFLARE_IPS)
         {
-            if(progressInfo.isScanRunning) {
+            if (progressInfo.scanStatus != ScanStatus.PAUSED)
+                return false;
+
+            progressInfo.resumeRequested = true;
+
+            return start(scanType, progressInfo.indexOfCLRange);
+        }
+
+        public bool start(ScanType scanType = ScanType.SCAN_CLOUDFLARE_IPS, int lastIndex = 0)
+        {
+            progressInfo.stopRequested = false;
+            progressInfo.pauseRequested = false;
+
+            if (progressInfo.isScanRunning) {
                 return false;
             }
 
-            resetProgressInfo();
-            
+            // dont reset stats if we are resuming
+            if (!progressInfo.resumeRequested)
+            {
+                resetProgressInfo();
+                progressInfo.scanResults = new ScanResults("results/" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-results.json");
+                progressInfo.scanResults.startDate = DateTime.Now;
+            }
+
             progressInfo.isScanRunning = true;
-            progressInfo.scanResults = new Config.ScanResults( "results/" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + "-results.json");
-            progressInfo.scanResults.startDate = DateTime.Now;
 
             if (scanType == ScanType.SCAN_CLOUDFLARE_IPS)
-                scanInCfIPRanges();
+                scanInCfIPRanges(lastIndex);
             else
                 scanInPervResults();
 
 
             progressInfo.isScanRunning = false;
+            progressInfo.scanStatus = progressInfo.pauseRequested ? ScanStatus.PAUSED : ScanStatus.STOPPED;
+
+            // reset pause index at stop
+            if(progressInfo.scanStatus == ScanStatus.STOPPED) {
+                currentRangeDoneIPs.Clear();
+                progressInfo.resumeRequested = false;   
+            }
 
             return true;
         }
@@ -70,64 +94,112 @@ namespace WinCFScan.Classes
         // scan in previous scan result
         private void scanInPervResults()
         {
+            progressInfo.scanStatus = ScanStatus.RUNNING;
             progressInfo.totalIPRanges = 1;
 
             if (workingIPsFromPrevScan == null)
                 return;
 
-            var listIP = workingIPsFromPrevScan.Select(x => x.ip).ToList();
-            progressInfo.currentIPRangeTotalIPs = listIP.Count;
+            var toScanIPs = workingIPsFromPrevScan.Select(x => x.ip).ToList();
 
-            LogControl.Write($"Start scanning {listIP.Count:n0} ip in on previous scan results");
+            toScanIPs = excludeDoneIPs(toScanIPs);
+
+            progressInfo.currentIPRangeTotalIPs = workingIPsFromPrevScan.Count;
+
+            LogControl.Write($"Start scanning {workingIPsFromPrevScan.Count:n0} ip in on previous scan results");
             Stopwatch sw = Stopwatch.StartNew();
-            parallelScan(listIP);
-            LogControl.Write($"End of scanning {listIP.Count:n0} ip in {sw.Elapsed.TotalSeconds:n0} sec\n");
-            progressInfo.currentIPRangesNumber = 2;
+            parallelScan(toScanIPs);
+            LogControl.Write($"End of scanning {workingIPsFromPrevScan.Count:n0} ip in {sw.Elapsed.TotalSeconds:n0} sec\n");
+
+            if (! progressInfo.pauseRequested)
+            {
+                progressInfo.currentIPRangesNumber = 2;
+            }
+
         }
 
         // scan in all cloudflare ip range
-        private void scanInCfIPRanges()
+        private void scanInCfIPRanges(int startIndex = 0)
         {
-
             if (hasError)
                 return;
 
-            progressInfo.totalIPRanges = cfIPRangeList.Count();
-            progressInfo.currentIPRangesNumber = 1;
-
-
-            foreach (var cfIP in cfIPRangeList)
+            if (!progressInfo.resumeRequested)
+            // don't reset stats if we are resuming
             {
-                // stop scan?
+                progressInfo.totalIPRanges = cfIPRangeList.Count();
+                progressInfo.currentIPRangesNumber = 1;
+            }
+
+            progressInfo.scanStatus = ScanStatus.RUNNING;
+
+            bool isFirstIterate = true;
+            for (int index = startIndex; index < cfIPRangeList.Length; index++)
+            {
+                // stop scan requested?
                 if (progressInfo.stopRequested == true)
                 {
                     break;
                 }
 
-                progressInfo.totalCheckedIPInCurIPRange = 0;
-                progressInfo.scanResults.totalFoundWorkingIPsCurrentRange = 0;
+                string? cfRange = cfIPRangeList[index];
+                progressInfo.indexOfCLRange = index;
 
-                if (isValidIPRange(cfIP))
+                // don't reset stats if we are resuming, only on first iterate
+                if (!isFirstIterate || !progressInfo.resumeRequested)
                 {
-                    List<string> ipRange = IPAddressExtensions.getAllIPInRange(cfIP);
-                    progressInfo.currentIPRange = cfIP;
-                    progressInfo.currentIPRangeTotalIPs = ipRange.Count();
-                    LogControl.Write(String.Format("Start scanning {0} ip in {1}", ipRange.Count, cfIP));
-                    logMessages.Add($"Starting range: {cfIP} ...");
+                    progressInfo.totalCheckedIPInCurIPRange = 0;
+                    progressInfo.scanResults.totalFoundWorkingIPsCurrentRange = 0;
+                    currentRangeDoneIPs.Clear();
+                }
+
+                isFirstIterate = false;
+
+                if (isValidIPRange(cfRange))
+                {
+                    int origTotal;
+                    List<string> rangeIPs = getCurrentRangeIPs(cfRange, out origTotal);
+                    progressInfo.currentIPRange = cfRange;
+                    progressInfo.currentIPRangeTotalIPs = origTotal;
+                    LogControl.Write(String.Format("Start scanning {0} ip in {1}", rangeIPs.Count, cfRange));
+                    logMessages.Add($"Starting range: {cfRange} ...");
                     curRangeTimer = Stopwatch.StartNew();
-                    parallelScan(ipRange);
-                    LogControl.Write(String.Format("End of scanning {0} {1} ip in {2} sec\n\n", cfIP, ipRange.Count, curRangeTimer.Elapsed.TotalSeconds));
+
+                    // scan
+                    parallelScan(rangeIPs);
+
+                    LogControl.Write(String.Format("End of scanning {0} {1} ip in {2} sec\n\n", cfRange, rangeIPs.Count, curRangeTimer.Elapsed.TotalSeconds));
 
                     progressInfo.currentIPRangesNumber++;
 
                     // skip current range?
                     if (progressInfo.skipCurrentIPRange == true)
                     {
-                        LogControl.Write(String.Format("IP range skipped by user {0}", cfIP));
+                        LogControl.Write(String.Format("IP range skipped by user {0}", cfRange));
                         progressInfo.skipCurrentIPRange = false;
                     }
                 }
-            }
+            } // for
+
+            progressInfo.currentIPRangesNumber--; // undo last extra +
+        }
+
+        private List<string> getCurrentRangeIPs(string cfRange, out int origTotal)
+        {
+            List<string> allIPs = IPAddressExtensions.getAllIPInRange(cfRange);
+
+            origTotal = allIPs.Count;
+
+            // if scan paused then exclude already done IPs
+            allIPs = excludeDoneIPs(allIPs);
+
+            return allIPs;
+        }
+
+        // for paused scans
+        private List<string> excludeDoneIPs(List<string> allIPs)
+        {
+            return allIPs.Except(currentRangeDoneIPs.ToList()).ToList();
         }
 
         public void setCFIPRangeList(string[] list)
@@ -140,18 +212,20 @@ namespace WinCFScan.Classes
             return cfIP != "" && cfIP.Contains('/') && cfIP.Contains('.');
         }
 
+        private ConcurrentBag<string> currentRangeDoneIPs = new ConcurrentBag<string>();
+
         private void parallelScan(List<string> ipRange)
         {
-            //var bag = new ConcurrentBag<string>();
             cts = new CancellationTokenSource();
             ParallelOptions po = new ParallelOptions();
             po.CancellationToken = cts.Token;
             po.MaxDegreeOfParallelism = concurrentProcess; //System.Environment.ProcessorCount;
+            ParallelLoopResult result;
 
             try
-            {
+            {                
                 object locker = new object();
-                Parallel.ForEach(ipRange, po, (ip, state, index) =>
+                result = Parallel.ForEach(ipRange, po, (ip, state, index) =>
                 {
                     lock (locker)
                     {
@@ -159,7 +233,7 @@ namespace WinCFScan.Classes
                     }
                     var checker = new CheckIPWorking(ip, targetSpeed, scanConfig, downloadTimeout, isDiagnosing);
                     bool isOK = checker.check();
-
+                    
                     lock (locker)
                     {
                         progressInfo.curentWorkingThreads--;
@@ -183,8 +257,23 @@ namespace WinCFScan.Classes
 
                     // monitoring exceptions rate
                     monitorExceptions(checker);
+
+                    currentRangeDoneIPs.Add(ip);
+
+                    // pause or stop?
+                    if (progressInfo.pauseRequested)
+                    {
+                        // pause and keep state of current scan
+                        state.Break();
+                    }
+                    else if (progressInfo.skipCurrentIPRange || progressInfo.stopRequested)
+                    {
+                        // stop and go for next range
+                        state.Stop();
+                    }
                 }
                 );
+
             }
             catch (OperationCanceledException ex)
             {
@@ -196,8 +285,8 @@ namespace WinCFScan.Classes
             finally
             {
                 cts.Dispose();
-                
             }
+
         }
 
         private void setDiagnoseMessage(CheckIPWorking checker)
@@ -228,26 +317,26 @@ namespace WinCFScan.Classes
 
         private void checkForAutoSkips()
         {
-            
-            // skip after 2 minute
+
+            // skip after 3 minute
             if (skipAfterAWhileEnabled)
             {
-                if(curRangeTimer.Elapsed.TotalMinutes >= 3)
+                if (curRangeTimer.Elapsed.TotalMinutes >= 3)
                 {
                     if (!progressInfo.skipCurrentIPRange)
-                        logMessages.Add($"Auto skipping {progressInfo.currentIPRange} after founding 3 minutes of scanning.");
+                        logMessages.Add($"Auto skipping {progressInfo.currentIPRange} after 3 minutes of scanning.");
 
                     skipCurrentIPRange();
                 }
             }
 
-            // skip after 5 minute
+            // skip after found 5 IPs
             if (skipAfterFoundIPsEnabled)
             {
                 if (progressInfo.scanResults.totalFoundWorkingIPsCurrentRange >= 5)
                 {
-                    if(!progressInfo.skipCurrentIPRange)
-                        logMessages.Add($"Auto skipping {progressInfo.currentIPRange} after founding 5 working IPs.");
+                    if (!progressInfo.skipCurrentIPRange)
+                        logMessages.Add($"Auto skipping {progressInfo.currentIPRange} after found 5 working IPs.");
 
                     skipCurrentIPRange();
                 }
@@ -294,7 +383,6 @@ namespace WinCFScan.Classes
             return false;
         }
 
-
         internal void stop()
         {
             try
@@ -302,16 +390,25 @@ namespace WinCFScan.Classes
                 if (progressInfo.isScanRunning)
                 {
                     progressInfo.stopRequested = true;
-                    cts.Cancel();
+                    //cts.Cancel();
                 }
             }
             catch (Exception)
-            {}
+            { }
+        }
+
+        public void pause()
+        {
+            stop();
+            if (progressInfo.isScanRunning)
+            {
+                progressInfo.pauseRequested = true;
+            }
         }
 
         public void skipCurrentIPRange() {
             progressInfo.skipCurrentIPRange = true;
-            cts.Cancel();
+            //cts.Cancel();
         }
 
         internal void setSkipAfterFoundIPs(bool enabled)
@@ -329,12 +426,34 @@ namespace WinCFScan.Classes
             this.skipAfterPercentDone = enabled;
             this.skipMinPercent = minPercent;
         }
+
+        // add just one item
+        internal void setPrevResults(ResultItem resultItem)
+        {
+            var list = new List<ResultItem>();
+            list.Add(resultItem);
+            setPrevResults(list);
+        }
+
+        // add as list of items
+        internal void setPrevResults(List<ResultItem> resultItems)
+        {
+            workingIPsFromPrevScan = resultItems;
+        }
     }
 
+    
     enum ScanType
     {
         SCAN_CLOUDFLARE_IPS,
         SCAN_IN_PERV_RESULTS,
         DIAGNOSING
+    }
+
+    enum ScanStatus
+    {
+        RUNNING,
+        PAUSED,
+        STOPPED
     }
 }
