@@ -117,5 +117,11 @@ namespace WinCFScan.Classes.Config
         {
             return this.clientConfig;
         }
+
+        // when client config is updated from remote then we need to update it here too
+        public void reloadClientConfig()
+        {
+            clientConfig = (new ClientConfig(appConfig)).getLoadedInstance();
+        }
     }
 }

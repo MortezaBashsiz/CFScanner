@@ -14,6 +14,8 @@ namespace WinCFScan.Classes
         public string lastErrMessage = "";
         public bool hasError = false;
         public bool stopRequested = false; // is requested to stop scan
+        public bool pauseRequested = false; // is requested to pause scan
+        public bool resumeRequested = false; 
         internal string lastCheckedIP;
         internal ScanResults scanResults;
         internal bool skipCurrentIPRange;
@@ -25,6 +27,8 @@ namespace WinCFScan.Classes
         internal ExceptionMonitor downloadExceptions = new("Download Errors");
         internal ExceptionMonitor frontingExceptions = new("Fronting Errors");
         internal int curentWorkingThreads = 0;
+        internal ScanStatus scanStatus = ScanStatus.STOPPED;
+        internal int indexOfCLRange = 0;
 
         public float getCurrentRangePercentIsDone()
         {
