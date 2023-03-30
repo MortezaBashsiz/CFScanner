@@ -12,7 +12,7 @@ namespace WinCFScan.Classes.Config
     {
         public List<CustomConfigInfo> customConfigInfos = new();
         private static string customConfigsDirectory = "v2ray-config/custom-configs";
-        private static string customConfigHelpUrl = "...";
+        private static string customConfigHelpUrl = "https://github.com/MortezaBashsiz/CFScanner/discussions/210";
 
         public CustomConfigs() {
             loadCustomConfigs();
@@ -27,9 +27,14 @@ namespace WinCFScan.Classes.Config
             {
                 var customConfigObj = new CustomConfigInfo(customConfig, File.ReadAllText(customConfig));
                 
+                string msg;
                 // validate
-                if (customConfigObj.isValid()) {
+                if (customConfigObj.isValid(out msg)) {
                     customConfigInfos.Add(customConfigObj);
+                }
+                else
+                {
+                    Tools.logStep($"Invalid custom config: {msg}, File: {customConfig}");
                 }
                 
             }
@@ -39,7 +44,7 @@ namespace WinCFScan.Classes.Config
         {
             errorMessage = "";
             var validator = new CustomConfigInfo(fileName, File.ReadAllText(fileName));
-            if (validator.isValid())
+            if (validator.isValid(out errorMessage))
             {
                 try
                 {
@@ -54,7 +59,7 @@ namespace WinCFScan.Classes.Config
             }
             else
             {
-                errorMessage = "Provided config file is not valid v2ray config. See here for more information: " + customConfigHelpUrl;
+                errorMessage = $"Provided config file is not valid v2ray config: {errorMessage + Environment.NewLine}See here for more information: " + customConfigHelpUrl;
                 return false;
             }
         }
@@ -71,8 +76,9 @@ namespace WinCFScan.Classes.Config
             this.content = content;
         }
 
-        public bool isValid()
+        public bool isValid(out string message)
         {
+            message = "";
             try
             {
                 var tt = JsonSerializer.Deserialize<JsonDocument>(content)!;
@@ -80,15 +86,23 @@ namespace WinCFScan.Classes.Config
             catch (Exception)
             {
                 // it is invalid json
+                message = "File is not in valid json format.";
                 return false;
             }
 
-            if (!content.Contains("\"port\": \"PORTPORT\"")) 
+            if (!content.Contains("\"port\": \"PORTPORT\""))
+            {
+                message = "PORTPORT parameter is not found in the file.";
                 return false;
+            }
 
-            if (!content.Contains("\"address\": \"IP.IP.IP.IP\"")) 
+            if (!content.Contains("\"address\": \"IP.IP.IP.IP\""))
+            {
+                message = "IP.IP.IP.IP parameter is not found in the file.";
                 return false;
+            }
 
+            
             return true;
         }
 

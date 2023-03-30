@@ -67,6 +67,7 @@
             comboResults = new ComboBox();
             btnScanInPrevResults = new Button();
             btnLoadIPRanges = new Button();
+            checkScanInRandomOrder = new CheckBox();
             listResults = new ListView();
             hdrIP = new ColumnHeader();
             hdrDelay = new ColumnHeader();
@@ -77,10 +78,10 @@
             mnuTesIP2Times = new ToolStripMenuItem();
             mnuTesIP3Times = new ToolStripMenuItem();
             mnuTesIP5Times = new ToolStripMenuItem();
+            diagnoseWithThisIPAddressToolStripMenuItem = new ToolStripMenuItem();
             splitContainer1 = new SplitContainer();
             tabControl1 = new TabControl();
             tabPageCFRanges = new TabPage();
-            checkScanInRandomOrder = new CheckBox();
             listCFIPList = new ListView();
             headIPRange = new ColumnHeader();
             headTotalIPs = new ColumnHeader();
@@ -109,12 +110,18 @@
             toolStripSeparator5 = new ToolStripSeparator();
             checkForUpdateToolStripMenuItem = new ToolStripMenuItem();
             updateClientConfigCloudflareSubnetsToolStripMenuItem = new ToolStripMenuItem();
+            toolStripSeparator7 = new ToolStripSeparator();
+            toolStripMenuItem3 = new ToolStripMenuItem();
+            mnuDiagnoseRandomIP = new ToolStripMenuItem();
+            mnuDiagnoseWithUserIP = new ToolStripMenuItem();
             helpToolStripMenuItem = new ToolStripMenuItem();
             mnuHelpCustomConfig = new ToolStripMenuItem();
+            mnuHelpDiagnose = new ToolStripMenuItem();
             mnuHelpOurGitHub = new ToolStripMenuItem();
             openFileDialog1 = new OpenFileDialog();
             saveFileDialog1 = new SaveFileDialog();
             mnuResultsActions = new ContextMenuStrip(components);
+            mnuAddIPToList = new ToolStripMenuItem();
             exportResultsToolStripMenuItem = new ToolStripMenuItem();
             importResultsToolStripMenuItem = new ToolStripMenuItem();
             deleteResultsToolStripMenuItem = new ToolStripMenuItem();
@@ -129,6 +136,8 @@
             seperatorAutoSkip = new ToolStripSeparator();
             lblRunningWorkers = new ToolStripLabel();
             linkBuyMeCoffee = new ToolStripLabel();
+            seperatorPaused = new ToolStripSeparator();
+            lblScanPaused = new ToolStripLabel();
             groupBox1.SuspendLayout();
             toolStrip1.SuspendLayout();
             mnuListView.SuspendLayout();
@@ -240,14 +249,13 @@
             btnStart.Text = "Start Scan";
             btnStart.ToolTipText = "Scan in selected IP ranges of Cloudflare (Ctrl + F5)";
             btnStart.ButtonClick += btnStart_ButtonClick;
-            btnStart.Click += btnStart_Click;
             // 
             // mnuPauseScan
             // 
             mnuPauseScan.Name = "mnuPauseScan";
-            mnuPauseScan.Size = new Size(180, 22);
+            mnuPauseScan.Size = new Size(134, 22);
             mnuPauseScan.Text = "Pause Scan";
-            mnuPauseScan.Visible = false;
+            mnuPauseScan.Click += mnuPauseScan_Click;
             // 
             // toolStripSeparator2
             // 
@@ -492,6 +500,7 @@
             // 
             // btnScanInPrevResults
             // 
+            btnScanInPrevResults.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point);
             btnScanInPrevResults.Location = new Point(419, 10);
             btnScanInPrevResults.Name = "btnScanInPrevResults";
             btnScanInPrevResults.Size = new Size(115, 24);
@@ -514,6 +523,18 @@
             toolTip1.SetToolTip(btnLoadIPRanges, "Load your custom IP ranges");
             btnLoadIPRanges.UseVisualStyleBackColor = true;
             btnLoadIPRanges.Click += btnLoadIPRanges_Click;
+            // 
+            // checkScanInRandomOrder
+            // 
+            checkScanInRandomOrder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            checkScanInRandomOrder.AutoSize = true;
+            checkScanInRandomOrder.Location = new Point(352, 11);
+            checkScanInRandomOrder.Name = "checkScanInRandomOrder";
+            checkScanInRandomOrder.Size = new Size(194, 19);
+            checkScanInRandomOrder.TabIndex = 5;
+            checkScanInRandomOrder.Text = "Scan IP ranges in random order.";
+            toolTip1.SetToolTip(checkScanInRandomOrder, "By selecting this option we randomize IP ranges before scanning");
+            checkScanInRandomOrder.UseVisualStyleBackColor = true;
             // 
             // listResults
             // 
@@ -545,9 +566,9 @@
             // mnuListView
             // 
             mnuListView.ImageScalingSize = new Size(20, 20);
-            mnuListView.Items.AddRange(new ToolStripItem[] { mnuListViewCopyIP, mnuTestThisIP, mnuListViewTestThisIPAddress });
+            mnuListView.Items.AddRange(new ToolStripItem[] { mnuListViewCopyIP, mnuTestThisIP, mnuListViewTestThisIPAddress, diagnoseWithThisIPAddressToolStripMenuItem });
             mnuListView.Name = "mnuListView";
-            mnuListView.Size = new Size(253, 70);
+            mnuListView.Size = new Size(253, 92);
             // 
             // mnuListViewCopyIP
             // 
@@ -560,7 +581,7 @@
             // 
             mnuTestThisIP.Name = "mnuTestThisIP";
             mnuTestThisIP.Size = new Size(252, 22);
-            mnuTestThisIP.Text = "Test this IP address";
+            mnuTestThisIP.Text = "Speed Test this IP address";
             mnuTestThisIP.Click += testThisIPAddressToolStripMenuItem_Click;
             // 
             // mnuListViewTestThisIPAddress
@@ -590,6 +611,13 @@
             mnuTesIP5Times.Size = new Size(135, 22);
             mnuTesIP5Times.Text = "Test 5 times";
             mnuTesIP5Times.Click += mnuTesIP5Times_Click;
+            // 
+            // diagnoseWithThisIPAddressToolStripMenuItem
+            // 
+            diagnoseWithThisIPAddressToolStripMenuItem.Name = "diagnoseWithThisIPAddressToolStripMenuItem";
+            diagnoseWithThisIPAddressToolStripMenuItem.Size = new Size(252, 22);
+            diagnoseWithThisIPAddressToolStripMenuItem.Text = "Diagnose with this IP address";
+            diagnoseWithThisIPAddressToolStripMenuItem.Click += diagnoseWithThisIPAddressToolStripMenuItem_Click;
             // 
             // splitContainer1
             // 
@@ -639,18 +667,6 @@
             tabPageCFRanges.Size = new Size(852, 266);
             tabPageCFRanges.TabIndex = 1;
             tabPageCFRanges.Text = "Cloudflare IP ranges";
-            // 
-            // checkScanInRandomOrder
-            // 
-            checkScanInRandomOrder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            checkScanInRandomOrder.AutoSize = true;
-            checkScanInRandomOrder.Location = new Point(352, 11);
-            checkScanInRandomOrder.Name = "checkScanInRandomOrder";
-            checkScanInRandomOrder.Size = new Size(194, 19);
-            checkScanInRandomOrder.TabIndex = 5;
-            checkScanInRandomOrder.Text = "Scan IP ranges in random order.";
-            toolTip1.SetToolTip(checkScanInRandomOrder, "By selecting this option we randomize IP ranges before scanning");
-            checkScanInRandomOrder.UseVisualStyleBackColor = true;
             // 
             // listCFIPList
             // 
@@ -791,44 +807,44 @@
             // loadCustomIPRangesToolStripMenuItem
             // 
             loadCustomIPRangesToolStripMenuItem.Name = "loadCustomIPRangesToolStripMenuItem";
-            loadCustomIPRangesToolStripMenuItem.Size = new Size(194, 22);
+            loadCustomIPRangesToolStripMenuItem.Size = new Size(200, 22);
             loadCustomIPRangesToolStripMenuItem.Text = "Load custom IP ranges";
             loadCustomIPRangesToolStripMenuItem.Click += loadCustomIPRangesToolStripMenuItem_Click;
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(191, 6);
+            toolStripMenuItem1.Size = new Size(197, 6);
             // 
             // importScanResultsToolStripMenuItem
             // 
             importScanResultsToolStripMenuItem.Name = "importScanResultsToolStripMenuItem";
-            importScanResultsToolStripMenuItem.Size = new Size(194, 22);
-            importScanResultsToolStripMenuItem.Text = "Import scan results";
+            importScanResultsToolStripMenuItem.Size = new Size(200, 22);
+            importScanResultsToolStripMenuItem.Text = "Import IPs (scan results)";
             importScanResultsToolStripMenuItem.Click += importScanResultsToolStripMenuItem_Click;
             // 
             // exportScanResultsToolStripMenuItem
             // 
             exportScanResultsToolStripMenuItem.Name = "exportScanResultsToolStripMenuItem";
-            exportScanResultsToolStripMenuItem.Size = new Size(194, 22);
-            exportScanResultsToolStripMenuItem.Text = "Export scan results";
+            exportScanResultsToolStripMenuItem.Size = new Size(200, 22);
+            exportScanResultsToolStripMenuItem.Text = "Export IPs (scan results)";
             exportScanResultsToolStripMenuItem.Click += exportScanResultsToolStripMenuItem_Click;
             // 
             // toolStripMenuItem2
             // 
             toolStripMenuItem2.Name = "toolStripMenuItem2";
-            toolStripMenuItem2.Size = new Size(191, 6);
+            toolStripMenuItem2.Size = new Size(197, 6);
             // 
             // exitToolStripMenuItem
             // 
             exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            exitToolStripMenuItem.Size = new Size(194, 22);
+            exitToolStripMenuItem.Size = new Size(200, 22);
             exitToolStripMenuItem.Text = "Exit";
             exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
             // 
             // toolsToolStripMenuItem
             // 
-            toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { scanASingleIPAddressToolStripMenuItem, addCustomV2rayConfigToolStripMenuItem, downloadTimeoutToolStripMenuItem, mnushowScanStatus, toolStripSeparator5, checkForUpdateToolStripMenuItem, updateClientConfigCloudflareSubnetsToolStripMenuItem });
+            toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { scanASingleIPAddressToolStripMenuItem, addCustomV2rayConfigToolStripMenuItem, downloadTimeoutToolStripMenuItem, mnushowScanStatus, toolStripSeparator5, checkForUpdateToolStripMenuItem, updateClientConfigCloudflareSubnetsToolStripMenuItem, toolStripSeparator7, toolStripMenuItem3 });
             toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             toolsToolStripMenuItem.Size = new Size(46, 20);
             toolsToolStripMenuItem.Text = "Tools";
@@ -837,7 +853,7 @@
             // 
             scanASingleIPAddressToolStripMenuItem.Name = "scanASingleIPAddressToolStripMenuItem";
             scanASingleIPAddressToolStripMenuItem.Size = new Size(297, 22);
-            scanASingleIPAddressToolStripMenuItem.Text = "Test a single IP address";
+            scanASingleIPAddressToolStripMenuItem.Text = "Test a single IP address...";
             scanASingleIPAddressToolStripMenuItem.Click += scanASingleIPAddressToolStripMenuItem_Click;
             // 
             // addCustomV2rayConfigToolStripMenuItem
@@ -890,9 +906,36 @@
             updateClientConfigCloudflareSubnetsToolStripMenuItem.Text = "Update ClientConfig && Cloudflare subnets";
             updateClientConfigCloudflareSubnetsToolStripMenuItem.Click += updateClientConfigCloudflareSubnetsToolStripMenuItem_Click;
             // 
+            // toolStripSeparator7
+            // 
+            toolStripSeparator7.Name = "toolStripSeparator7";
+            toolStripSeparator7.Size = new Size(294, 6);
+            // 
+            // toolStripMenuItem3
+            // 
+            toolStripMenuItem3.DropDownItems.AddRange(new ToolStripItem[] { mnuDiagnoseRandomIP, mnuDiagnoseWithUserIP });
+            toolStripMenuItem3.Name = "toolStripMenuItem3";
+            toolStripMenuItem3.Size = new Size(297, 22);
+            toolStripMenuItem3.Text = "Diagnose";
+            // 
+            // mnuDiagnoseRandomIP
+            // 
+            mnuDiagnoseRandomIP.Name = "mnuDiagnoseRandomIP";
+            mnuDiagnoseRandomIP.ShortcutKeys = Keys.Control | Keys.R;
+            mnuDiagnoseRandomIP.Size = new Size(250, 22);
+            mnuDiagnoseRandomIP.Text = "With a random IP address";
+            mnuDiagnoseRandomIP.Click += mnuDiagnoseRandomIP_Click;
+            // 
+            // mnuDiagnoseWithUserIP
+            // 
+            mnuDiagnoseWithUserIP.Name = "mnuDiagnoseWithUserIP";
+            mnuDiagnoseWithUserIP.Size = new Size(250, 22);
+            mnuDiagnoseWithUserIP.Text = "With specific IP address...";
+            mnuDiagnoseWithUserIP.Click += mnuDiagnoseWithUserEnteredIP_Click;
+            // 
             // helpToolStripMenuItem
             // 
-            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { mnuHelpCustomConfig, mnuHelpOurGitHub });
+            helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { mnuHelpCustomConfig, mnuHelpDiagnose, mnuHelpOurGitHub });
             helpToolStripMenuItem.Name = "helpToolStripMenuItem";
             helpToolStripMenuItem.Size = new Size(44, 20);
             helpToolStripMenuItem.Text = "Help";
@@ -903,6 +946,13 @@
             mnuHelpCustomConfig.Size = new Size(252, 22);
             mnuHelpCustomConfig.Text = "How to add custom v2ray configs";
             mnuHelpCustomConfig.Click += mnuHelpCustomConfig_Click;
+            // 
+            // mnuHelpDiagnose
+            // 
+            mnuHelpDiagnose.Name = "mnuHelpDiagnose";
+            mnuHelpDiagnose.Size = new Size(252, 22);
+            mnuHelpDiagnose.Text = "How to diagnose errors";
+            mnuHelpDiagnose.Click += mnuHelpDiagnose_Click;
             // 
             // mnuHelpOurGitHub
             // 
@@ -924,29 +974,36 @@
             // mnuResultsActions
             // 
             mnuResultsActions.ImageScalingSize = new Size(20, 20);
-            mnuResultsActions.Items.AddRange(new ToolStripItem[] { exportResultsToolStripMenuItem, importResultsToolStripMenuItem, deleteResultsToolStripMenuItem });
+            mnuResultsActions.Items.AddRange(new ToolStripItem[] { mnuAddIPToList, exportResultsToolStripMenuItem, importResultsToolStripMenuItem, deleteResultsToolStripMenuItem });
             mnuResultsActions.Name = "mnuResultsActions";
-            mnuResultsActions.Size = new Size(181, 70);
+            mnuResultsActions.Size = new Size(194, 92);
             mnuResultsActions.Text = "Actions";
+            // 
+            // mnuAddIPToList
+            // 
+            mnuAddIPToList.Name = "mnuAddIPToList";
+            mnuAddIPToList.Size = new Size(193, 22);
+            mnuAddIPToList.Text = "Add IP address to list...";
+            mnuAddIPToList.Click += mnuAddIPToList_Click;
             // 
             // exportResultsToolStripMenuItem
             // 
             exportResultsToolStripMenuItem.Name = "exportResultsToolStripMenuItem";
-            exportResultsToolStripMenuItem.Size = new Size(180, 22);
+            exportResultsToolStripMenuItem.Size = new Size(193, 22);
             exportResultsToolStripMenuItem.Text = "Export results";
             exportResultsToolStripMenuItem.Click += exportResultsToolStripMenuItem_Click;
             // 
             // importResultsToolStripMenuItem
             // 
             importResultsToolStripMenuItem.Name = "importResultsToolStripMenuItem";
-            importResultsToolStripMenuItem.Size = new Size(180, 22);
+            importResultsToolStripMenuItem.Size = new Size(193, 22);
             importResultsToolStripMenuItem.Text = "Import results";
             importResultsToolStripMenuItem.Click += importResultsToolStripMenuItem_Click;
             // 
             // deleteResultsToolStripMenuItem
             // 
             deleteResultsToolStripMenuItem.Name = "deleteResultsToolStripMenuItem";
-            deleteResultsToolStripMenuItem.Size = new Size(180, 22);
+            deleteResultsToolStripMenuItem.Size = new Size(193, 22);
             deleteResultsToolStripMenuItem.Text = "Delete current result";
             deleteResultsToolStripMenuItem.Click += deleteResultsToolStripMenuItem_Click;
             // 
@@ -954,7 +1011,7 @@
             // 
             toolStripBottom.Dock = DockStyle.Bottom;
             toolStripBottom.ImageScalingSize = new Size(20, 20);
-            toolStripBottom.Items.AddRange(new ToolStripItem[] { btnFrontingErrors, toolStripSeparator3, btnDownloadErrors, toolStripSeparator4, lblAutoSkipStatus, seperatorAutoSkip, lblRunningWorkers, linkBuyMeCoffee, linkGithub });
+            toolStripBottom.Items.AddRange(new ToolStripItem[] { btnFrontingErrors, toolStripSeparator3, btnDownloadErrors, toolStripSeparator4, lblAutoSkipStatus, seperatorAutoSkip, lblRunningWorkers, linkBuyMeCoffee, linkGithub, seperatorPaused, lblScanPaused });
             toolStripBottom.Location = new Point(0, 628);
             toolStripBottom.Name = "toolStripBottom";
             toolStripBottom.Size = new Size(886, 33);
@@ -1048,6 +1105,21 @@
             linkBuyMeCoffee.Text = "toolStripLabel4";
             linkBuyMeCoffee.ToolTipText = "Buy me a coffee";
             linkBuyMeCoffee.Click += linkBuyMeCoffee_Click;
+            // 
+            // seperatorPaused
+            // 
+            seperatorPaused.Name = "seperatorPaused";
+            seperatorPaused.Size = new Size(6, 33);
+            // 
+            // lblScanPaused
+            // 
+            lblScanPaused.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            lblScanPaused.ForeColor = Color.Crimson;
+            lblScanPaused.Name = "lblScanPaused";
+            lblScanPaused.Size = new Size(51, 30);
+            lblScanPaused.Text = "PAUSED";
+            lblScanPaused.ToolTipText = "Scan is Paused";
+            lblScanPaused.Visible = false;
             // 
             // frmMain
             // 
@@ -1192,5 +1264,14 @@
         private ToolStripMenuItem mnuTestThisIP;
         private ToolStripMenuItem mnushowScanStatus;
         private CheckBox checkScanInRandomOrder;
+        private ToolStripSeparator toolStripSeparator7;
+        private ToolStripMenuItem toolStripMenuItem3;
+        private ToolStripMenuItem mnuDiagnoseRandomIP;
+        private ToolStripMenuItem mnuDiagnoseWithUserIP;
+        private ToolStripMenuItem diagnoseWithThisIPAddressToolStripMenuItem;
+        private ToolStripMenuItem mnuAddIPToList;
+        private ToolStripMenuItem mnuHelpDiagnose;
+        private ToolStripLabel lblScanPaused;
+        private ToolStripSeparator seperatorPaused;
     }
 }

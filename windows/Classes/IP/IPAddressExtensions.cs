@@ -50,7 +50,7 @@ namespace WinCFScan.Classes.IP
             total = end - start;
         }
 
-        public static List<string> getIPRange(string ipAndNet)
+        public static List<string> getAllIPInRange(string ipAndNet)
         {
             string[] splitted = ipAndNet.Split('/');
             return getIPRange(splitted[0], Int32.Parse(splitted[1]));

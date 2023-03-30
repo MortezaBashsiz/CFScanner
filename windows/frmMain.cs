@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
@@ -11,6 +12,7 @@ using WinCFScan.Classes;
 using WinCFScan.Classes.Config;
 using WinCFScan.Classes.HTTPRequest;
 using WinCFScan.Classes.IP;
+using WinCFScan.Forms;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace WinCFScan
@@ -19,12 +21,13 @@ namespace WinCFScan
     {
         private const string ourGitHubUrl = "https://github.com/MortezaBashsiz/CFScanner";
         private const string helpCustomConfigUrl = "https://github.com/MortezaBashsiz/CFScanner/discussions/210";
+        private const string helpDiagnoseUrl = "https://github.com/MortezaBashsiz/CFScanner/discussions/331";
         private const string buyMeCoffeeUrl = "https://www.buymeacoffee.com/Bashsiz";
         ConfigManager configManager;
         bool oneTimeChecked = false; // config checked once?
         ScanEngine scanEngine;
         private List<ResultItem> currentScanResults = new();
-        private bool scanFinshed = false;
+        private bool scanFinished = false;
         private bool isUpdatinglistCFIP;
         private bool isAppCongigValid = true;
         private bool isManualTesting = false; // is testing ips 
@@ -34,6 +37,9 @@ namespace WinCFScan
         private AppUpdateChecker appUpdateChecker;
         private bool stopAvgTetingIsRequested;
         private Stopwatch screenReaderStopWatch = new();
+        private string diagnoseIPAddress = ""; // ip to use for diagnosing tests
+        private bool showDiagnosResultMessageBox = false; // only when new config is added
+        private bool isInDiagnosingMode = false;
 
         public frmMain()
         {
@@ -159,15 +165,18 @@ namespace WinCFScan
 
         private void btnScanInPrevResults_Click(object sender, EventArgs e)
         {
-            startStopScan(true);
+            startStopScan(ScanType.SCAN_IN_PERV_RESULTS);
         }
 
-        private void btnStart_Click(object sender, EventArgs e)
+        private void btnStart_ButtonClick(object sender, EventArgs e)
         {
-
+            var scanType = lastScanType is null or ScanType.DIAGNOSING ? ScanType.SCAN_CLOUDFLARE_IPS : lastScanType;
+            startStopScan((ScanType)scanType);
         }
 
-        private void startStopScan(bool inPrevResult = false)
+        private ScanType? lastScanType;
+
+        private void startStopScan(ScanType scanType = ScanType.SCAN_CLOUDFLARE_IPS)
         {
             if (!isAppCongigValid)
             {
@@ -181,64 +190,141 @@ namespace WinCFScan
                 return;
             }
 
+            // stop scan
             if (isScanRunning())
             {
-                // stop scan
                 btnStart.Enabled = false;
                 waitUntilScannerStoped();
-                updateUIControlls(false);
+                updateUIControls(false);
+                return;
             }
-            else// start scan
+
+            // do scan            
+            switch (scanType)
             {
-                if (inPrevResult)
-                {
+                // diagnose
+                case ScanType.DIAGNOSING:
+                    scanEngine.setPrevResults(new ResultItem(0, diagnoseIPAddress));
+                    addTextLog($"Start diagnosing for {diagnoseIPAddress}...");
+                    break;
+
+                // in previous results
+                case ScanType.SCAN_IN_PERV_RESULTS:
+                    if (isScanPaused())
+                    {
+                        addTextLog("Resuming scan...", true);
+                        break;
+                    }
                     if (currentScanResults.Count == 0)
                     {
                         addTextLog("Current result list is empty!");
                         return;
                     }
+                    scanEngine.setPrevResults(currentScanResults);
                     addTextLog($"Start scanning {currentScanResults.Count} IPs in previous results...", true);
-                }
-                else
-                {
-                    // set cf ip list to scan engine
-                    string[] ipRanges = getCheckedCFIPList();
-                    if (ipRanges.Length == 0)
+                    break;
+
+                // in selected cloudflare ip ranges
+                case ScanType.SCAN_CLOUDFLARE_IPS:
                     {
-                        tabControl1.SelectTab(0);
-                        MessageBox.Show($"No Cloudflare IP ranges are selected. Please select some IP ranges.",
-                             "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
+                        if (isScanPaused())
+                        {
+                            addTextLog("Resuming scan...", true);
+                            break;
+                        }
+                        // set cf ip list to scan engine
+                        string[] ipRanges = getCheckedCFIPList();
+                        if (ipRanges.Length == 0)
+                        {
+                            tabControl1.SelectTab(0);
+                            MessageBox.Show($"No Cloudflare IP ranges are selected. Please select some IP ranges.",
+                                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+                        currentScanResults.Clear();
+                        scanEngine.setCFIPRangeList(ipRanges);
+                        addTextLog($"Start scanning {ipRanges.Length} Cloudflare IP ranges...", true);
+                        break;
                     }
-                    currentScanResults = new();
-                    scanEngine.setCFIPRangeList(ipRanges);
-                    addTextLog($"Start scanning {ipRanges.Length} Cloudflare IP ranges...", true);
-                }
-
-                updateUIControlls(true);
-                scanEngine.workingIPsFromPrevScan = inPrevResult ? currentScanResults : null;
-                scanEngine.targetSpeed = getTargetSpeed(); // set target speed
-                scanEngine.scanConfig = getSelectedV2rayConfig(); // set scan config
-                scanEngine.downloadTimeout = getDownloadTimeout(); // set download timeout
-                string scanConfigContent = scanEngine.scanConfig.content;
-
-                Tools.logStep($"Starting scan engine with target speed: {scanEngine.targetSpeed.getTargetSpeed()}, dl timeout: {scanEngine.downloadTimeout}, " +
-                    $"config: '{scanEngine.scanConfig}' => " +
-                    $"{scanConfigContent.Substring(0, Math.Min(150, scanConfigContent.Length))}...");
-
-                var scanType = inPrevResult ? ScanType.SCAN_IN_PERV_RESULTS : ScanType.SCAN_CLOUDFLARE_IPS;
-
-                // start scan job in new thread
-                Task.Factory.StartNew(() => scanEngine.start(scanType))
-                    .ContinueWith(done =>
-                    {
-                        scanFinshed = true;
-                        this.currentScanResults = scanEngine.progressInfo.scanResults.workingIPs;
-                        addTextLog($"{scanEngine.progressInfo.totalCheckedIP:n0} IPs tested and found {scanEngine.progressInfo.scanResults.totalFoundWorkingIPs:n0} working IPs.", true);
-                    });
-
-                tabControl1.SelectTab(1);
             }
+
+            updateUIControls(true, scanType);
+
+            // prepare scan engine
+            bool isDiagnosing = scanType == ScanType.DIAGNOSING;
+            scanEngine.targetSpeed = getTargetSpeed(); // set target speed
+            scanEngine.scanConfig = getSelectedV2rayConfig(); // set scan config
+            scanEngine.downloadTimeout = getDownloadTimeout(); // set download timeout
+            scanEngine.isDiagnosing = isDiagnosing; // is diagnosing
+            scanEngine.isRandomScan = checkScanInRandomOrder.Checked; // is random scan
+
+            string scanConfigContent = scanEngine.scanConfig.content;
+            Tools.logStep($"Starting scan engine with target speed: {scanEngine.targetSpeed.getTargetSpeed():n0}, dl timeout: {scanEngine.downloadTimeout}, " +
+                $"config: '{scanEngine.scanConfig}' => " +
+                $"{scanConfigContent.Substring(0, Math.Min(150, scanConfigContent.Length))}...", isDiagnosing);
+
+            if(scanEngine.isRandomScan && scanType == ScanType.SCAN_CLOUDFLARE_IPS)
+            {
+                addTextLog("Scan in random order is enabled.", true);
+            }
+
+            tabControl1.SelectTab(1);
+
+            var diagnoseFrm = new frmLogsDialog();
+
+            if (isDiagnosing)
+            {
+                diagnoseFrm.Text = $"Diagnose Results for  {diagnoseIPAddress}";
+                diagnoseFrm.LogText = $"Start diagnosing for {diagnoseIPAddress} at {DateTime.Now}...";
+                diagnoseFrm.Show();
+            }
+
+            lastScanType = scanType;
+
+            // start scan job in new thread
+            Task.Factory.StartNew(() => isScanPaused() ? scanEngine.resume(scanType) : scanEngine.start(scanType))
+                .ContinueWith(done =>
+                {
+                    scanFinished = true;
+
+                    // don't update results in diagnose test
+                    if (!isDiagnosing)
+                        currentScanResults = scanEngine.progressInfo.scanResults.workingIPs;
+
+                    if (isDiagnosing)
+                    {
+                        isInDiagnosingMode = true;
+                        showDiagnoseResults(diagnoseFrm);
+                    }
+                    else if (isScanPaused())
+                        addTextLog($"Scan Paused after {scanEngine.progressInfo.totalCheckedIP:n0} IPs tested and found {scanEngine.progressInfo.scanResults.totalFoundWorkingIPs:n0} working IPs.", true);
+                    else // stopped or finished
+                        addTextLog($"{scanEngine.progressInfo.totalCheckedIP:n0} IPs tested and found {scanEngine.progressInfo.scanResults.totalFoundWorkingIPs:n0} working IPs.", true);
+                });
+
+        }
+
+        // after diagnose is finished we show the results
+        private void showDiagnoseResults(frmLogsDialog diagnoseFrm)
+        {
+            addTextLog("Diagnosing finished.");
+
+            // show diagnose results window
+            diagnoseFrm.LogText = string.Join(Environment.NewLine, Tools.diagnoseLogs);
+
+            // show msg box only for diagnosing custom config for first time
+            if (showDiagnosResultMessageBox)
+            {
+                var msg = scanEngine.isV2rayExecutionSuccess ?
+                    "It seems your custom config is working and v2ray.exe could run with your config." :
+                    "v2ray.exe could not run with your custom config:\n\n" + scanEngine.v2rayDiagnosingMessage;
+                showDiagnosResultMessageBox = false;
+                diagnoseFrm.showResultsMessage(msg, scanEngine.isV2rayExecutionSuccess);
+
+            }
+
+            Tools.clearDiagnoseLogs();
+            //diagnoseFrm.ShowDialog();
         }
 
         private int getDownloadTimeout()
@@ -251,13 +337,19 @@ namespace WinCFScan
                 return 2;
         }
 
-        private void updateUIControlls(bool isStarting)
+        private void updateUIControls(bool isStarting, ScanType scanType = ScanType.SCAN_CLOUDFLARE_IPS)
         {
             if (isStarting)
             {
-                loadLastResultsComboList();
-                listResults.Items.Clear();
+                // don't clear results list in diagnose or paused mode
+                if (scanType != ScanType.DIAGNOSING && !isScanPaused())
+                {
+                    loadLastResultsComboList();
+                    listResults.Items.Clear();
+                }
                 btnStart.Text = "Stop Scan";
+                mnuPauseScan.Text = "Pause Scan";
+                lblScanPaused.Visible = false;
                 //sendScreenReaderMsg("Scan Started");
                 btnScanInPrevResults.Enabled = false;
                 btnResultsActions.Enabled = false;
@@ -270,48 +362,95 @@ namespace WinCFScan
                 tabPageCFRanges.Enabled = false;
             }
             else
-            {   // is stopping
-                btnStart.Text = "Start Scan";
-                //sendScreenReaderMsg("Scan Stopped");
-                //btnStart.AccessibilityObject.RaiseLiveRegionChanged();
+            {   // is stopping or pausing
+                btnStart.Text = isScanPaused() ? "Resume Scan" : "Start Scan";
+                lblScanPaused.Visible = isScanPaused();
+                mnuPauseScan.Text = isScanPaused() ? "Stop Scan" : "Pause Scan";
                 btnStart.Enabled = true;
-                btnScanInPrevResults.Enabled = true;
+
                 btnResultsActions.Enabled = true;
                 timerProgress.Enabled = false;
                 lblRunningWorkers.Text = $"Threads: 0";
 
-                //btnSkipCurRange.Enabled = false;
-                comboResults.Enabled = true;
                 if (!configManager.enableDebug)
                 {
                     comboConcurrent.Enabled = true;
                 }
                 comboTargetSpeed.Enabled = true;
                 comboConfigs.Enabled = true;
-                tabPageCFRanges.Enabled = true;
 
-                // save result file if found working IPs
-                var scanResults = scanEngine.progressInfo.scanResults;
-                if (scanResults.totalFoundWorkingIPs != 0)
+                if (!isScanPaused())
                 {
-                    // save results into disk
-                    if (!scanResults.save())
+                    comboResults.Enabled = true;
+                    btnScanInPrevResults.Enabled = true;
+                    tabPageCFRanges.Enabled = true;
+                }
+
+                // don't do this stuff in diagnosing mode
+                if (scanType != ScanType.DIAGNOSING)
+                {
+                    // save result file if found working IPs
+                    var scanResults = scanEngine.progressInfo.scanResults;
+                    if (scanResults.totalFoundWorkingIPs != 0)
                     {
-                        addTextLog($"Could not save scan result into the file: {scanResults.resultsFileName}");
+                        // save results into disk
+                        if (!scanResults.save())
+                        {
+                            addTextLog($"Could not save scan result into the file: {scanResults.resultsFileName}");
+                        }
                     }
+                    else
+                    {
+                        // delete result file if there is no working ip
+                        scanResults.remove();
+                    }
+
+                    loadLastResultsComboList();
+
+                    // sort results list
+                    listResultsColumnSorter.Order = SortOrder.Ascending;
+                    listResultsColumnSorter.SortColumn = 1;
+                    listResults.Sort();
                 }
-                else
+            }
+        }
+        private void updateConrtolsProgress(bool forceUpdate = false)
+        {
+            var pInf = scanEngine.progressInfo;
+            if (isScanRunning() || forceUpdate)
+            {
+                int curRangeNumber = Math.Max(pInf.currentIPRangesNumber - 1, 0);
+
+                lblLastIPRange.Text = $"Current IP range: {pInf.currentIPRange} ({curRangeNumber:n0}/{pInf.totalIPRanges:n0})";
+                labelLastIPChecked.Text = $"Last checked IP:  {pInf.lastCheckedIP} ({pInf.totalCheckedIPInCurIPRange:n0}/{pInf.currentIPRangeTotalIPs:n0})";
+                lblTotalWorkingIPs.Text = $"Total working IPs found:  {pInf.scanResults.totalFoundWorkingIPs:n0}";
+                if (pInf.scanResults.fastestIP != null)
                 {
-                    // delete result file if there is no working ip
-                    scanResults.remove();
+                    txtFastestIP.Text = $"{pInf.scanResults.fastestIP.ip}  -  {pInf.scanResults.fastestIP.delay:n0} ms";
                 }
 
-                loadLastResultsComboList();
+                lblRunningWorkers.Text = $"Threads: {pInf.curentWorkingThreads}";
 
-                // sort results list
-                listResultsColumnSorter.Order = SortOrder.Ascending;
-                listResultsColumnSorter.SortColumn = 1;
-                listResults.Sort();
+                prgOveral.Maximum = pInf.totalIPRanges;
+
+                prgOveral.Value = curRangeNumber;
+
+                prgCurRange.Maximum = pInf.currentIPRangeTotalIPs;
+                prgCurRange.Value = Math.Min(pInf.totalCheckedIPInCurIPRange, prgCurRange.Maximum);
+                prgCurRange.ToolTipText = $"Current IP range progress: {pInf.getCurrentRangePercentIsDone():f1}%";
+
+                fetchWorkingIPResults();
+                pInf.scanResults.autoSave();
+
+                fetchScanEngineLogMessages();
+
+                // exception rate
+                pInf.frontingExceptions.setControlColorStyles(btnFrontingErrors);
+                pInf.downloadExceptions.setControlColorStyles(btnDownloadErrors);
+                btnFrontingErrors.Text = $"Fronting Errors : {pInf.frontingExceptions.getErrorRate():f1}%";
+                btnDownloadErrors.Text = $"Download Errors : {pInf.downloadExceptions.getErrorRate():f1}%";
+                btnFrontingErrors.ToolTipText = $"Total errors: {pInf.downloadExceptions.getTotalErros()}";
+                btnDownloadErrors.ToolTipText = $"Total errors: {pInf.frontingExceptions.getTotalErros()}";
             }
         }
 
@@ -348,11 +487,12 @@ namespace WinCFScan
         private void timerBase_Tick(object sender, EventArgs e)
         {
             oneTimeChecks();
-            if (scanFinshed)
+            if (scanFinished)
             {
-                scanFinshed = false;
+                scanFinished = false;
                 updateConrtolsProgress(true);
-                updateUIControlls(false);
+                updateUIControls(false, isInDiagnosingMode ? ScanType.DIAGNOSING : ScanType.SCAN_CLOUDFLARE_IPS);
+                isInDiagnosingMode = false;
             }
 
             btnStopAvgTest.Visible = isManualTesting;
@@ -363,42 +503,6 @@ namespace WinCFScan
             updateConrtolsProgress();
         }
 
-        private void updateConrtolsProgress(bool forceUpdate = false)
-        {
-            var pInf = scanEngine.progressInfo;
-            if (isScanRunning() || forceUpdate)
-            {
-                lblLastIPRange.Text = $"Current IP range: {pInf.currentIPRange} ({pInf.currentIPRangesNumber:n0}/{pInf.totalIPRanges:n0})";
-                labelLastIPChecked.Text = $"Last checked IP:  {pInf.lastCheckedIP} ({pInf.totalCheckedIPInCurIPRange:n0}/{pInf.currentIPRangeTotalIPs:n0})";
-                lblTotalWorkingIPs.Text = $"Total working IPs found:  {pInf.scanResults.totalFoundWorkingIPs:n0}";
-                if (pInf.scanResults.fastestIP != null)
-                {
-                    txtFastestIP.Text = $"{pInf.scanResults.fastestIP.ip}  -  {pInf.scanResults.fastestIP.delay:n0} ms";
-                }
-
-                lblRunningWorkers.Text = $"Threads: {pInf.curentWorkingThreads}";
-
-                prgOveral.Maximum = pInf.totalIPRanges;
-                prgOveral.Value = pInf.currentIPRangesNumber;
-
-                prgCurRange.Maximum = pInf.currentIPRangeTotalIPs;
-                prgCurRange.Value = pInf.totalCheckedIPInCurIPRange;
-                prgCurRange.ToolTipText = $"Current IP range progress: {pInf.getCurrentRangePercentIsDone():f1}%";
-
-                fetchWorkingIPResults();
-                pInf.scanResults.autoSave();
-
-                fetchScanEngineLogMessages();
-
-                // exception rate
-                pInf.frontingExceptions.setControlColorStyles(btnFrontingErrors);
-                pInf.downloadExceptions.setControlColorStyles(btnDownloadErrors);
-                btnFrontingErrors.Text = $"Fronting Errors : {pInf.frontingExceptions.getErrorRate():f1}%";
-                btnDownloadErrors.Text = $"Download Errors : {pInf.downloadExceptions.getErrorRate():f1}%";
-                btnFrontingErrors.ToolTipText = $"Total errors: {pInf.downloadExceptions.getTotalErros()}";
-                btnDownloadErrors.ToolTipText = $"Total errors: {pInf.frontingExceptions.getTotalErros()}";
-            }
-        }
 
         private void fetchScanEngineLogMessages()
         {
@@ -527,13 +631,16 @@ namespace WinCFScan
             }
         }
 
-        // update clinet config and cf ip list
+        // update client config and cf ip list
         private bool remoteUpdateClientConfig()
         {
             addTextLog("Updating client config from remote...");
             bool result = configManager.getClientConfig().remoteUpdateClientConfig();
             if (result)
             {
+                // get new client config
+                configManager.reloadClientConfig(); // important
+
                 addTextLog("Client config and Cloudflare subnets are successfully updated.");
                 if (!configManager.getClientConfig().isConfigValid())
                 {
@@ -639,7 +746,7 @@ namespace WinCFScan
 
         private void importResults()
         {
-            if (isScanRunning())
+            if (isScanRunningOrPaused())
                 return;
 
             openFileDialog1.Title = "Import IP results";
@@ -657,7 +764,7 @@ namespace WinCFScan
 
         private void deleteResultItem()
         {
-            if (isScanRunning())
+            if (isScanRunningOrPaused())
                 return;
 
             string? filename = getSelectedScanResultFilename();
@@ -686,7 +793,7 @@ namespace WinCFScan
         }
 
         // user selected ip list of cloudflare
-        private string[] getCheckedCFIPList(bool getIPCount = false)
+        private string[] getCheckedCFIPList(bool getIPCount = false, bool inRandomeOrder = false)
         {
             var ipList = listCFIPList.CheckedItems.Cast<ListViewItem>()
                                  .Select(item =>
@@ -695,7 +802,7 @@ namespace WinCFScan
                                  })
                                  .ToArray<string>();
 
-            if (checkScanInRandomOrder.Checked)
+            if (checkScanInRandomOrder.Checked || inRandomeOrder)
             {
                 Random rnd = new Random();
                 ipList = ipList.OrderBy(x => rnd.Next()).ToArray();
@@ -711,8 +818,8 @@ namespace WinCFScan
         {
             if (e.Button == MouseButtons.Right)
             {
-                mnuListViewCopyIP.Text = "Copy IP Address " + getSelectedIPAddress();
-                mnuTestThisIP.Text = "Test this IP Address " + getSelectedIPAddress();
+                mnuListViewCopyIP.Text = "Copy IP address " + getSelectedIPAddress();
+                mnuTestThisIP.Text = "Test this IP address " + getSelectedIPAddress();
                 mnuListView.Show(listResults, e.X, e.Y);
             }
         }
@@ -838,6 +945,13 @@ namespace WinCFScan
             sendScreenReaderMsg("Exiting the App.");
             addTextLog("Exiting...");
             waitUntilScannerStoped();
+
+            try
+            {
+                System.Windows.Forms.Application.Exit();
+            }
+            catch (Exception)
+            { }
         }
 
         private void waitUntilScannerStoped()
@@ -912,18 +1026,27 @@ namespace WinCFScan
         // test user provided ip
         private void scanASingleIPAddressToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            string input = Tools.ShowDialog("Enter a valid IP address:", "Test Single IP Address");
+            string ipAddr;
+            if (getIPFromUser(out ipAddr, "Test Single IP Address"))
+            {
+                testAvgSingleIP(ipAddr, 1, getTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
+            }
+        }
 
-            if (input == "" || input == null) { return; }
+        private bool getIPFromUser(out string ipAddr, string title)
+        {
+            ipAddr = Tools.ShowDialog("Enter a valid IP address:", title);
 
-            if (!IPAddressExtensions.isValidIPAddress(input))
+            if (ipAddr == "" || ipAddr == null) { return false; }
+
+            if (!IPAddressExtensions.isValidIPAddress(ipAddr))
             {
                 // msg
                 MessageBox.Show("Invalid IP address is entered!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                return false;
             }
 
-            testAvgSingleIP(input, 1, getTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
+            return true;
         }
 
         private void mnuListViewCopyIP_Click(object sender, EventArgs e)
@@ -955,7 +1078,7 @@ namespace WinCFScan
         // load custom ip ranges from disk by user input
         private void loadCustomCPIPList()
         {
-            if (isScanRunning())
+            if (isScanRunningOrPaused())
                 return;
 
             openFileDialog1.Title = "Load custom cloudflare IP ranges";
@@ -986,7 +1109,7 @@ namespace WinCFScan
         // export results
         private void exportResults()
         {
-            var resultIPs = isScanRunning() ? scanEngine.progressInfo.scanResults.workingIPs : currentScanResults;
+            var resultIPs = isScanRunningOrPaused() ? scanEngine.progressInfo.scanResults.workingIPs : currentScanResults;
             if (resultIPs.Count == 0)
             {
                 addTextLog("Current results list is empty!");
@@ -1015,7 +1138,16 @@ namespace WinCFScan
 
         private bool isScanRunning()
         {
-            return scanEngine.progressInfo.isScanRunning;
+            return scanEngine.progressInfo.scanStatus == ScanStatus.RUNNING;
+        }
+        private bool isScanPaused()
+        {
+            return scanEngine.progressInfo.scanStatus == ScanStatus.PAUSED;
+        }
+
+        private bool isScanRunningOrPaused()
+        {
+            return isScanRunning() || isScanPaused();
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1028,10 +1160,7 @@ namespace WinCFScan
             importResults();
         }
 
-        private void btnStart_ButtonClick(object sender, EventArgs e)
-        {
-            startStopScan(false);
-        }
+
 
         private void checkForUpdateToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -1050,8 +1179,11 @@ namespace WinCFScan
 
         private void addCustomV2rayConfigToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (isScanRunning())
+            if (isScanRunningOrPaused())
+            {
+                addTextLog("Can not do this while scanning or paused");
                 return;
+            }
 
             openFileDialog1.Title = "Add custom v2ray config file";
             openFileDialog1.Filter = "Json files (*.json)|*.json";
@@ -1062,9 +1194,20 @@ namespace WinCFScan
                 bool isDone = CustomConfigs.addNewConfigFile(openFileDialog1.FileName, out string errorMessage);
                 if (isDone)
                 {
+                    // add config
                     configManager.customConfigs.loadCustomConfigs();
                     loadCustomConfigsComboList(Path.GetFileName(openFileDialog1.FileName));
                     addTextLog("New custom v2ray config is added.");
+
+                    // diagnose with this config
+                    result = MessageBox.Show($"Your custom config is successfully added.\nDo you want to diagnose with this config to see if it works?",
+                            "Diagnose Custom Config", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                    if (result == DialogResult.Yes)
+                    {
+                        showDiagnosResultMessageBox = true;
+                        doRandomIPDiagnose();
+                    }
                 }
                 else
                 {
@@ -1128,7 +1271,7 @@ namespace WinCFScan
 
         private void btnSkipCurRange_ButtonClick(object sender, EventArgs e)
         {
-            if (scanEngine.progressInfo.isScanRunning)
+            if (isScanRunning())
                 scanEngine.skipCurrentIPRange();
 
         }
@@ -1236,6 +1379,11 @@ namespace WinCFScan
         private void mnuHelpCustomConfig_Click(object sender, EventArgs e)
         {
             openUrl(helpCustomConfigUrl);
+        }
+
+        private void mnuHelpDiagnose_Click(object sender, EventArgs e)
+        {
+            openUrl(helpDiagnoseUrl);
         }
 
         private void mnuHelpOurGitHub_Click(object sender, EventArgs e)
@@ -1435,7 +1583,7 @@ namespace WinCFScan
             // start stop
             if (e.Control && e.KeyCode == Keys.F5)
             {
-                startStopScan(false);
+                startStopScan(ScanType.SCAN_CLOUDFLARE_IPS);
             }
 
             // skip
@@ -1493,6 +1641,81 @@ namespace WinCFScan
             if (comboTargetSpeed.SelectedIndex == 0)
             {
                 addTextLog("By selecting this option we won't test download speed via VPN and just quickly return all resolvable IPs.");
+            }
+        }
+
+        // ********************
+        // ***** Diagnose *****
+        // ********************
+        private void mnuDiagnoseRandomIP_Click(object sender, EventArgs e)
+        {
+            doRandomIPDiagnose();
+        }
+
+        private void doRandomIPDiagnose()
+        {
+            // get a random ip range
+            var allIPs = IPAddressExtensions.getAllIPInRange(getCheckedCFIPList(false, true).First<string>());
+            Random rnd = new Random();
+            // get a random ip in the ip range
+            doDiagnose(allIPs[rnd.Next(allIPs.Count)]);
+        }
+
+        // user entered ip
+        private void mnuDiagnoseWithUserEnteredIP_Click(object sender, EventArgs e)
+        {
+            string ipAddr;
+            if (!isScanRunningOrPaused() && getIPFromUser(out ipAddr, "Diagnose with IP Address"))
+            {
+                doDiagnose(ipAddr);
+            }
+        }
+
+        // selected ip
+        private void diagnoseWithThisIPAddressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var selectedIP = getSelectedIPAddress();
+            if (selectedIP != null)
+            {
+                doDiagnose(selectedIP);
+            }
+        }
+
+        private void doDiagnose(string ipAddress)
+        {
+            if (isScanRunningOrPaused())
+            {
+                addTextLog("Can not diagnose while scanning or paused.");
+                return;
+            }
+
+            diagnoseIPAddress = ipAddress;
+
+            startStopScan(ScanType.DIAGNOSING);
+        }
+
+        private void mnuAddIPToList_Click(object sender, EventArgs e)
+        {
+            string ipAddr;
+            if (getIPFromUser(out ipAddr, "Add IP To List"))
+            {
+                listResults.Items.Add(new ListViewItem(new string[] { ipAddr, "0" }));
+                currentScanResults.Add(new ResultItem(0, ipAddr));
+            }
+        }
+
+        private void mnuPauseScan_Click(object sender, EventArgs e)
+        {
+            if (isScanRunning())
+                scanEngine.pause();
+            else if (isScanPaused())
+            {
+                // stop scan from pause
+                scanEngine.progressInfo.scanStatus = ScanStatus.STOPPED;
+                scanEngine.progressInfo.resumeRequested = false;
+                updateUIControls(false);
+
+                addTextLog("Paused scan is stopped.", true);
             }
         }
     }
