@@ -22,26 +22,50 @@ var (
 	FINAL_RESULTS_PATH_SORTED = filepath.Join(RESULTDIR, START_DT_STR+"_final.txt")
 )
 
-func PrintInformation(Config ConfigStruct) {
-	fmt.Printf("-------------------------------------\n")
-	fmt.Printf("Configuration :\n")
-	fmt.Printf("User ID : %v%v%v\n", utils.Colors.OKBLUE, Config.User_id, utils.Colors.ENDC)
-	fmt.Printf("WS Header Host: %v%v%v\n", utils.Colors.OKBLUE, Config.Ws_header_host, utils.Colors.ENDC)
-	fmt.Printf("WS Header Path : %v%v%v\n", utils.Colors.OKBLUE, Config.Ws_header_path, utils.Colors.ENDC)
-	fmt.Printf("Address Port : %v%v%v\n", utils.Colors.OKBLUE, Config.Address_port, utils.Colors.ENDC)
-	fmt.Printf("SNI : %v%v%v\n", utils.Colors.OKBLUE, Config.Sni, utils.Colors.ENDC)
-	fmt.Printf("Start Proccess Timeout : %v%v%v\n", utils.Colors.OKBLUE, Config.Startprocess_timeout, utils.Colors.ENDC)
-	fmt.Printf("Upload Test : %v%v%v\n", utils.Colors.OKBLUE, Config.Do_upload_test, utils.Colors.ENDC)
-	fmt.Printf("Fronting Request Test : %v%v%v\n", utils.Colors.OKBLUE, Config.Do_fronting_test, utils.Colors.ENDC)
-	fmt.Printf("Minimum Download Speed : %v%v%v\n", utils.Colors.OKBLUE, Config.Min_dl_speed, utils.Colors.ENDC)
-	fmt.Printf("Maximum Download Time : %v%v%v\n", utils.Colors.OKBLUE, Config.Max_dl_time, utils.Colors.ENDC)
-	fmt.Printf("Minimum Upload Speed : %v%v%v\n", utils.Colors.OKBLUE, Config.Min_ul_speed, utils.Colors.ENDC)
-	fmt.Printf("Maximum Upload Time : %v%v%v\n", utils.Colors.OKBLUE, Config.Max_ul_time, utils.Colors.ENDC)
-	fmt.Printf("Fronting Timeout : %v%v%v\n", utils.Colors.OKBLUE, Config.Fronting_timeout, utils.Colors.ENDC)
-	fmt.Printf("Maximum Download Latency : %v%v%v\n", utils.Colors.OKBLUE, Config.Max_dl_latency, utils.Colors.ENDC)
-	fmt.Printf("Maximum Upload Latency : %v%v%v\n", utils.Colors.OKBLUE, Config.Max_ul_latency, utils.Colors.ENDC)
-	fmt.Printf("Number of Tries : %v%v%v\n", utils.Colors.OKBLUE, Config.N_tries, utils.Colors.ENDC)
-	fmt.Printf("VPN Mode : %v%v%v\n", utils.Colors.OKBLUE, Config.Vpn, utils.Colors.ENDC)
+func PrintInformation(Config ConfigStruct, Worker Worker, shuffle Shuffling) {
+	fmt.Printf(`-------------------------------------
+Configuration :
+User ID : %v%v%v
+WS Header Host: %v%v%v
+WS Header Path : %v%v%v
+Address Port : %v%v%v
+SNI : %v%v%v
+Start Proccess Timeout : %v%v%v
+Upload Test : %v%v%v
+Fronting Request Test : %v%v%v
+Minimum Download Speed : %v%v%v
+Maximum Download Time : %v%v%v
+Minimum Upload Speed : %v%v%v
+Maximum Upload Time : %v%v%v
+Fronting Timeout : %v%v%v
+Maximum Download Latency : %v%v%v
+Maximum Upload Latency : %v%v%v
+Number of Tries : %v%v%v
+VPN Mode : %v%v%v
+Shuffling : %v%v%v
+Total Threads : %v%v%v
+-------------------------------------
+`,
+		utils.Colors.OKBLUE, Config.User_id, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Config.Ws_header_host, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Config.Ws_header_path, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Config.Address_port, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Config.Sni, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Worker.Startprocess_timeout, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Config.Do_upload_test, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Config.Do_fronting_test, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Worker.Download.Min_dl_speed, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Worker.Download.Max_dl_time, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Worker.Upload.Min_ul_speed, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Worker.Upload.Max_ul_time, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Config.Fronting_timeout, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Worker.Download.Max_dl_latency, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Worker.Upload.Max_ul_latency, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Config.N_tries, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Worker.Vpn, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, shuffle, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Worker.Threads, utils.Colors.ENDC,
+	)
 }
 
 func CreateTestConfig(configPath string, startprocessTimeout float64,
@@ -49,7 +73,7 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 	minUlSpeed float64, maxDlTime float64,
 	maxUlTime float64, frontingTimeout float64,
 	fronting bool, maxDlLatency float64,
-	maxUlLatency float64, nTries int, Vpn bool) ConfigStruct {
+	maxUlLatency float64, nTries int, Vpn bool, threads int, shuffle bool) (ConfigStruct, Worker, Shuffling) {
 
 	if configPath == "" {
 		log.Fatalf("Configuration file are not loaded please use the --config or -c flag to use the configuration file.")
@@ -68,26 +92,37 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 	json.Unmarshal(byteValue, &jsonFileContent)
 
 	ConfigObject := ConfigStruct{
-		User_id:              jsonFileContent["id"].(string),
-		Ws_header_host:       jsonFileContent["host"].(string),
-		Address_port:         jsonFileContent["port"].(string),
-		Sni:                  jsonFileContent["serverName"].(string),
-		Ws_header_path:       "/" + strings.TrimLeft(jsonFileContent["path"].(string), "/"),
+		User_id:          jsonFileContent["id"].(string),
+		Ws_header_host:   jsonFileContent["host"].(string),
+		Address_port:     jsonFileContent["port"].(string),
+		Sni:              jsonFileContent["serverName"].(string),
+		Ws_header_path:   "/" + strings.TrimLeft(jsonFileContent["path"].(string), "/"),
+		Fronting_timeout: frontingTimeout,
+		N_tries:          nTries,
+		TestBool: TestBool{
+			Do_upload_test:   doUploadTest,
+			Do_fronting_test: fronting,
+		},
+	}
+
+	WorkerObject := Worker{
+		Download: Download{
+			Min_dl_speed:   minDlSpeed,
+			Max_dl_time:    maxDlTime,
+			Max_dl_latency: maxDlLatency,
+		},
+		Upload: Upload{
+			Min_ul_speed:   minUlSpeed,
+			Max_ul_time:    maxUlTime,
+			Max_ul_latency: maxUlLatency,
+		},
 		Startprocess_timeout: startprocessTimeout,
-		Do_upload_test:       doUploadTest,
-		Min_dl_speed:         minDlSpeed,
-		Min_ul_speed:         minUlSpeed,
-		Max_dl_time:          maxDlTime,
-		Max_ul_time:          maxUlTime,
-		Fronting_timeout:     frontingTimeout,
-		Do_fronting_test:     fronting,
-		Max_dl_latency:       maxDlLatency,
-		Max_ul_latency:       maxUlLatency,
-		N_tries:              nTries,
+		Threads:              threads,
 		Vpn:                  Vpn,
 	}
-	PrintInformation(ConfigObject)
-	return ConfigObject
+
+	PrintInformation(ConfigObject, WorkerObject, Shuffling(shuffle))
+	return ConfigObject, WorkerObject, Shuffling(shuffle)
 }
 
 func CreateInterimResultsFile(interimResultsPath string, nTries int) error {

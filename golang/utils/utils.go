@@ -38,7 +38,21 @@ func MeanJitter(latencies []float64) float64 {
 }
 
 func Float64ToKBps(bytes float64) float64 {
-	return bytes / 8 * 1000
+	return bytes * 8 / (1000000.0)
+}
+
+func Round(val float64, roundOn float64, places int) (newVal float64) {
+	var round float64
+	pow := math.Pow(10, float64(places))
+	digit := pow * val
+	_, div := math.Modf(digit)
+	if div >= roundOn {
+		round = math.Ceil(digit)
+	} else {
+		round = math.Floor(digit)
+	}
+	newVal = round / pow
+	return
 }
 
 func CreateDir(dirPath string) {
@@ -107,35 +121,33 @@ func getIPFromDomainTimeout(domain string) (string, error) {
 	}
 	return ips[0].String(), nil
 }
-
 func IPParser(list []string) []string {
 	var IPList []string
+
 	for _, ip := range list {
-
-		// CIDR Parser
-		if strings.Contains(ip, "/") {
-			ips, err := cidrToIPList(ip)
-			if err != nil {
-				log.Print("Error : ", err)
-			}
+		// Parse CIDR
+		if ips, err := cidrToIPList(ip); err == nil {
 			IPList = append(IPList, ips...)
-
-			// Parse IP
-		} else if net.ParseIP(ip) != nil {
+		} else if ipAddr := net.ParseIP(ip); ipAddr != nil { // Parse IP address
 			IPList = append(IPList, ip)
-
-			// Parse domain and convert it to ip
-		} else if domain, _ := GetIpFromDomain(ip); domain != "" {
-			if net.ParseIP(domain) != nil {
-				IPList = append(IPList, domain)
+		} else if domainIP, _ := GetIpFromDomain(ip); domainIP != "" { // Parse domain
+			if ipAddr := net.ParseIP(domainIP); ipAddr != nil {
+				IPList = append(IPList, domainIP)
 			}
 		}
 	}
+
 	return IPList
 }
 
-func GetNumIPsInCIDR(cidr string) int {
-	parts := strings.Split(cidr, "/")
+func GetNumIPs(cidrOrIP string) int {
+	if ip := net.ParseIP(cidrOrIP); ip != nil {
+		// input is an IP address
+		return 1
+	}
+
+	// input is CIDR notation
+	parts := strings.Split(cidrOrIP, "/")
 
 	subnetMask := 32
 	if len(parts) > 1 {
@@ -149,7 +161,6 @@ func GetNumIPsInCIDR(cidr string) int {
 
 	return numIPs
 }
-
 func cidrToIPList(cidr string) ([]string, error) {
 	ip, ipNet, err := net.ParseCIDR(cidr)
 	if err != nil {
@@ -173,11 +184,13 @@ func IPValidator(ip string) string {
 }
 
 func inc(ip net.IP) {
-	for j := len(ip) - 1; j >= 0; j-- {
-		ip[j]++
-		if ip[j] > 0 {
-			break
+	for i := len(ip) - 1; i >= 0; i-- {
+		if ip[i] == 255 {
+			ip[i] = 0
+			continue
 		}
+		ip[i]++
+		break
 	}
 }
 
@@ -211,4 +224,14 @@ func WaitForPort(host string, port int, timeout time.Duration) error {
 		}
 		time.Sleep(time.Millisecond * 10)
 	}
+}
+
+func TotalIps(IPLIST []string) int {
+	var nTotalIPs int
+
+	for _, ips := range IPLIST {
+		numIPs := GetNumIPs(ips)
+		nTotalIPs += numIPs
+	}
+	return nTotalIPs
 }
