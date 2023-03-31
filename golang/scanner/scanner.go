@@ -77,7 +77,7 @@ func scanner(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 	for tryIdx := 0; tryIdx < Config.N_tries; tryIdx++ {
 		// Fronting test
 		if Config.Do_fronting_test {
-			fronting := speedtest.FrontingTest(ip, time.Duration(Config.Fronting_timeout))
+			fronting := speedtest.FrontingTest(ip, time.Duration(Config.Fronting_timeout)*time.Second)
 
 			if !fronting {
 				return nil
