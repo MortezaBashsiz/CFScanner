@@ -11,6 +11,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -34,6 +35,7 @@ func VersionStatement() string {
 }
 
 func main() {
+	timer := time.Now()
 	rootCmd := &cobra.Command{
 		Use:     os.Args[0],
 		Short:   codename,
@@ -111,6 +113,7 @@ func main() {
 
 			fmt.Println("Results Written in :", configuration.INTERIM_RESULTS_PATH)
 			fmt.Println("Sorted IPS Written in :", configuration.FINAL_RESULTS_PATH_SORTED)
+			fmt.Println("Time Elapse :", time.Since(timer))
 		},
 	}
 

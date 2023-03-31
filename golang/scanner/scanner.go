@@ -5,7 +5,6 @@ import (
 	"CFScanner/speedtest"
 	utils "CFScanner/utils"
 	"CFScanner/v2raysvc"
-	"encoding/csv"
 	"fmt"
 	"log"
 	"math"
@@ -42,7 +41,7 @@ func resultMap(ip string) map[string]interface{} {
 
 }
 
-func Checkip(ip string, Config config.ConfigStruct, Worker config.Worker) map[string]interface{} {
+func scanner(ip string, Config config.ConfigStruct, Worker config.Worker) map[string]interface{} {
 
 	var result = resultMap(ip)
 
@@ -163,7 +162,7 @@ func Checkip(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 }
 
 func scannerMap(testConfig *config.ConfigStruct, worker *config.Worker, ip string) {
-	res := Checkip(ip, *testConfig, *worker)
+	res := scanner(ip, *testConfig, *worker)
 
 	if res != nil {
 		downLatencyInt, ok := res["download"].(map[string]interface{})["latency"].([]int)
@@ -232,13 +231,20 @@ func scannerMap(testConfig *config.ConfigStruct, worker *config.Worker, ip strin
 
 		results = append(results, []string{latencystring, ip})
 
-		InterimOutput(res, ip, downMeanJitter,
-			upMeanJitter, meanDownSpeed,
-			meanuploadSpeed, meanDownLatency, meanuploadLatency)
+		var Writer Writer = CSV{
+			res:                 res,
+			ip:                  ip,
+			downloadMeanJitter:  downMeanJitter,
+			uploadMeanJitter:    upMeanJitter,
+			meanDownloadSpeed:   meanDownSpeed,
+			meanDownloadLatency: meanDownLatency,
+			meanUploadSpeed:     meanuploadSpeed,
+			meanUploadLatency:   meanuploadLatency,
+		}
 
-		InterimResultsWriter(res, ip, downMeanJitter,
-			upMeanJitter, meanDownSpeed,
-			meanuploadSpeed, meanDownLatency, meanuploadLatency)
+		Writer.Output()
+		Writer.CSVWriter()
+
 	}
 }
 
@@ -271,95 +277,11 @@ func Worker(testConfig *config.ConfigStruct, worker *config.Worker, cidrList []s
 	}
 	wg.Wait()
 
-	SaveResults(results, config.FINAL_RESULTS_PATH_SORTED, true)
+	saveResults(results, config.FINAL_RESULTS_PATH_SORTED, true)
 
 }
 
-func InterimOutput(res map[string]interface{}, ip string, downMeanJitter float64, upMeanJitter float64,
-	meanDownSpeed float64, meanuploadSpeed float64,
-	meanDownLatency float64, meanuploadLatency float64) {
-
-	log.Printf("%sOK %-15s %s avg_down_speed: %7.2fmbps avg_up_speed: %7.4fmbps avg_down_latency: %6.2fms avg_up_latency: %6.2fms avg_down_jitter: %6.2fms avg_up_jitter: %4.2fms%s\n",
-		utils.Colors.OKGREEN,
-		res["ip"].(string),
-		utils.Colors.OKBLUE,
-		meanDownSpeed,
-		meanuploadSpeed,
-		meanDownLatency,
-		meanuploadLatency,
-		downMeanJitter,
-		upMeanJitter,
-		utils.Colors.ENDC,
-	)
-}
-
-func InterimResultsWriter(res map[string]interface{}, ip string, downMeanJitter float64, upMeanJitter float64,
-	meanDownSpeed float64, meanuploadSpeed float64,
-	meanDownLatency float64, meanuploadLatency float64) {
-
-	WriteResultToFile(res, ip, downMeanJitter, upMeanJitter, meanDownSpeed, meanuploadSpeed, meanDownLatency, meanuploadLatency)
-}
-
-func WriteResultToFile(res map[string]interface{}, ip string, downMeanJitter float64, upMeanJitter float64, meanDownSpeed float64, meanuploadSpeed float64, meanDownLatency float64, meanuploadLatency float64) {
-	resParts := []interface{}{
-		ip,
-		meanDownSpeed, meanuploadSpeed,
-		meanDownLatency, meanuploadLatency,
-		downMeanJitter, upMeanJitter,
-	}
-
-	ip, ok := res["ip"].(string)
-	if ok {
-		for _, ip := range ip {
-			resParts = append(resParts, ip)
-		}
-	}
-
-	downSpeed, ok := res["download"].(map[string]interface{})["speed"].([]float64)
-	if ok {
-		for _, speed := range downSpeed {
-			resParts = append(resParts, speed)
-		}
-	}
-
-	uploadSpeed, ok := res["upload"].(map[string]interface{})["speed"].([]float64)
-	if ok {
-		for _, speed := range uploadSpeed {
-			resParts = append(resParts, speed)
-		}
-	}
-
-	downLatency, ok := res["download"].(map[string]interface{})["latency"].([]float64)
-	if ok {
-		for _, latency := range downLatency {
-			resParts = append(resParts, latency)
-		}
-	}
-
-	uploadLatency, ok := res["upload"].(map[string]interface{})["latency"].([]float64)
-	if ok {
-		for _, latency := range uploadLatency {
-			resParts = append(resParts, latency)
-		}
-	}
-
-	// Open the file for appending the results
-	f, err := os.OpenFile(config.INTERIM_RESULTS_PATH, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		fmt.Printf("Failed to open file: %s\n", err)
-		return
-	}
-	defer f.Close()
-
-	// Write the result parts to the file
-	w := csv.NewWriter(f)
-	if err := w.Write(utils.StringifySlice(resParts)); err != nil {
-		fmt.Printf("Failed to write to file: %s\n", err)
-	}
-	w.Flush()
-}
-
-func SaveResults(results [][]string, savePath string, sort bool) error {
+func saveResults(results [][]string, savePath string, sort bool) error {
 	// clean the results and make sure the first element is integer
 	for i := 0; i < len(results); i++ {
 		ms, err := strconv.Atoi(strings.TrimSuffix(results[i][0], " ms"))
