@@ -100,9 +100,10 @@ fncSubnetToIP() {
   done
 
   # Choose random IP addresses from generated IP list
-  if [[ -v randomNumber ]]; then
-	mapfile -t ipList < <(shuf -e "${ipList[@]}")
-	mapfile -t ipList < <(shuf -e "${ipList[@]:0:$randomNumber}")
+  if [ -v randomNumber ]
+  then
+	  mapfile -t ipList < <(shuf -e "${ipList[@]}")
+	  mapfile -t ipList < <(shuf -e "${ipList[@]:0:$randomNumber}")
   fi
   for i in "${ipList[@]}"; do 
     echo "$i"
