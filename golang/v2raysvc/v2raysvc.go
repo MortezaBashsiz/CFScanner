@@ -69,14 +69,22 @@ func CreateV2rayConfig(IP string, testConfig configuration.ConfigStruct) string 
 	config = strings.ReplaceAll(config, "ENDPOINTENDPOINT", testConfig.WsHeaderPath)
 	config = strings.ReplaceAll(config, "RANDOMHOST", testConfig.Sni)
 
-	configPath := fmt.Sprintf("%s/config-%s.json", configuration.CONFIGDIR, IP)
+	configPath := fmt.Sprintf("%s/config-%s.json", configuration.DIR, IP)
 	configFile, err := os.Create(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer configFile.Close()
+	defer func(configFile *os.File) {
+		err := configFile.Close()
+		if err != nil {
 
-	configFile.WriteString(config)
+		}
+	}(configFile)
+
+	_, configErr := configFile.WriteString(config)
+	if configErr != nil {
+		return ""
+	}
 
 	return configPath
 }
@@ -87,7 +95,12 @@ func StartV2RayService(v2rayConfPath string, timeout time.Duration) (*exec.Cmd, 
 	if err != nil {
 		return nil, nil, err
 	}
-	defer v2rayConfFile.Close()
+	defer func(v2rayConfFile *os.File) {
+		err := v2rayConfFile.Close()
+		if err != nil {
+
+		}
+	}(v2rayConfFile)
 
 	var v2rayConf map[string]interface{}
 	err = json.NewDecoder(v2rayConfFile).Decode(&v2rayConf)

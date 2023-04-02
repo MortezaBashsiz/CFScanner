@@ -27,12 +27,12 @@ func run(timer time.Time) *cobra.Command {
 			}
 
 			if Vpn {
-				utils.CreateDir(configuration.CONFIGDIR)
+				utils.CreateDir(configuration.DIR)
 			}
 
 			utils.CreateDir(configuration.RESULTDIR)
 
-			if err := configuration.CreateInterimResultsFile(configuration.INTERIM_RESULTS_PATH, nTries); err != nil {
+			if err := configuration.CreateInterimResultsFile(configuration.InterimResultsPath, nTries); err != nil {
 				fmt.Printf("Error creating interim results file: %v\n", err)
 			}
 			// number of threads for scanning
@@ -68,10 +68,10 @@ func run(timer time.Time) *cobra.Command {
 
 			fmt.Printf("Starting to scan %v%d%v IPS.\n\n", utils.Colors.OKGREEN, numberIPS, utils.Colors.ENDC)
 			// Begin scanning process
-			scanner.Worker(&Config, &worker, bigIPList, threadsCount)
+			scanner.Start(&Config, &worker, bigIPList, threadsCount)
 
-			fmt.Println("Results Written in :", configuration.INTERIM_RESULTS_PATH)
-			fmt.Println("Sorted IPS Written in :", configuration.FINAL_RESULTS_PATH_SORTED)
+			fmt.Println("Results Written in :", configuration.InterimResultsPath)
+			fmt.Println("Sorted IPS Written in :", configuration.FinalResultsPathSorted)
 			fmt.Println("Time Elapse :", time.Since(timer))
 		},
 	}
@@ -87,13 +87,18 @@ func IOScanner(LIST []string) []string {
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer subnetFile.Close()
+		defer func(subnetFile *os.File) {
+			err := subnetFile.Close()
+			if err != nil {
 
-		scanner := bufio.NewScanner(subnetFile)
-		for scanner.Scan() {
-			LIST = append(LIST, strings.TrimSpace(scanner.Text()))
+			}
+		}(subnetFile)
+
+		newScanner := bufio.NewScanner(subnetFile)
+		for newScanner.Scan() {
+			LIST = append(LIST, strings.TrimSpace(newScanner.Text()))
 		}
-		if err := scanner.Err(); err != nil {
+		if err := newScanner.Err(); err != nil {
 			log.Fatal(err)
 		}
 

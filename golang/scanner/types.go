@@ -6,7 +6,7 @@ type Writer interface {
 }
 
 type CSV struct {
-	res                 map[string]interface{}
+	res                 *Result
 	ip                  string
 	downloadMeanJitter  float64
 	uploadMeanJitter    float64

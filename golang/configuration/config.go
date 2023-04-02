@@ -13,13 +13,13 @@ import (
 )
 
 var (
-	PROGRAMDIR                = filepath.Dir(os.Args[0])
-	BIN                       = filepath.Join(PROGRAMDIR, "..", "bin", "v2ray")
-	CONFIGDIR                 = filepath.Join(PROGRAMDIR, "..", "config")
-	RESULTDIR                 = filepath.Join(PROGRAMDIR, "..", "result")
-	START_DT_STR              = time.Now().Format("2006-01-02_15:04:05")
-	INTERIM_RESULTS_PATH      = filepath.Join(RESULTDIR, START_DT_STR+"_result.csv")
-	FINAL_RESULTS_PATH_SORTED = filepath.Join(RESULTDIR, START_DT_STR+"_final.txt")
+	PROGRAMDIR             = filepath.Dir(os.Args[0])
+	BIN                    = filepath.Join(PROGRAMDIR, "..", "bin", "v2ray")
+	DIR                    = filepath.Join(PROGRAMDIR, "..", "config")
+	RESULTDIR              = filepath.Join(PROGRAMDIR, "..", "result")
+	StartDtStr             = time.Now().Format("2006-01-02_15:04:05")
+	InterimResultsPath     = filepath.Join(RESULTDIR, StartDtStr+"_result.csv")
+	FinalResultsPathSorted = filepath.Join(RESULTDIR, StartDtStr+"_final.txt")
 )
 
 func PrintInformation(Config ConfigStruct, Worker Worker, shuffle Shuffling) {
@@ -85,11 +85,20 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 			utils.Colors.WARNING, utils.Colors.ENDC)
 		log.Fatal(err)
 	}
-	defer jsonFile.Close()
+	defer func(jsonFile *os.File) {
+		err := jsonFile.Close()
+		if err != nil {
+
+		}
+	}(jsonFile)
 
 	var jsonFileContent map[string]interface{}
 	byteValue, _ := io.ReadAll(jsonFile)
-	json.Unmarshal(byteValue, &jsonFileContent)
+
+	content := json.Unmarshal(byteValue, &jsonFileContent)
+	if content != nil {
+		return ConfigStruct{}, Worker{}, false
+	}
 
 	ConfigObject := ConfigStruct{
 		UserId:          jsonFileContent["id"].(string),
@@ -102,6 +111,11 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 		TestBool: TestBool{
 			DoUploadTest:   doUploadTest,
 			DoFrontingTest: fronting,
+		},
+		Download: Download{
+			MinDlSpeed:   minDlSpeed,
+			MaxDlTime:    maxDlTime,
+			MaxDlLatency: maxDlLatency,
 		},
 	}
 
@@ -130,7 +144,13 @@ func CreateInterimResultsFile(interimResultsPath string, nTries int) error {
 	if err != nil {
 		return fmt.Errorf("failed to create interim results file: %w", err)
 	}
-	defer emptyFile.Close()
+
+	defer func(emptyFile *os.File) {
+		err := emptyFile.Close()
+		if err != nil {
+
+		}
+	}(emptyFile)
 
 	titles := []string{
 		"ip",

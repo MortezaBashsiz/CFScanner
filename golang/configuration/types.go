@@ -10,6 +10,7 @@ type ConfigStruct struct {
 	FrontingTimeout float64 // seconds
 	NTries          int
 	TestBool
+	Download
 }
 
 type TestBool struct {
