@@ -22,8 +22,8 @@ func run(timer time.Time) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(VersionStatement())
 
-			if v2raypath != "" {
-				configuration.BIN = v2raypath
+			if vpnPath != "" {
+				configuration.BIN = vpnPath
 			}
 
 			if Vpn {

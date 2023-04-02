@@ -3,7 +3,7 @@ package scanner
 import (
 	config "CFScanner/configuration"
 	"CFScanner/speedtest"
-	utils "CFScanner/utils"
+	"CFScanner/utils"
 	"CFScanner/v2raysvc"
 	"fmt"
 	"log"
@@ -52,7 +52,7 @@ func scanner(ip string, Config config.ConfigStruct, Worker config.Worker) *Resul
 	if Worker.Vpn {
 		v2rayConfigPath := v2raysvc.CreateV2rayConfig(ip, Config)
 		var err error
-		process, proxies, err = v2raysvc.StartV2RayService(v2rayConfigPath, time.Duration(Worker.StartprocessTimeout))
+		process, proxies, err = v2raysvc.StartV2RayService(v2rayConfigPath, time.Duration(Worker.StartProcessTimeout))
 		if err != nil {
 			log.Printf("%vERROR - %vCould not start v2ray service%v\n",
 				utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)

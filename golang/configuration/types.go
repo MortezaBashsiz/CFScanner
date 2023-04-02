@@ -35,7 +35,7 @@ type Upload struct {
 type Worker struct {
 	Download            Download
 	Upload              Upload
-	StartprocessTimeout float64 // seconds
+	StartProcessTimeout float64 // seconds
 	Threads             int
 	Vpn                 bool
 }
