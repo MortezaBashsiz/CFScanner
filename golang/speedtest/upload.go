@@ -15,10 +15,14 @@ func UploadSpeedTest(nBytes int, proxies map[string]string, timeout time.Duratio
 	if err != nil {
 		return 0, 0, err
 	}
+
 	for k, v := range proxies {
 		req.Header.Set(k, v)
 	}
-	client := &http.Client{Timeout: timeout * time.Second}
+
+	client := &http.Client{
+		Timeout: timeout * time.Second}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return 0, 0, err

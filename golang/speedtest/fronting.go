@@ -30,7 +30,7 @@ func FrontingTest(ip string, timeout time.Duration) bool {
 	}
 	req.Host = "speed.cloudflare.com"
 	client := &http.Client{
-		Timeout: timeout,
+		Timeout: timeout * time.Second,
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 			TLSClientConfig: &tls.Config{

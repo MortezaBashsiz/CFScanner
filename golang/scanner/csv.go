@@ -15,8 +15,6 @@ func (c CSV) CSVWriter() {
 		c.meanDownloadLatency, c.meanUploadSpeed,
 		c.meanDownloadLatency, c.meanUploadLatency,
 	}
-
-	/////////////////////////////////////////////////////
 	ip, ok := c.res["ip"].(string)
 	if ok {
 		for _, ip := range ip {
@@ -50,7 +48,6 @@ func (c CSV) CSVWriter() {
 			resParts = append(resParts, latency)
 		}
 	}
-	/////////////////////////////////////////////////////
 
 	WriteCSV(config.INTERIM_RESULTS_PATH, resParts)
 }

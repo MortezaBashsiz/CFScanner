@@ -11,8 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"gonum.org/v1/gonum/stat"
 )
 
 func Mean(latencies []float64) float64 {
@@ -30,11 +28,14 @@ func MeanJitter(latencies []float64) float64 {
 	if len(latencies) == 1 {
 		return 0
 	}
+
 	jitters := make([]float64, len(latencies)-1)
+
 	for i := 1; i < len(latencies); i++ {
 		jitters[i-1] = math.Abs(latencies[i] - latencies[i-1])
 	}
-	return stat.Mean(jitters, nil)
+
+	return Mean(jitters)
 }
 
 func Float64ToKBps(bytes float64) float64 {

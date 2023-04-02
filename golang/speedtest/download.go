@@ -29,7 +29,7 @@ func DownloadSpeedTest(nBytes int, proxies map[string]string, timeout time.Durat
 
 	// Set up client
 	client := &http.Client{
-		Timeout: timeout,
+		Timeout: timeout * time.Second,
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 		},

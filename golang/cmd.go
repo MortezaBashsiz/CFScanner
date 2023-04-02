@@ -43,6 +43,6 @@ func Registercommands(rootCmd *cobra.Command) {
 	rootCmd.PersistentFlags().Float64Var(&maxDLLatency, "download-latency", 3.0, "Maximum allowed latency for download")
 	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 3.0, "Maximum allowed latency for upload")
 	rootCmd.PersistentFlags().Float64Var(&startProcessTimeout, "startprocess-timeout", 12, "Process timeout for v2ray")
-	rootCmd.PersistentFlags().StringVar(&v2raypath, "v2ray-path", "", "Custom V2Ray binary path for using v2ray binary in another directory")
+	rootCmd.PersistentFlags().StringVar(&v2raypath, "vpn-path", "", "Custom V2Ray binary path for using v2ray binary in another directory")
 
 }

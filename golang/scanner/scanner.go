@@ -48,13 +48,13 @@ func scanner(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 	var Upload = &Worker.Upload
 	var Download = &Worker.Download
 
-	var proxies map[string]string
-	var process *exec.Cmd
+	var proxies map[string]string = nil
+	var process *exec.Cmd = nil
 
 	if Worker.Vpn {
-		v2ray_config_path := v2raysvc.CreateV2rayConfig(ip, Config)
+		v2rayConfigPath := v2raysvc.CreateV2rayConfig(ip, Config)
 		var err error
-		process, proxies, err = v2raysvc.StartV2RayService(v2ray_config_path, time.Duration(Worker.Startprocess_timeout))
+		process, proxies, err = v2raysvc.StartV2RayService(v2rayConfigPath, time.Duration(Worker.StartprocessTimeout))
 		if err != nil {
 			log.Printf("%vERROR - %vCould not start v2ray service%v\n",
 				utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)
@@ -68,16 +68,12 @@ func scanner(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 				log.Printf("%sFAIL %v%15s Panic: %v%v\n", utils.Colors.FAIL, utils.Colors.WARNING, ip, r, utils.Colors.ENDC)
 			}
 		}()
-
-	} else {
-		process = nil
-		proxies = nil
 	}
 
-	for tryIdx := 0; tryIdx < Config.N_tries; tryIdx++ {
+	for tryIdx := 0; tryIdx < Config.NTries; tryIdx++ {
 		// Fronting test
-		if Config.Do_fronting_test {
-			fronting := speedtest.FrontingTest(ip, time.Duration(Config.Fronting_timeout)*time.Second)
+		if Config.DoFrontingTest {
+			fronting := speedtest.FrontingTest(ip, time.Duration(Config.FrontingTimeout))
 
 			if !fronting {
 				return nil
@@ -85,71 +81,15 @@ func scanner(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 		}
 
 		// Check download speed
-		var err error
-		nBytes := Download.Min_dl_speed * 1000 * Download.Max_dl_time
-		downloadSpeed, downloadLatency, err = speedtest.DownloadSpeedTest(int(nBytes), proxies,
-			time.Duration(Download.Max_dl_latency)*time.Second)
-
-		if err != nil {
-			if strings.Contains(strings.ToLower(err.Error()), "download/upload too slow") {
-				log.Printf("%vFAIL %v%15s Download too slow\n",
-					utils.Colors.FAIL, utils.Colors.WARNING, ip)
-			} else {
-				log.Printf("%vFAIL %v%15s Download error%v\n",
-					utils.Colors.FAIL, utils.Colors.WARNING, ip, utils.Colors.ENDC)
-			}
-			return nil
-		}
-
-		if downloadLatency <= Download.Max_dl_latency {
-			downloadSpeedKBps := downloadSpeed / 8 * 1000
-			if downloadSpeedKBps >= Download.Min_dl_speed {
-				result["download"].(map[string]interface{})["speed"] =
-					append(result["download"].(map[string]interface{})["speed"].([]float64), downloadSpeed)
-				result["download"].(map[string]interface{})["latency"] =
-					append(result["download"].(map[string]interface{})["latency"].([]int), int(math.Round(downloadLatency*1000)))
-
-			} else {
-				log.Printf("%vFAIL %v%15s Download too slow %.4f kBps < %.4f kBps%v\n",
-					utils.Colors.FAIL, utils.Colors.WARNING, ip, downloadSpeedKBps, Download.Min_dl_speed, utils.Colors.ENDC)
-				return nil
-			}
-		} else {
-			log.Printf("%vFAIL %v%15s High Download latency %.4f s > %.4f s%v\n",
-				utils.Colors.FAIL, utils.Colors.WARNING, ip, downloadLatency, Download.Max_dl_latency, utils.Colors.ENDC)
-			return nil
+		m, done := downloader(ip, Download, proxies, result)
+		if done {
+			return m
 		}
 		// upload speed test
-		if Config.Do_upload_test {
-			var err error
-			nBytes := Upload.Min_ul_speed * 1000 * Upload.Max_ul_time
-			uploadSpeed, uploadLatency, err = speedtest.UploadSpeedTest(int(nBytes), proxies,
-				time.Duration(Upload.Max_ul_latency)*time.Second)
-
-			if err != nil {
-				log.Printf("%sFAIL %v%15s Upload error : %v%v\n", utils.Colors.FAIL, utils.Colors.WARNING, ip, err, utils.Colors.ENDC)
-
-				return nil
-			}
-			if uploadLatency <= Upload.Max_ul_latency {
-				uploadSpeedKbps := uploadSpeed / 8 * 1000
-				if uploadSpeedKbps >= Upload.Min_ul_speed {
-					result["upload"].(map[string]interface{})["speed"] =
-						append(result["upload"].(map[string]interface{})["speed"].([]float64), uploadSpeed)
-					result["upload"].(map[string]interface{})["latency"] =
-						append(result["upload"].(map[string]interface{})["latency"].([]int), int(math.Round(uploadLatency*1000)))
-
-				} else {
-					log.Printf("%sFAIL %v%15s Upload too slow %f kBps < %f kBps%s\n",
-						utils.Colors.FAIL, utils.Colors.WARNING, ip, uploadSpeedKbps, Upload.Min_ul_speed, utils.Colors.ENDC)
-
-					return nil
-				}
-			} else {
-				log.Printf("%sFAIL %v%15s Upload latency too high  %s\n",
-					utils.Colors.FAIL, utils.Colors.WARNING, ip, utils.Colors.ENDC)
-
-				return nil
+		if Config.DoUploadTest {
+			m2, done2 := uploader(ip, Upload, proxies, result)
+			if done2 {
+				return m2
 			}
 		}
 
@@ -159,6 +99,78 @@ func scanner(ip string, Config config.ConfigStruct, Worker config.Worker) map[st
 			utils.Colors.OKGREEN, ip, downloadSpeed, uploadSpeed, uptimeLatency, dltimeLatency, utils.Colors.ENDC)
 	}
 	return result
+}
+
+func uploader(ip string, Upload *config.Upload, proxies map[string]string, result map[string]interface{}) (map[string]interface{}, bool) {
+	var err error
+	nBytes := Upload.MinUlSpeed * 1000 * Upload.MaxUlTime
+	uploadSpeed, uploadLatency, err = speedtest.UploadSpeedTest(int(nBytes), proxies,
+		time.Duration(Upload.MaxUlLatency))
+
+	if err != nil {
+		log.Printf("%sFAIL %v%15s Upload error : %v%v\n", utils.Colors.FAIL, utils.Colors.WARNING, ip, err, utils.Colors.ENDC)
+
+		return nil, true
+	}
+	if uploadLatency <= Upload.MaxUlLatency {
+		uploadSpeedKbps := uploadSpeed / 8 * 1000
+		if uploadSpeedKbps >= Upload.MinUlSpeed {
+			result["upload"].(map[string]interface{})["speed"] =
+				append(result["upload"].(map[string]interface{})["speed"].([]float64), uploadSpeed)
+			result["upload"].(map[string]interface{})["latency"] =
+				append(result["upload"].(map[string]interface{})["latency"].([]int), int(math.Round(uploadLatency*1000)))
+
+		} else {
+			log.Printf("%sFAIL %v%15s Upload too slow %f kBps < %f kBps%s\n",
+				utils.Colors.FAIL, utils.Colors.WARNING, ip, uploadSpeedKbps, Upload.MinUlSpeed, utils.Colors.ENDC)
+
+			return nil, true
+		}
+	} else {
+		log.Printf("%sFAIL %v%15s Upload latency too high  %s\n",
+			utils.Colors.FAIL, utils.Colors.WARNING, ip, utils.Colors.ENDC)
+
+		return nil, true
+	}
+	return nil, false
+}
+
+func downloader(ip string, Download *config.Download, proxies map[string]string, result map[string]interface{}) (map[string]interface{}, bool) {
+	var err error
+	nBytes := Download.MinDlSpeed * 1000 * Download.MaxDlTime
+	downloadSpeed, downloadLatency, err = speedtest.DownloadSpeedTest(int(nBytes), proxies,
+		time.Duration(Download.MaxDlLatency))
+
+	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "download/upload too slow") {
+			log.Printf("%vFAIL %v%15s Download too slow\n",
+				utils.Colors.FAIL, utils.Colors.WARNING, ip)
+		} else {
+			log.Printf("%vFAIL %v%15s Download error%v\n",
+				utils.Colors.FAIL, utils.Colors.WARNING, ip, utils.Colors.ENDC)
+		}
+		return nil, true
+	}
+
+	if downloadLatency <= Download.MaxDlLatency {
+		downloadSpeedKBps := downloadSpeed / 8 * 1000
+		if downloadSpeedKBps >= Download.MinDlSpeed {
+			result["download"].(map[string]interface{})["speed"] =
+				append(result["download"].(map[string]interface{})["speed"].([]float64), downloadSpeed)
+			result["download"].(map[string]interface{})["latency"] =
+				append(result["download"].(map[string]interface{})["latency"].([]int), int(math.Round(downloadLatency*1000)))
+
+		} else {
+			log.Printf("%vFAIL %v%15s Download too slow %.4f kBps < %.4f kBps%v\n",
+				utils.Colors.FAIL, utils.Colors.WARNING, ip, downloadSpeedKBps, Download.MinDlSpeed, utils.Colors.ENDC)
+			return nil, true
+		}
+	} else {
+		log.Printf("%vFAIL %v%15s High Download latency %.4f s > %.4f s%v\n",
+			utils.Colors.FAIL, utils.Colors.WARNING, ip, downloadLatency, Download.MaxDlLatency, utils.Colors.ENDC)
+		return nil, true
+	}
+	return nil, false
 }
 
 func scannerMap(testConfig *config.ConfigStruct, worker *config.Worker, ip string) {
@@ -193,7 +205,7 @@ func scannerMap(testConfig *config.ConfigStruct, worker *config.Worker, ip strin
 		}
 
 		upMeanJitter := -1.0
-		if testConfig.Do_upload_test && ok {
+		if testConfig.DoUploadTest && ok {
 			upMeanJitter = utils.MeanJitter(uploadLatency)
 		}
 
@@ -212,13 +224,13 @@ func scannerMap(testConfig *config.ConfigStruct, worker *config.Worker, ip strin
 			log.Printf("Error getting upload speed for IP %s", ip)
 		}
 
-		if testConfig.Do_upload_test {
+		if testConfig.DoUploadTest {
 			meanuploadSpeed = utils.Mean(uploadSpeed)
 		}
 
 		meanDownLatency := utils.Mean(downLatency)
 		meanuploadLatency := -1.0
-		if testConfig.Do_upload_test {
+		if testConfig.DoUploadTest {
 			meanuploadLatency = utils.Mean(uploadLatency)
 		}
 
