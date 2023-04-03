@@ -18,6 +18,7 @@ import traceback
 from datetime import datetime
 from functools import partial
 from typing import Tuple
+import random
 
 import requests
 from clog import CLogger
@@ -653,6 +654,14 @@ def parse_args(args=sys.argv[1:]):
         default=os.path.join(SCRIPTDIR, "config_templates",
                              "vmess_ws_tls_template.json")
     )
+    parser.add_argument(
+        "--random",
+        help="Randomly pick N IP of a CIDR to test.",
+        metavar="NUMBER",
+        dest="random_ip",
+        type=int,
+        required=False
+    )
 
     parse_args = parser.parse_args()
 
@@ -702,7 +711,10 @@ def cidr_to_ip_list(
         list: a list of ips associated with the subnet
     """
     ip_network = ipaddress.ip_network(cidr, strict=False)
-    return (list(map(str, ip_network)))
+    if args.random_ip:
+        return random.sample(list(map(str, ip_network.hosts())), min(args.random_ip, len(list(map(str, ip_network.hosts())))))
+    else:
+        return (list(map(str, ip_network)))
 
 
 def get_num_ips_in_cidr(cidr):
@@ -715,7 +727,10 @@ def get_num_ips_in_cidr(cidr):
         subnet_mask = int(parts[1])
     except IndexError as e:
         subnet_mask = 128 if ":" in cidr else 32
-    n_ips = 2**(128 - subnet_mask) if ":" in cidr else 2**(32 - subnet_mask)
+    if args.random_ip:
+        n_ips = args.random_ip
+    else:
+        n_ips = 2**(128 - subnet_mask) if ":" in cidr else 2**(32 - subnet_mask)
 
     return n_ips
 

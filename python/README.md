@@ -9,6 +9,7 @@ The script is designed to scan Cloudflare's edge IPs and locate ones that are vi
 * Libraries 
     - requests
     - pysocks
+	- random
 
 # Installings
 
@@ -61,6 +62,10 @@ python3 cfFindIP.py --upload-test --threads 8 --config ./myconfig.json --subnets
 * To run and try each IP multiple (3 in this case) times. An IP is marked ok if it passes all the tests.
 ```bash
 python3 cfFindIP.py --upload-test --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100 --upload-speed 25 --tries 3
+```
+* To run and randomly test 12 IPs from every CIDR
+```bash
+python3 cfFindIP.py --upload-test --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100 --upload-speed 25 --tries 3 --random 12
 ```
 
 
