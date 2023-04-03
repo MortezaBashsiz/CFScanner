@@ -9,7 +9,7 @@ The script is designed to scan Cloudflare's edge IPs and locate ones that are vi
 * Libraries 
     - requests
     - pysocks
-	- random
+    - random
 
 # Installings
 
