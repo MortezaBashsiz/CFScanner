@@ -83,30 +83,46 @@ fncSubnetToIP() {
   [[ ${maskarr[2]} == 255 ]] && maskarr[1]=255
   [[ ${maskarr[1]} == 255 ]] && maskarr[0]=255
 
-  # generate list of ip addresses
-  local bytes=(0 0 0 0)
-  for i in $(seq 0 $((255-maskarr[0]))); do
-    bytes[0]="$(( i+(iparr[0] & maskarr[0]) ))"
-    for j in $(seq 0 $((255-maskarr[1]))); do
-      bytes[1]="$(( j+(iparr[1] & maskarr[1]) ))"
-      for k in $(seq 0 $((255-maskarr[2]))); do
-        bytes[2]="$(( k+(iparr[2] & maskarr[2]) ))"
-        for l in $(seq 1 $((255-maskarr[3]))); do
-          bytes[3]="$(( l+(iparr[3] & maskarr[3]) ))"
-		  ipList+=("$(printf "%d.%d.%d.%d" "${bytes[@]}")")
-        done
-      done
-    done
-  done
-
-  # Choose random IP addresses from generated IP list
-  if [[ -v randomNumber ]]; then
-	mapfile -t ipList < <(shuf -e "${ipList[@]}")
-	mapfile -t ipList < <(shuf -e "${ipList[@]:0:$randomNumber}")
-  fi
-  for i in "${ipList[@]}"; do 
-    echo "$i"
-  done
+	# generate list of ip addresses
+	if [[ "$randomNumber" != "NULL" ]]
+	then
+  	local bytes=(0 0 0 0)
+  	for i in $(seq 0 $((255-maskarr[0]))); do
+  	  bytes[0]="$(( i+(iparr[0] & maskarr[0]) ))"
+  	  for j in $(seq 0 $((255-maskarr[1]))); do
+  	    bytes[1]="$(( j+(iparr[1] & maskarr[1]) ))"
+  	    for k in $(seq 0 $((255-maskarr[2]))); do
+  	      bytes[2]="$(( k+(iparr[2] & maskarr[2]) ))"
+  	      for l in $(seq 1 $((255-maskarr[3]))); do
+  	        bytes[3]="$(( l+(iparr[3] & maskarr[3]) ))"
+						ipList+=("$(printf "%d.%d.%d.%d" "${bytes[@]}")")
+  	      done
+  	    done
+  	  done
+  	done
+		# Choose random IP addresses from generated IP list
+		mapfile -t ipList < <(shuf -e "${ipList[@]}")
+		mapfile -t ipList < <(shuf -e "${ipList[@]:0:$randomNumber}")
+  	for i in "${ipList[@]}"; do 
+  	  echo "$i"
+  	done
+	elif [[ "$randomNumber" == "NULL" ]]
+	then
+  	local bytes=(0 0 0 0)
+  	for i in $(seq 0 $((255-maskarr[0]))); do
+  	  bytes[0]="$(( i+(iparr[0] & maskarr[0]) ))"
+  	  for j in $(seq 0 $((255-maskarr[1]))); do
+  	    bytes[1]="$(( j+(iparr[1] & maskarr[1]) ))"
+  	    for k in $(seq 0 $((255-maskarr[2]))); do
+  	      bytes[2]="$(( k+(iparr[2] & maskarr[2]) ))"
+  	      for l in $(seq 1 $((255-maskarr[3]))); do
+  	        bytes[3]="$(( l+(iparr[3] & maskarr[3]) ))"
+						printf "%d.%d.%d.%d\n" "${bytes[@]}"
+  	      done
+  	    done
+  	  done
+  	done
+	fi
 }
 # End of Function fncSubnetToIP
 
@@ -642,6 +658,7 @@ function fncUsage {
 }
 # End of Function fncUsage
 
+randomNumber="NULL"
 osVersion="$(fncCheckDpnd)"
 vpnOrNot="NO"
 subnetOrIP="SUBNET"
