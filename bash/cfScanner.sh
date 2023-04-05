@@ -460,7 +460,7 @@ function fncCreateDir {
 # Function fncMainCFFindSubnet
 # main Function for Subnet
 function fncMainCFFindSubnet {
-	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName fileSize osVersion parallelVersion subnetsFile cloudFlareASNList breakedSubnets network netmask downloadOrUpload
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName fileSize osVersion parallelVersion subnetsFile breakedSubnets network netmask downloadOrUpload
 	threads="${1}"
 	progressBar="${2}"
 	resultFile="${3}"
@@ -488,28 +488,13 @@ function fncMainCFFindSubnet {
 		exit 1
 	fi
 	
-	cloudFlareASNList=( AS13335 AS209242 )
-	
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
 
 	echo "" > "$scriptDir/subnets.list"
 	if [[ "$subnetsFile" == "NULL" ]]	
 	then
-		for asn in "${cloudFlareASNList[@]}"
-		do
-			urlResult=$(curl -I -L -s https://asnlookup.com/asn/"$asn" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
-			if [[ "$urlResult" == "200" ]]
-			then
-				echo "Updating ASN $asn to file $scriptDir/subnets.list"
-				cfSubnetList=$(curl -s https://asnlookup.com/asn/"$asn"/ | grep "^<li><a href=\"/cidr/.*0/" | awk -F "cidr/" '{print $2}' | awk -F "\">" '{print $1}' | grep -E -v     "^8\.|^1\.")
-				echo "$cfSubnetList" >> "$scriptDir/subnets.list"
-			else
-				echo "could not get url curl -s https://asnlookup.com/asn/$asn/"
-				echo "will use local file"
-				cat "$scriptDir/cf.local.iplist" > "$scriptDir/subnets.list"
-			fi
-		done
-		cfSubnetList=$(cat "$scriptDir/subnets.list")
+		echo "Reading subnets from file $scriptDir/cf.local.iplist"
+		cfSubnetList=$(cat "$scriptDir/cf.local.iplist")
 	else
 		echo "Reading subnets from file $subnetsFile"
 		cfSubnetList=$(cat "$subnetsFile")
