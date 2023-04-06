@@ -108,7 +108,7 @@ CFScanner supports pause and resume progress
 ### Load configurations file with subnet file and using vpn mode with another v2ray binary
 
 ```bash
-./CFScanner --config config.real --subnets 172.20.0.0/24 --vpn --v2ray-path ~/v2ray-macos-arm64-v8a/v2ray
+./CFScanner --config config.real --subnets 172.20.0.0/24 --vpn --vpn-path ~/v2ray-macos-arm64-v8a/v2ray
 ```
 
 ## Output
