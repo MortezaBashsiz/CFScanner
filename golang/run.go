@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func run(timer time.Time) *cobra.Command {
+func run() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:     os.Args[0],
 		Short:   codename,
@@ -66,6 +66,7 @@ func run(timer time.Time) *cobra.Command {
 				frontingTimeout, fronting, maxDLLatency, maxULLatency,
 				nTries, Vpn, threads, shuffle)
 
+			timer := time.Now()
 			fmt.Printf("Starting to scan %v%d%v IPS.\n\n", utils.Colors.OKGREEN, numberIPS, utils.Colors.ENDC)
 			// Begin scanning process
 			scanner.Start(&Config, &worker, bigIPList, threadsCount)

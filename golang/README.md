@@ -55,7 +55,7 @@ To see CFScanner help , run the following command:
 CFScanner takes several arguments:
 
 | Arguments              | Short Descriptions                                                                               |
-| ---------------------- | ------------------------------------------------------------------------------------------------ |
+|------------------------| ------------------------------------------------------------------------------------------------ |
 | --threads -t           | Number of threads to use for parallel scanning. Default is 1.                                    |
 | --config -c            | The path to the config file. (Required)                                                          |
 | --vpn                  | If passed, test with creating VPN connections.                                                   |
@@ -72,8 +72,14 @@ CFScanner takes several arguments:
 | --download-latency     | Maximum allowed latency for download. Default is 2.0.                                            |
 | --upload-latency       | Maximum allowed latency for upload. Default is 2.0.                                              |
 | --startprocess-timeout | Process timeout for v2ray. Default is 12.                                                        |
-| --v2ray-path           | Custom V2Ray binary path for using v2ray binary in another directory.                            |
+| --vpn-path              | Custom V2Ray binary path for using v2ray binary in another directory.                            |
 
+# KeyEvent Listeners
+CFScanner supports pause and resume progress 
+
+for pausing current progress press "p"
+
+for resuming current progress press "r"
 # Examples
 
 ### Load configuration file and load subnet file for scanning
@@ -124,4 +130,4 @@ CFScanner is released under the [GPL-3](../LICENSE) license.
 Contributions are welcome! Please read [CONTRIBUTING.md](../CONTRIBUTING.md) for more information.
 
 [go]: https://img.shields.io/badge/Go-cyan?logo=go
-[version]: https://img.shields.io/badge/Version-1.2-blue
+[version]: https://img.shields.io/badge/Version-1.4-blue

@@ -6,6 +6,7 @@ import (
 	"CFScanner/utils"
 	"CFScanner/v2raysvc"
 	"fmt"
+	"github.com/eiannone/keyboard"
 	"log"
 	"math"
 	"os"
@@ -36,6 +37,13 @@ type Result struct {
 		Latency []int
 	}
 }
+
+// Running Possible worker state.
+var (
+	Running bool
+)
+
+// const WorkerCount = 48
 
 func scanner(ip string, Config config.ConfigStruct, Worker config.Worker) *Result {
 
@@ -232,11 +240,24 @@ func scan(testConfig *config.ConfigStruct, worker *config.Worker, ip string) {
 	Writer.CSVWriter()
 
 }
-
-// Start func starts the scanning process with defined worker
 func Start(Config *config.ConfigStruct, Worker *config.Worker, ipList []string, threadsCount int) {
-	var wg sync.WaitGroup
+	var (
+		wg         sync.WaitGroup
+		pauseChan  = make(chan struct{})
+		resumeChan = make(chan struct{})
+		quitChan   = make(chan struct{})
+	)
 
+	keysEvents, err := keyboard.GetKeys(10)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer func() {
+		_ = keyboard.Close()
+	}()
+
+	// Create batches
 	n := len(ipList)
 	batchSize := len(ipList) / threadsCount
 	batches := make([][]string, threadsCount)
@@ -248,26 +269,129 @@ func Start(Config *config.ConfigStruct, Worker *config.Worker, ipList []string, 
 			end = n
 		}
 		batches[i] = ipList[start:end]
-
 	}
-	wg.Add(threadsCount)
+
+	// Start workers
+	Running = true
 	for i := 0; i < threadsCount; i++ {
+		wg.Add(1)
 		go func(batch []string) {
 			defer wg.Done()
 			for _, ip := range batch {
-				scan(Config, Worker, ip)
+				select {
+				case <-pauseChan:
+					// wait for resume signal
+					<-resumeChan
+				case <-quitChan:
+					// quit the function
+					return
+				default:
+					scan(Config, Worker, ip)
+				}
 			}
-
 		}(batches[i])
 	}
+
+	// Handle user input in a separate goroutine
+	go func() {
+		pauseChan, resumeChan = controller(keysEvents, threadsCount, pauseChan, resumeChan)
+		// Wait for quit signal
+		<-quitChan
+
+		// close the state listener channel
+		close(pauseChan)
+		close(resumeChan)
+	}()
+
 	wg.Wait()
 
-	err := saveResults(results, config.FinalResultsPathSorted, true)
+	// Save results
+	err = saveResults(results, config.FinalResultsPathSorted, true)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
-
 }
+
+// controller is a event listener for pausing or running workers
+func controller(keysEvents <-chan keyboard.KeyEvent,
+	threadsCount int, pauseChan chan struct{}, resumeChan chan struct{}) (chan struct{}, chan struct{}) {
+
+	for {
+		event := <-keysEvents
+
+		// exit program with event.key listener
+		if event.Key == keyboard.KeyEsc || event.Key == keyboard.KeyCtrlC {
+			os.Exit(1)
+		}
+
+		if event.Rune == 'p' || event.Rune == 'P' {
+			if !Running {
+				fmt.Println("Channel is currently Paused")
+				continue
+			}
+
+			for x := 0; x < threadsCount; x++ {
+				pauseChan <- struct{}{}
+			}
+			// set runner state to false
+			Running = false
+			fmt.Println("Paused")
+			time.Sleep(100 * time.Millisecond) // Add a small delay to prevent CPU usage
+
+		}
+		if event.Rune == 'r' || event.Rune == 'R' {
+			if Running {
+				fmt.Println("Channel is currently Running")
+				continue
+			}
+
+			for x := 0; x < threadsCount; x++ {
+				resumeChan <- struct{}{}
+			}
+			// set runner state to true
+			Running = true
+			fmt.Println("Resumed")
+			time.Sleep(100 * time.Millisecond) // Add a small delay to prevent CPU usage
+
+		}
+
+	}
+
+	return pauseChan, resumeChan
+}
+
+// Wait for pause signal
+//go func() {
+//	for {
+//		event := <-keysEvents
+//		if event.Rune == 'p' {
+//			if len(pauseChan) > 0 {
+//				fmt.Println("channel is currently paused")
+//				break
+//			} else {
+//				for x := 0; x < threadsCount; x++ {
+//					pauseChan <- struct{}{}
+//				}
+//				fmt.Println("Paused")
+//				time.Sleep(100 * time.Millisecond) // Add a small delay to prevent CPU usage
+//			}
+//
+//		}
+//		if event.Rune == 'r' {
+//			if len(resumeChan) > 0 {
+//				fmt.Println("channel is currently resumed")
+//				break
+//			} else {
+//				for x := 0; x < threadsCount; x++ {
+//					resumeChan <- struct{}{}
+//				}
+//				fmt.Println("Resumed")
+//				time.Sleep(100 * time.Millisecond) // Add a small delay to prevent CPU usage
+//			}
+//		}
+//	}
+//}()
 
 func saveResults(values [][]string, savePath string, sort bool) error {
 	// clean the values and make sure the first element is integer

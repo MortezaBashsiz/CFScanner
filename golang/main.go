@@ -1,12 +1,10 @@
 package main
 
 import (
+	"github.com/spf13/cobra"
 	"os"
 	"runtime"
 	"strings"
-	"time"
-
-	"github.com/spf13/cobra"
 )
 
 // Program Info
@@ -28,13 +26,16 @@ func VersionStatement() string {
 }
 
 func main() {
-	timer := time.Now()
-	rootCmd := run(timer)
+	rootCmd := run()
 
 	Registercommands(rootCmd)
 
 	if len(os.Args) <= 1 {
-		rootCmd.Help()
+		err := rootCmd.Help()
+		if err != nil {
+			return
+		}
+		os.Exit(1)
 	}
 
 	err := rootCmd.Execute()
