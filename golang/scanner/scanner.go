@@ -253,9 +253,6 @@ func Start(Config *config.ConfigStruct, Worker *config.Worker, ipList []string, 
 		fmt.Println(err)
 		return
 	}
-	defer func() {
-		_ = keyboard.Close()
-	}()
 
 	// Create batches
 	n := len(ipList)
@@ -305,6 +302,11 @@ func Start(Config *config.ConfigStruct, Worker *config.Worker, ipList []string, 
 
 	wg.Wait()
 
+	// close key event listener
+	defer func() {
+		_ = keyboard.Close()
+	}()
+
 	// Save results
 	err = saveResults(results, config.FinalResultsPathSorted, true)
 	if err != nil {
@@ -322,6 +324,7 @@ func controller(keysEvents <-chan keyboard.KeyEvent,
 
 		// exit program with event.key listener
 		if event.Key == keyboard.KeyEsc || event.Key == keyboard.KeyCtrlC {
+			_ = keyboard.Close()
 			os.Exit(1)
 		}
 
