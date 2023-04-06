@@ -11,6 +11,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -41,6 +42,7 @@ type Result struct {
 // Running Possible worker state.
 var (
 	Running bool
+	MaxProc int = runtime.NumCPU() * 2 // Max CPU + Thread * 2
 )
 
 // const WorkerCount = 48
@@ -225,19 +227,36 @@ func scan(testConfig *config.ConfigStruct, worker *config.Worker, ip string) {
 
 	results = append(results, []string{latencyDownloadString, ip})
 
-	var Writer Writer = CSV{
-		res:                 res,
-		ip:                  ip,
-		downloadMeanJitter:  downMeanJitter,
-		uploadMeanJitter:    upMeanJitter,
-		meanDownloadSpeed:   meanDownSpeed,
-		meanDownloadLatency: meanDownLatency,
-		meanUploadSpeed:     meanUploadSpeed,
-		meanUploadLatency:   meanUploadLatency,
+	var Writer Writer
+	switch testConfig.Writer {
+	case "csv":
+		Writer = CSV{
+			res:                 res,
+			IP:                  ip,
+			DownloadMeanJitter:  downMeanJitter,
+			UploadMeanJitter:    upMeanJitter,
+			MeanDownloadSpeed:   meanDownSpeed,
+			MeanDownloadLatency: meanDownLatency,
+			MeanUploadSpeed:     meanUploadSpeed,
+			MeanUploadLatency:   meanUploadLatency,
+		}
+	case "json":
+		Writer = JSON{
+			res:                 res,
+			IP:                  ip,
+			DownloadMeanJitter:  downMeanJitter,
+			UploadMeanJitter:    upMeanJitter,
+			MeanDownloadSpeed:   meanDownSpeed,
+			MeanDownloadLatency: meanDownLatency,
+			MeanUploadSpeed:     meanUploadSpeed,
+			MeanUploadLatency:   meanUploadLatency,
+		}
+	default:
+		log.Fatalf("Invalid writer type: %s", testConfig.Writer)
 	}
 
 	Writer.Output()
-	Writer.CSVWriter()
+	Writer.Write()
 
 }
 func Start(Config *config.ConfigStruct, Worker *config.Worker, ipList []string, threadsCount int) {
@@ -248,6 +267,13 @@ func Start(Config *config.ConfigStruct, Worker *config.Worker, ipList []string, 
 		quitChan   = make(chan struct{})
 	)
 
+	// limit the thread execution if it was higher than current cpu num * 2
+	if threadsCount > MaxProc {
+		fmt.Println("Max Thread limit setting thread to :", MaxProc)
+		threadsCount = MaxProc
+	}
+
+	// get the key events
 	keysEvents, err := keyboard.GetKeys(10)
 	if err != nil {
 		fmt.Println(err)
@@ -363,38 +389,6 @@ func controller(keysEvents <-chan keyboard.KeyEvent,
 
 	return pauseChan, resumeChan
 }
-
-// Wait for pause signal
-//go func() {
-//	for {
-//		event := <-keysEvents
-//		if event.Rune == 'p' {
-//			if len(pauseChan) > 0 {
-//				fmt.Println("channel is currently paused")
-//				break
-//			} else {
-//				for x := 0; x < threadsCount; x++ {
-//					pauseChan <- struct{}{}
-//				}
-//				fmt.Println("Paused")
-//				time.Sleep(100 * time.Millisecond) // Add a small delay to prevent CPU usage
-//			}
-//
-//		}
-//		if event.Rune == 'r' {
-//			if len(resumeChan) > 0 {
-//				fmt.Println("channel is currently resumed")
-//				break
-//			} else {
-//				for x := 0; x < threadsCount; x++ {
-//					resumeChan <- struct{}{}
-//				}
-//				fmt.Println("Resumed")
-//				time.Sleep(100 * time.Millisecond) // Add a small delay to prevent CPU usage
-//			}
-//		}
-//	}
-//}()
 
 func saveResults(values [][]string, savePath string, sort bool) error {
 	// clean the values and make sure the first element is integer

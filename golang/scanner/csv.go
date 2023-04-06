@@ -9,11 +9,11 @@ import (
 	"os"
 )
 
-func (c CSV) CSVWriter() {
+func (c CSV) Write() {
 	resParts := []interface{}{
-		c.ip,
-		c.meanDownloadLatency, c.meanUploadSpeed,
-		c.meanDownloadLatency, c.meanUploadLatency,
+		c.IP,
+		c.MeanDownloadLatency, c.MeanUploadSpeed,
+		c.MeanDownloadLatency, c.MeanUploadLatency,
 	}
 	ip := c.res.IP
 	for _, ip := range ip {
@@ -40,7 +40,7 @@ func (c CSV) CSVWriter() {
 		resParts = append(resParts, latency)
 	}
 
-	WriteCSV(config.InterimResultsPath, resParts)
+	WriteCSV(config.CSVInterimResultsPath, resParts)
 }
 
 func WriteCSV(file string, result []interface{}) {
@@ -72,12 +72,12 @@ func (c CSV) Output() {
 		utils.Colors.OKGREEN,
 		c.res.IP,
 		utils.Colors.OKBLUE,
-		c.meanDownloadSpeed,
-		c.meanUploadSpeed,
-		c.meanDownloadLatency,
-		c.meanUploadLatency,
-		c.downloadMeanJitter,
-		c.uploadMeanJitter,
+		c.MeanDownloadSpeed,
+		c.MeanUploadSpeed,
+		c.MeanDownloadLatency,
+		c.MeanUploadLatency,
+		c.DownloadMeanJitter,
+		c.UploadMeanJitter,
 		utils.Colors.ENDC,
 	)
 }

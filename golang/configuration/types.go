@@ -9,6 +9,7 @@ type ConfigStruct struct {
 	Sni             string
 	FrontingTimeout float64 // seconds
 	NTries          int
+	Writer          string
 	TestBool
 	Download
 }

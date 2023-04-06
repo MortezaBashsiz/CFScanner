@@ -26,7 +26,9 @@ var maxULLatency float64
 
 var bigIPList []string
 
-func Registercommands(rootCmd *cobra.Command) {
+var writerType string
+
+func RegisterCommands(rootCmd *cobra.Command) {
 	rootCmd.PersistentFlags().IntVarP(&threads, "threads", "t", 1, "Number of threads to use for parallel scanning")
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "The path to the config file")
 	rootCmd.PersistentFlags().BoolVar(&Vpn, "vpn", false, "If passed, test with creating vpn connections")
@@ -44,5 +46,6 @@ func Registercommands(rootCmd *cobra.Command) {
 	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 3.0, "Maximum allowed latency for upload")
 	rootCmd.PersistentFlags().Float64Var(&startProcessTimeout, "startprocess-timeout", 12, "Process timeout for v2ray")
 	rootCmd.PersistentFlags().StringVar(&vpnPath, "vpn-path", "", "Custom V2Ray binary path for using v2ray binary in another directory")
+	rootCmd.PersistentFlags().StringVar(&writerType, "writer", "csv", "Custom output writer for writing interim results. [csv/json]")
 
 }

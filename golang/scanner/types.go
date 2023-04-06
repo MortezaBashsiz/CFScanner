@@ -1,17 +1,28 @@
 package scanner
 
 type Writer interface {
-	CSVWriter()
+	Write()
 	Output()
 }
 
 type CSV struct {
 	res                 *Result
-	ip                  string
-	downloadMeanJitter  float64
-	uploadMeanJitter    float64
-	meanDownloadSpeed   float64
-	meanUploadSpeed     float64
-	meanDownloadLatency float64
-	meanUploadLatency   float64
+	IP                  string
+	DownloadMeanJitter  float64
+	UploadMeanJitter    float64
+	MeanDownloadSpeed   float64
+	MeanUploadSpeed     float64
+	MeanDownloadLatency float64
+	MeanUploadLatency   float64
+}
+
+type JSON struct {
+	res                 *Result
+	IP                  string  `json:"ip"`
+	DownloadMeanJitter  float64 `json:"downloadMeanJitter"`
+	UploadMeanJitter    float64 `json:"uploadMeanJitter"`
+	MeanDownloadSpeed   float64 `json:"meanDownloadSpeed"`
+	MeanUploadSpeed     float64 `json:"meanUploadSpeed"`
+	MeanDownloadLatency float64 `json:"meanDownloadLatency"`
+	MeanUploadLatency   float64 `json:"meanUploadLatency"`
 }

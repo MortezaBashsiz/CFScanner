@@ -28,7 +28,7 @@ func VersionStatement() string {
 func main() {
 	rootCmd := run()
 
-	Registercommands(rootCmd)
+	RegisterCommands(rootCmd)
 
 	if len(os.Args) <= 1 {
 		err := rootCmd.Help()

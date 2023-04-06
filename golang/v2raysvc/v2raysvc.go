@@ -58,7 +58,7 @@ var v2rayTemplate = `{
   "other": {}
 }`
 
-// create v2ray configuration
+// CreateV2rayConfig create VPN configuration
 func CreateV2rayConfig(IP string, testConfig configuration.ConfigStruct) string {
 	localPortStr := strconv.Itoa(utils.GetFreePort())
 	config := strings.ReplaceAll(v2rayTemplate, "PORTPORT", localPortStr)
@@ -89,7 +89,7 @@ func CreateV2rayConfig(IP string, testConfig configuration.ConfigStruct) string 
 	return configPath
 }
 
-// start v2ray service based on bin path
+// StartV2RayService start VPN service based on bin path
 func StartV2RayService(v2rayConfPath string, timeout time.Duration) (*exec.Cmd, map[string]string, error) {
 	v2rayConfFile, err := os.Open(v2rayConfPath)
 	if err != nil {

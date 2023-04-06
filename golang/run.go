@@ -32,7 +32,16 @@ func run() *cobra.Command {
 
 			utils.CreateDir(configuration.RESULTDIR)
 
-			if err := configuration.CreateInterimResultsFile(configuration.InterimResultsPath, nTries); err != nil {
+			// set file output type
+			var outputType string
+			if writerType == "csv" {
+				outputType = configuration.CSVInterimResultsPath
+			}
+			if writerType == "json" {
+				outputType = configuration.JSONInterimResultsPath
+			}
+
+			if err := configuration.CreateInterimResultsFile(outputType, nTries, writerType); err != nil {
 				fmt.Printf("Error creating interim results file: %v\n", err)
 			}
 			// number of threads for scanning
@@ -56,7 +65,7 @@ func run() *cobra.Command {
 			// Total number of IPS
 			numberIPS := utils.TotalIps(bigIPList)
 
-			if int(numberIPS) <= 1 {
+			if int(numberIPS) <= 0 {
 				log.Fatal("Scanning Failed : No IP detected")
 			}
 
@@ -64,14 +73,14 @@ func run() *cobra.Command {
 			Config, worker, _ := configuration.CreateTestConfig(configPath, startProcessTimeout, doUploadTest,
 				minDLSpeed, minULSpeed, maxDLTime, maxULTime,
 				frontingTimeout, fronting, maxDLLatency, maxULLatency,
-				nTries, Vpn, threads, shuffle)
+				nTries, Vpn, threads, shuffle, writerType)
 
 			timer := time.Now()
 			fmt.Printf("Starting to scan %v%d%v IPS.\n\n", utils.Colors.OKGREEN, numberIPS, utils.Colors.ENDC)
 			// Begin scanning process
 			scanner.Start(&Config, &worker, bigIPList, threadsCount)
 
-			fmt.Println("Results Written in :", configuration.InterimResultsPath)
+			fmt.Println("Results Written in :", outputType)
 			fmt.Println("Sorted IPS Written in :", configuration.FinalResultsPathSorted)
 			fmt.Println("Time Elapse :", time.Since(timer))
 		},

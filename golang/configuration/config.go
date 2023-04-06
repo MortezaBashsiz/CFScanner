@@ -18,7 +18,8 @@ var (
 	DIR                    = filepath.Join(PROGRAMDIR, "..", "config")
 	RESULTDIR              = filepath.Join(PROGRAMDIR, "..", "result")
 	StartDtStr             = time.Now().Format("2006-01-02_15:04:05")
-	InterimResultsPath     = filepath.Join(RESULTDIR, StartDtStr+"_result.csv")
+	CSVInterimResultsPath  = filepath.Join(RESULTDIR, StartDtStr+"_result.csv")
+	JSONInterimResultsPath = filepath.Join(RESULTDIR, StartDtStr+"_result.json")
 	FinalResultsPathSorted = filepath.Join(RESULTDIR, StartDtStr+"_final.txt")
 )
 
@@ -43,6 +44,7 @@ Maximum Upload Latency : %v%v%v
 Number of Tries : %v%v%v
 VPN Mode : %v%v%v
 Shuffling : %v%v%v
+Writer : %v%v%v
 Total Threads : %v%v%v
 -------------------------------------
 `,
@@ -64,6 +66,7 @@ Total Threads : %v%v%v
 		utils.Colors.OKBLUE, Config.NTries, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, Worker.Vpn, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, shuffle, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, Config.Writer, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, Worker.Threads, utils.Colors.ENDC,
 	)
 }
@@ -73,7 +76,7 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 	minUlSpeed float64, maxDlTime float64,
 	maxUlTime float64, frontingTimeout float64,
 	fronting bool, maxDlLatency float64,
-	maxUlLatency float64, nTries int, Vpn bool, threads int, shuffle bool) (ConfigStruct, Worker, Shuffling) {
+	maxUlLatency float64, nTries int, Vpn bool, threads int, shuffle bool, writertype string) (ConfigStruct, Worker, Shuffling) {
 
 	if configPath == "" {
 		log.Fatalf("Configuration file are not loaded please use the --config or -c flag to use the configuration file.")
@@ -108,6 +111,7 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 		WsHeaderPath:    "/" + strings.TrimLeft(jsonFileContent["path"].(string), "/"),
 		FrontingTimeout: frontingTimeout,
 		NTries:          nTries,
+		Writer:          writertype,
 		TestBool: TestBool{
 			DoUploadTest:   doUploadTest,
 			DoFrontingTest: fronting,
@@ -139,7 +143,7 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 	return ConfigObject, WorkerObject, Shuffling(shuffle)
 }
 
-func CreateInterimResultsFile(interimResultsPath string, nTries int) error {
+func CreateInterimResultsFile(interimResultsPath string, nTries int, writer string) error {
 	emptyFile, err := os.Create(interimResultsPath)
 	if err != nil {
 		return fmt.Errorf("failed to create interim results file: %w", err)
@@ -152,36 +156,39 @@ func CreateInterimResultsFile(interimResultsPath string, nTries int) error {
 		}
 	}(emptyFile)
 
-	titles := []string{
-		"ip",
-		"avg_download_speed", "avg_upload_speed",
-		"avg_download_latency", "avg_upload_latency",
-		"avg_download_jitter", "avg_upload_jitter",
-	}
+	if strings.ToLower(writer) == "csv" {
 
-	for i := 1; i <= nTries; i++ {
-		titles = append(titles, fmt.Sprintf("ip_%d", i))
-	}
+		titles := []string{
+			"ip",
+			"avg_download_speed", "avg_upload_speed",
+			"avg_download_latency", "avg_upload_latency",
+			"avg_download_jitter", "avg_upload_jitter",
+		}
 
-	for i := 1; i <= nTries; i++ {
-		titles = append(titles, fmt.Sprintf("download_speed_%d", i))
-	}
+		for i := 1; i <= nTries; i++ {
+			titles = append(titles, fmt.Sprintf("ip_%d", i))
+		}
 
-	for i := 1; i <= nTries; i++ {
-		titles = append(titles, fmt.Sprintf("upload_speed_%d", i))
-	}
+		for i := 1; i <= nTries; i++ {
+			titles = append(titles, fmt.Sprintf("download_speed_%d", i))
+		}
 
-	for i := 1; i <= nTries; i++ {
-		titles = append(titles, fmt.Sprintf("download_latency_%d", i))
-	}
+		for i := 1; i <= nTries; i++ {
+			titles = append(titles, fmt.Sprintf("upload_speed_%d", i))
+		}
 
-	for i := 1; i <= nTries; i++ {
-		titles = append(titles, fmt.Sprintf("upload_latency_%d", i))
-	}
+		for i := 1; i <= nTries; i++ {
+			titles = append(titles, fmt.Sprintf("download_latency_%d", i))
+		}
 
-	if _, err := fmt.Fprintln(emptyFile, strings.Join(titles, ",")); err != nil {
-		return fmt.Errorf("failed to write titles to interim results file: %w", err)
-	}
+		for i := 1; i <= nTries; i++ {
+			titles = append(titles, fmt.Sprintf("upload_latency_%d", i))
+		}
 
+		if _, err := fmt.Fprintln(emptyFile, strings.Join(titles, ",")); err != nil {
+			return fmt.Errorf("failed to write titles to interim results file: %w", err)
+		}
+
+	}
 	return nil
 }
