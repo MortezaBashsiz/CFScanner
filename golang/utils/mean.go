@@ -24,5 +24,5 @@ func MeanJitter(latencies []float64) float64 {
 		jitters[i-1] = math.Abs(latencies[i] - latencies[i-1])
 	}
 
-	return Mean(jitters) / float64(len(jitters))
+	return Mean(jitters) * 10 / float64(len(jitters))
 }
