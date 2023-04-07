@@ -23,7 +23,13 @@ var (
 	FinalResultsPathSorted = filepath.Join(RESULTDIR, StartDtStr+"_final.txt")
 )
 
-func PrintInformation(Config ConfigStruct, Worker Worker, shuffle Shuffling) {
+type Configuration struct {
+	Config    ConfigStruct
+	Worker    Worker
+	Shuffling bool
+}
+
+func (C Configuration) PrintInformation() {
 	fmt.Printf(`-------------------------------------
 Configuration :
 User ID : %v%v%v
@@ -48,35 +54,30 @@ Writer : %v%v%v
 Total Threads : %v%v%v
 -------------------------------------
 `,
-		utils.Colors.OKBLUE, Config.UserId, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Config.WsHeaderHost, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Config.WsHeaderPath, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Config.AddressPort, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Config.Sni, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Worker.StartProcessTimeout, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Config.DoUploadTest, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Config.DoFrontingTest, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Worker.Download.MinDlSpeed, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Worker.Download.MaxDlTime, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Worker.Upload.MinUlSpeed, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Worker.Upload.MaxUlTime, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Config.FrontingTimeout, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Worker.Download.MaxDlLatency, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Worker.Upload.MaxUlLatency, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Config.NTries, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Worker.Vpn, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, shuffle, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Config.Writer, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, Worker.Threads, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Config.UserId, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Config.WsHeaderHost, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Config.WsHeaderPath, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Config.AddressPort, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Config.Sni, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Worker.StartProcessTimeout, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Config.DoUploadTest, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Config.DoFrontingTest, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Worker.Download.MinDlSpeed, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Worker.Download.MaxDlTime, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Worker.Upload.MinUlSpeed, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Worker.Upload.MaxUlTime, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Config.FrontingTimeout, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Worker.Download.MaxDlLatency, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Worker.Upload.MaxUlLatency, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Config.NTries, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Worker.Vpn, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Shuffling, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Config.Writer, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.Worker.Threads, utils.Colors.ENDC,
 	)
 }
 
-func CreateTestConfig(configPath string, startprocessTimeout float64,
-	doUploadTest bool, minDlSpeed float64,
-	minUlSpeed float64, maxDlTime float64,
-	maxUlTime float64, frontingTimeout float64,
-	fronting bool, maxDlLatency float64,
-	maxUlLatency float64, nTries int, Vpn bool, threads int, shuffle bool, writertype string) (ConfigStruct, Worker, Shuffling) {
+func (C Configuration) CreateTestConfig(configPath string) {
 
 	if configPath == "" {
 		log.Fatalf("Configuration file are not loaded please use the --config or -c flag to use the configuration file.")
@@ -100,47 +101,17 @@ func CreateTestConfig(configPath string, startprocessTimeout float64,
 
 	content := json.Unmarshal(byteValue, &jsonFileContent)
 	if content != nil {
-		return ConfigStruct{}, Worker{}, false
+		return
 	}
 
-	ConfigObject := ConfigStruct{
-		UserId:          jsonFileContent["id"].(string),
-		WsHeaderHost:    jsonFileContent["host"].(string),
-		AddressPort:     jsonFileContent["port"].(string),
-		Sni:             jsonFileContent["serverName"].(string),
-		WsHeaderPath:    "/" + strings.TrimLeft(jsonFileContent["path"].(string), "/"),
-		FrontingTimeout: frontingTimeout,
-		NTries:          nTries,
-		Writer:          writertype,
-		TestBool: TestBool{
-			DoUploadTest:   doUploadTest,
-			DoFrontingTest: fronting,
-		},
-		Download: Download{
-			MinDlSpeed:   minDlSpeed,
-			MaxDlTime:    maxDlTime,
-			MaxDlLatency: maxDlLatency,
-		},
-	}
+	C.Config.UserId = jsonFileContent["id"].(string)
+	C.Config.WsHeaderHost = jsonFileContent["host"].(string)
+	C.Config.AddressPort = jsonFileContent["port"].(string)
+	C.Config.Sni = jsonFileContent["serverName"].(string)
+	C.Config.WsHeaderPath = "/" + strings.TrimLeft(jsonFileContent["path"].(string), "/")
 
-	WorkerObject := Worker{
-		Download: Download{
-			MinDlSpeed:   minDlSpeed,
-			MaxDlTime:    maxDlTime,
-			MaxDlLatency: maxDlLatency,
-		},
-		Upload: Upload{
-			MinUlSpeed:   minUlSpeed,
-			MaxUlTime:    maxUlTime,
-			MaxUlLatency: maxUlLatency,
-		},
-		StartProcessTimeout: startprocessTimeout,
-		Threads:             threads,
-		Vpn:                 Vpn,
-	}
+	C.PrintInformation()
 
-	PrintInformation(ConfigObject, WorkerObject, Shuffling(shuffle))
-	return ConfigObject, WorkerObject, Shuffling(shuffle)
 }
 
 func CreateInterimResultsFile(interimResultsPath string, nTries int, writer string) error {

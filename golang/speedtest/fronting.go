@@ -4,6 +4,7 @@ import (
 	utils "CFScanner/utils"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -11,10 +12,10 @@ import (
 	"time"
 )
 
-// conducts a fronting test on an ip and return true if status 200 is received
+// FrontingTest conducts a fronting test on an ip and return true if status 200 is received
 func FrontingTest(ip string, timeout time.Duration) bool {
 
-	var success bool = false
+	var success = false
 
 	compatibleIP := ip
 	if strings.Contains(ip, ":") {
@@ -26,7 +27,7 @@ func FrontingTest(ip string, timeout time.Duration) bool {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://%s", compatibleIP), nil)
 	if err != nil {
 		fmt.Printf("Error creating request for IP %s: %v\n", ip, err)
-		return success
+		return false
 	}
 	req.Host = "speed.cloudflare.com"
 	client := &http.Client{
@@ -56,10 +57,15 @@ func FrontingTest(ip string, timeout time.Duration) bool {
 			fmt.Printf("%vFAIL%v %v%15s Fronting test unknown error: %v%v\n",
 				utils.Colors.FAIL, utils.Colors.ENDC, utils.Colors.WARNING, ip, err, utils.Colors.ENDC)
 		}
-		return success
+		return false
 	}
 
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Errorf("error occured when closing fronting body %v", err)
+		}
+	}(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("%vFAIL%v %v%s Fronting test error : %d%v\n",

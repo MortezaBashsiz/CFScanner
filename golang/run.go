@@ -69,16 +69,49 @@ func run() *cobra.Command {
 				log.Fatal("Scanning Failed : No IP detected")
 			}
 
+			config := configuration.Configuration{
+
+				Config: configuration.ConfigStruct{
+					FrontingTimeout: frontingTimeout,
+					NTries:          nTries,
+					Writer:          writerType,
+					TestBool: configuration.TestBool{
+						DoUploadTest:   doUploadTest,
+						DoFrontingTest: fronting,
+					},
+					Download: configuration.Download{
+						MinDlSpeed:   minDLSpeed,
+						MaxDlLatency: maxDLLatency,
+						MaxDlTime:    maxDLLatency,
+					},
+				},
+
+				Worker: configuration.Worker{
+					Threads:             threads,
+					Vpn:                 Vpn,
+					StartProcessTimeout: startProcessTimeout,
+					Download: struct {
+						MinDlSpeed   float64
+						MaxDlTime    float64
+						MaxDlLatency float64
+					}{MinDlSpeed: minDLSpeed, MaxDlTime: maxDLTime, MaxDlLatency: maxDLLatency},
+					Upload: struct {
+						MinUlSpeed   float64
+						MaxUlTime    float64
+						MaxUlLatency float64
+					}{MinUlSpeed: minULSpeed, MaxUlTime: maxULTime, MaxUlLatency: maxULLatency},
+				},
+
+				Shuffling: shuffle,
+			}
+
 			// Create Configuration file
-			Config, worker, _ := configuration.CreateTestConfig(configPath, startProcessTimeout, doUploadTest,
-				minDLSpeed, minULSpeed, maxDLTime, maxULTime,
-				frontingTimeout, fronting, maxDLLatency, maxULLatency,
-				nTries, Vpn, threads, shuffle, writerType)
+			config.CreateTestConfig(configPath)
 
 			timer := time.Now()
 			fmt.Printf("Starting to scan %v%d%v IPS.\n\n", utils.Colors.OKGREEN, numberIPS, utils.Colors.ENDC)
 			// Begin scanning process
-			scanner.Start(&Config, &worker, bigIPList, threadsCount)
+			scanner.Start(&config.Config, &config.Worker, bigIPList, threadsCount)
 
 			fmt.Println("Results Written in :", outputType)
 			fmt.Println("Sorted IPS Written in :", configuration.FinalResultsPathSorted)

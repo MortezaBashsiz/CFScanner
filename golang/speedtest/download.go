@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// conducts a download speed test on ip and returns download speed and download latency
+// DownloadSpeedTest conducts a download speed test on ip and returns download speed and download latency
 func DownloadSpeedTest(nBytes int, proxies map[string]string, timeout time.Duration) (float64, float64, error) {
 	startTime := time.Now()
 
@@ -22,6 +22,10 @@ func DownloadSpeedTest(nBytes int, proxies map[string]string, timeout time.Durat
 		return 0, 0, fmt.Errorf("error creating request: %v", err)
 	}
 
+	// set proxies to req header
+	for k, v := range proxies {
+		req.Header.Set(k, v)
+	}
 	// Add bytes query parameter
 	q := req.URL.Query()
 	q.Add("bytes", strconv.Itoa(nBytes))
@@ -40,7 +44,12 @@ func DownloadSpeedTest(nBytes int, proxies map[string]string, timeout time.Durat
 	if err != nil {
 		return 0, 0, fmt.Errorf("error sending request: %v", err)
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Errorf("error occured when closing response body: %v", err)
+		}
+	}(resp.Body)
 
 	_, err = io.ReadFull(resp.Body, data)
 	if err != nil {
