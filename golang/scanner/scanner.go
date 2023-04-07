@@ -42,7 +42,7 @@ type Result struct {
 // Running Possible worker state.
 var (
 	Running bool
-	MaxProc int = runtime.NumCPU() * 2 // Max CPU + Thread * 2
+	MaxProc = runtime.NumCPU() * 2 // Max CPU + Thread * 2
 )
 
 // const WorkerCount = 48

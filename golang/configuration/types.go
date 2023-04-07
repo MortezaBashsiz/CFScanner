@@ -25,7 +25,6 @@ type ConfigStruct struct {
 	NTries          int
 	Writer          string
 	TestBool
-	Download
 }
 
 type TestBool struct {

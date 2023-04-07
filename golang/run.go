@@ -78,11 +78,6 @@ func run() *cobra.Command {
 						DoUploadTest:   doUploadTest,
 						DoFrontingTest: fronting,
 					},
-					Download: configuration.Download{
-						MinDlSpeed:   minDLSpeed,
-						MaxDlLatency: maxDLLatency,
-						MaxDlTime:    maxDLLatency,
-					},
 				},
 
 				Worker: configuration.Worker{
