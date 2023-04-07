@@ -47,7 +47,7 @@ var (
 
 // const WorkerCount = 48
 
-func scanner(ip string, Config config.ConfigStruct, Worker config.Worker) *Result {
+func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 
 	result := &Result{
 		IP: ip,
@@ -60,7 +60,7 @@ func scanner(ip string, Config config.ConfigStruct, Worker config.Worker) *Resul
 	var process *exec.Cmd = nil
 
 	if Worker.Vpn {
-		v2rayConfigPath := v2raysvc.CreateV2rayConfig(ip, Config)
+		v2rayConfigPath := v2raysvc.CreateV2rayConfig(ip, &C)
 		var err error
 		process, proxies, err = v2raysvc.StartV2RayService(v2rayConfigPath, time.Duration(Worker.StartProcessTimeout))
 		if err != nil {
@@ -83,10 +83,10 @@ func scanner(ip string, Config config.ConfigStruct, Worker config.Worker) *Resul
 		}()
 	}
 
-	for tryIdx := 0; tryIdx < Config.NTries; tryIdx++ {
+	for tryIdx := 0; tryIdx < C.Config.NTries; tryIdx++ {
 		// Fronting test
-		if Config.DoFrontingTest {
-			fronting := speedtest.FrontingTest(ip, time.Duration(Config.FrontingTimeout))
+		if C.Config.DoFrontingTest {
+			fronting := speedtest.FrontingTest(ip, time.Duration(C.Config.FrontingTimeout))
 
 			if !fronting {
 				return nil
@@ -99,7 +99,7 @@ func scanner(ip string, Config config.ConfigStruct, Worker config.Worker) *Resul
 		}
 
 		// upload speed test
-		if Config.DoUploadTest {
+		if C.Config.DoUploadTest {
 			if m2, done2 := uploader(ip, Upload, proxies, result); done2 {
 				return m2
 			}
@@ -178,8 +178,8 @@ func downloader(ip string, Download *config.Download, proxies map[string]string,
 	return result, false
 }
 
-func scan(testConfig *config.ConfigStruct, worker *config.Worker, ip string) {
-	res := scanner(ip, *testConfig, *worker)
+func scan(C *config.Configuration, worker *config.Worker, ip string) {
+	res := scanner(ip, *C, *worker)
 	if res == nil {
 		return
 	}
@@ -200,7 +200,7 @@ func scan(testConfig *config.ConfigStruct, worker *config.Worker, ip string) {
 	}
 	upMeanJitter := -1.0
 
-	if testConfig.DoUploadTest {
+	if C.Config.DoUploadTest {
 		upMeanJitter = utils.MeanJitter(uploadLatency)
 	}
 
@@ -209,13 +209,13 @@ func scan(testConfig *config.ConfigStruct, worker *config.Worker, ip string) {
 	meanUploadSpeed := -1.0
 
 	uploadSpeed := res.Upload.Speed
-	if testConfig.DoUploadTest {
+	if C.Config.DoUploadTest {
 		meanUploadSpeed = utils.Mean(uploadSpeed)
 	}
 
 	meanDownLatency := utils.Mean(downLatency)
 	meanUploadLatency := -1.0
-	if testConfig.DoUploadTest {
+	if C.Config.DoUploadTest {
 		meanUploadLatency = utils.Mean(uploadLatency)
 	}
 
@@ -228,7 +228,7 @@ func scan(testConfig *config.ConfigStruct, worker *config.Worker, ip string) {
 	results = append(results, []string{latencyDownloadString, ip})
 
 	var Writer Writer
-	switch testConfig.Writer {
+	switch C.Config.Writer {
 	case "csv":
 		Writer = CSV{
 			res:                 res,
@@ -252,14 +252,14 @@ func scan(testConfig *config.ConfigStruct, worker *config.Worker, ip string) {
 			MeanUploadLatency:   meanUploadLatency,
 		}
 	default:
-		log.Fatalf("Invalid writer type: %s", testConfig.Writer)
+		log.Fatalf("Invalid writer type: %s", C.Config.Writer)
 	}
 
 	Writer.Output()
 	Writer.Write()
 
 }
-func Start(Config *config.ConfigStruct, Worker *config.Worker, ipList []string, threadsCount int) {
+func Start(C config.Configuration, Worker config.Worker, ipList []string, threadsCount int) {
 	var (
 		wg         sync.WaitGroup
 		pauseChan  = make(chan struct{})
@@ -309,7 +309,7 @@ func Start(Config *config.ConfigStruct, Worker *config.Worker, ipList []string, 
 					// quit the function
 					return
 				default:
-					scan(Config, Worker, ip)
+					scan(&C, &Worker, ip)
 				}
 			}
 		}(batches[i])

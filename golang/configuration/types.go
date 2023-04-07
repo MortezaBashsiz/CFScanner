@@ -1,5 +1,19 @@
 package config
 
+type Configuration struct {
+	Config    ConfigStruct
+	Worker    Worker
+	Shuffling bool
+}
+
+type Worker struct {
+	Download            Download
+	Upload              Upload
+	StartProcessTimeout float64 // seconds
+	Threads             int
+	Vpn                 bool
+}
+
 type ConfigStruct struct {
 	LocalPort       int
 	AddressPort     string
@@ -31,12 +45,4 @@ type Upload struct {
 	MaxUlTime    float64 // seconds
 	MaxUlLatency float64 // seconds
 
-}
-
-type Worker struct {
-	Download            Download
-	Upload              Upload
-	StartProcessTimeout float64 // seconds
-	Threads             int
-	Vpn                 bool
 }

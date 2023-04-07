@@ -23,12 +23,6 @@ var (
 	FinalResultsPathSorted = filepath.Join(RESULTDIR, StartDtStr+"_final.txt")
 )
 
-type Configuration struct {
-	Config    ConfigStruct
-	Worker    Worker
-	Shuffling bool
-}
-
 func (C Configuration) PrintInformation() {
 	fmt.Printf(`-------------------------------------
 Configuration :
@@ -77,7 +71,7 @@ Total Threads : %v%v%v
 	)
 }
 
-func (C Configuration) CreateTestConfig(configPath string) {
+func (C Configuration) CreateTestConfig(configPath string) Configuration {
 
 	if configPath == "" {
 		log.Fatalf("Configuration file are not loaded please use the --config or -c flag to use the configuration file.")
@@ -92,7 +86,6 @@ func (C Configuration) CreateTestConfig(configPath string) {
 	defer func(jsonFile *os.File) {
 		err := jsonFile.Close()
 		if err != nil {
-
 		}
 	}(jsonFile)
 
@@ -101,7 +94,7 @@ func (C Configuration) CreateTestConfig(configPath string) {
 
 	content := json.Unmarshal(byteValue, &jsonFileContent)
 	if content != nil {
-		return
+		return Configuration{}
 	}
 
 	C.Config.UserId = jsonFileContent["id"].(string)
@@ -111,7 +104,7 @@ func (C Configuration) CreateTestConfig(configPath string) {
 	C.Config.WsHeaderPath = "/" + strings.TrimLeft(jsonFileContent["path"].(string), "/")
 
 	C.PrintInformation()
-
+	return C
 }
 
 func CreateInterimResultsFile(interimResultsPath string, nTries int, writer string) error {

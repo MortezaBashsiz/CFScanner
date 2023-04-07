@@ -70,7 +70,6 @@ func run() *cobra.Command {
 			}
 
 			config := configuration.Configuration{
-
 				Config: configuration.ConfigStruct{
 					FrontingTimeout: frontingTimeout,
 					NTries:          nTries,
@@ -105,13 +104,13 @@ func run() *cobra.Command {
 				Shuffling: shuffle,
 			}
 
-			// Create Configuration file
-			config.CreateTestConfig(configPath)
+			// Create Configuration file & append vpn fields
+			config = config.CreateTestConfig(configPath)
 
 			timer := time.Now()
 			fmt.Printf("Starting to scan %v%d%v IPS.\n\n", utils.Colors.OKGREEN, numberIPS, utils.Colors.ENDC)
 			// Begin scanning process
-			scanner.Start(&config.Config, &config.Worker, bigIPList, threadsCount)
+			scanner.Start(config, config.Worker, bigIPList, threadsCount)
 
 			fmt.Println("Results Written in :", outputType)
 			fmt.Println("Sorted IPS Written in :", configuration.FinalResultsPathSorted)

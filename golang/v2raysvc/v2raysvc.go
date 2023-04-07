@@ -59,15 +59,15 @@ var v2rayTemplate = `{
 }`
 
 // CreateV2rayConfig create VPN configuration
-func CreateV2rayConfig(IP string, testConfig configuration.ConfigStruct) string {
+func CreateV2rayConfig(IP string, testConfig *configuration.Configuration) string {
 	localPortStr := strconv.Itoa(utils.GetFreePort())
 	config := strings.ReplaceAll(v2rayTemplate, "PORTPORT", localPortStr)
 	config = strings.ReplaceAll(config, "IP.IP.IP.IP", IP)
-	config = strings.ReplaceAll(config, "CFPORTCFPORT", testConfig.AddressPort)
-	config = strings.ReplaceAll(config, "IDID", testConfig.UserId)
-	config = strings.ReplaceAll(config, "HOSTHOST", testConfig.WsHeaderHost)
-	config = strings.ReplaceAll(config, "ENDPOINTENDPOINT", testConfig.WsHeaderPath)
-	config = strings.ReplaceAll(config, "RANDOMHOST", testConfig.Sni)
+	config = strings.ReplaceAll(config, "CFPORTCFPORT", testConfig.Config.AddressPort)
+	config = strings.ReplaceAll(config, "IDID", testConfig.Config.UserId)
+	config = strings.ReplaceAll(config, "HOSTHOST", testConfig.Config.WsHeaderHost)
+	config = strings.ReplaceAll(config, "ENDPOINTENDPOINT", testConfig.Config.WsHeaderPath)
+	config = strings.ReplaceAll(config, "RANDOMHOST", testConfig.Config.Sni)
 
 	configPath := fmt.Sprintf("%s/config-%s.json", configuration.DIR, IP)
 	configFile, err := os.Create(configPath)
