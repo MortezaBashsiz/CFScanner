@@ -1,4 +1,5 @@
 import argparse
+
 from report.print import color_text
 
 
@@ -110,9 +111,9 @@ def parse_args():
     )
     ############################################################
     # Fronting options
-    frnttest_grp = parser.add_argument_group(
+    fronting_test_grp = parser.add_argument_group(
         _title("Fronting speed test options"))
-    frnttest_grp.add_argument(
+    fronting_test_grp.add_argument(
         "--fronting-timeout", "-FT",
         metavar="",
         help="Maximum time to wait for fronting response, default is 1",
@@ -123,9 +124,9 @@ def parse_args():
     )
     ############################################################
     # download options
-    downspeed_grp = parser.add_argument_group(
+    download_speed_grp = parser.add_argument_group(
         _title("Download speed test options"))
-    downspeed_grp.add_argument(
+    download_speed_grp.add_argument(
         "--download-speed", "-DS",
         help="Minimum acceptable download speed in kilobytes per second, default is 50",
         metavar="",
@@ -134,7 +135,7 @@ def parse_args():
         default=50,
         required=False
     )
-    downspeed_grp.add_argument(
+    download_speed_grp.add_argument(
         "--download-latency", "-DL",
         help="Maximum allowed latency (seconds) for download, default is 2",
         type=int,
@@ -143,7 +144,7 @@ def parse_args():
         default=2,
         required=False
     )
-    downspeed_grp.add_argument(
+    download_speed_grp.add_argument(
         "--download-time", "-DT",
         metavar="",
         help="Maximum (effective, excluding http time) time to spend for each download, default is 2",
@@ -154,10 +155,10 @@ def parse_args():
     )
     ############################################################
     # upload options
-    upspeed_grp = parser.add_argument_group(
+    upload_speed_grp = parser.add_argument_group(
         _title("Upload speed test options")
     )
-    upspeed_grp.add_argument(
+    upload_speed_grp.add_argument(
         "--upload-test", "-U",
         help="If passed, upload test will be conducted. If not passed, only download and fronting test will be conducted",
         dest="do_upload_test",
@@ -165,7 +166,7 @@ def parse_args():
         default=False,
         required=False
     )
-    upspeed_grp.add_argument(
+    upload_speed_grp.add_argument(
         "--upload-speed", "-US",
         help="Minimum acceptable upload speed in kilobytes per second, default is 50",
         metavar="",
@@ -173,7 +174,7 @@ def parse_args():
         dest="min_ul_speed",
         required=False
     )
-    upspeed_grp.add_argument(
+    upload_speed_grp.add_argument(
         "--upload-latency", "-UL",
         help="Maximum allowed latency (seconds) for upload, default is 2",
         type=int,
@@ -182,7 +183,7 @@ def parse_args():
         default=2,
         required=False
     )
-    upspeed_grp.add_argument(
+    upload_speed_grp.add_argument(
         "--upload-time", "-UT",
         metavar="",
         help="Maximum (effective, excluding http time) time (in seconds) "

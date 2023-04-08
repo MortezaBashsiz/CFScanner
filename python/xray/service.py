@@ -11,7 +11,7 @@ logger = CLogger("xray-service")
 
 def start_proxy_service(
     proxy_conf_path: str,
-    binarypath: str,
+    binary_path: str,
     timeout=5,
 ) -> Tuple[subprocess.Popen, dict]:
     """starts the proxy (v2ray/xray) service and waits for the respective port to open
@@ -30,7 +30,7 @@ def start_proxy_service(
     proxy_listen = proxy_conf["inbounds"][0]["listen"]
     proxy_port = proxy_conf["inbounds"][0]["port"]
     proxy_process = subprocess.Popen(
-        [binarypath, "-c", proxy_conf_path],
+        [binary_path, "-c", proxy_conf_path],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )

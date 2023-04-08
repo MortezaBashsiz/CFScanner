@@ -8,7 +8,7 @@ logger = CLogger("requests", file_log_level=1, console_log_level=1)
 
 def download_file(
     url: str,
-    savepath: str,
+    save_path: str,
     timeout: float = 10,
     chunk_size: int = 1024
 
@@ -22,7 +22,7 @@ def download_file(
     """
     r = requests.get(url, stream=True, timeout=timeout)
     try:
-        with open(savepath, "wb") as zipout:
+        with open(save_path, "wb") as zipout:
             for chunk in r.iter_content(chunk_size=chunk_size):
                 if chunk:
                     zipout.write(chunk)

@@ -2,12 +2,12 @@ import argparse
 import json
 import os
 
-from utils.exceptions import TemplateReadError, BinaryNotFoundError
+from report.clog import CLogger
+from utils.exceptions import BinaryNotFoundError, TemplateReadError
 from utils.os import detect_system
+from utils.requests import download_file
 from xray import templates
 from xray.binary import download_binary
-from report.clog import CLogger
-from utils.requests import download_file
 
 logger = CLogger("testconfig")
 
@@ -25,27 +25,26 @@ class TestConfig:
         """
         # create test config
         test_config = cls()
-        
+
         # load config if need be
         if not args.no_vpn and args.template_path is None:
             if args.config_path is None:
                 os.makedirs(os.path.join(PATH, ".tmp"), exist_ok=True)
                 download_file(
                     url="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/ClientConfig.json",
-                    savepath=os.path.join(PATH, ".tmp", "sudoer_config.json")
+                    save_path=os.path.join(PATH, ".tmp", "sudoer_config.json")
                 )
-                args.config_path = os.path.join(PATH, ".tmp", "sudoer_config.json")
+                args.config_path = os.path.join(
+                    PATH, ".tmp", "sudoer_config.json")
             with open(args.config_path, "r") as infile:
-                jsonfilecontent = json.load(infile)
-                test_config.user_id = jsonfilecontent["id"]
-                test_config.ws_header_host = jsonfilecontent["host"]
-                test_config.address_port = int(jsonfilecontent["port"])
-                test_config.sni = jsonfilecontent["serverName"]
-                test_config.user_id = jsonfilecontent["id"]
+                file_content = json.load(infile)
+                test_config.user_id = file_content["id"]
+                test_config.ws_header_host = file_content["host"]
+                test_config.address_port = int(file_content["port"])
+                test_config.sni = file_content["serverName"]
+                test_config.user_id = file_content["id"]
                 test_config.ws_header_path = "/" + \
-                    (jsonfilecontent["path"].lstrip("/"))
-
-
+                    (file_content["path"].lstrip("/"))
 
         if args.template_path is None:
             test_config.proxy_config_template = templates.vmess_ws_tls
@@ -93,6 +92,5 @@ class TestConfig:
                 system_info=system_info,
                 bin_dir=PARENT_PATH
             )
-
 
         return test_config

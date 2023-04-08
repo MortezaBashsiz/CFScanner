@@ -17,7 +17,7 @@ def download_speed_test(
         timeout (int): the timeout for the download request        
 
     Returns:
-        download_speed (float): the download speed in mbps
+        download_speed (float): the download speed in megabit per second
         latency (float): the round trip time latency in seconds
     """
     start_time = time.perf_counter()
