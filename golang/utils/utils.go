@@ -11,31 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"gonum.org/v1/gonum/stat"
 )
-
-func Mean(latencies []float64) float64 {
-	if len(latencies) == 0 {
-		return 0
-	}
-	var sum float64
-	for _, x := range latencies {
-		sum += x
-	}
-	return sum / float64(len(latencies))
-}
-
-func MeanJitter(latencies []float64) float64 {
-	if len(latencies) == 1 {
-		return 0
-	}
-	jitters := make([]float64, len(latencies)-1)
-	for i := 1; i < len(latencies); i++ {
-		jitters[i-1] = math.Abs(latencies[i] - latencies[i-1])
-	}
-	return stat.Mean(jitters, nil)
-}
 
 func Float64ToKBps(bytes float64) float64 {
 	return bytes * 8 / (1000000.0)
@@ -57,12 +33,15 @@ func Round(val float64, roundOn float64, places int) (newVal float64) {
 
 func CreateDir(dirPath string) {
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-		os.MkdirAll(dirPath, 0755)
+		err := os.MkdirAll(dirPath, 0755)
+		if err != nil {
+			return
+		}
 		fmt.Printf("Directory created: %s\n", dirPath)
 	}
 }
 
-// Helper function to convert a slice of interfaces to a slice of strings
+// StringifySlice Helper function to convert a slice of interfaces to a slice of strings
 func StringifySlice(s []interface{}) []string {
 	out := make([]string, len(s))
 	for i, v := range s {
@@ -199,7 +178,12 @@ func GetFreePort() int {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer l.Close()
+	defer func(l net.Listener) {
+		err := l.Close()
+		if err != nil {
+
+		}
+	}(l)
 
 	addr := l.Addr().(*net.TCPAddr)
 	return addr.Port
@@ -216,7 +200,10 @@ func WaitForPort(host string, port int, timeout time.Duration) error {
 	for {
 		conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), timeDur)
 		if err == nil {
-			conn.Close()
+			err := conn.Close()
+			if err != nil {
+				return err
+			}
 			return nil
 		}
 		if time.Since(startTime) >= timeDur {

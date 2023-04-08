@@ -58,36 +58,49 @@ var v2rayTemplate = `{
   "other": {}
 }`
 
-// create v2ray configuration
-func CreateV2rayConfig(IP string, testConfig configuration.ConfigStruct) string {
+// CreateV2rayConfig create VPN configuration
+func CreateV2rayConfig(IP string, testConfig *configuration.Configuration) string {
 	localPortStr := strconv.Itoa(utils.GetFreePort())
 	config := strings.ReplaceAll(v2rayTemplate, "PORTPORT", localPortStr)
 	config = strings.ReplaceAll(config, "IP.IP.IP.IP", IP)
-	config = strings.ReplaceAll(config, "CFPORTCFPORT", testConfig.Address_port)
-	config = strings.ReplaceAll(config, "IDID", testConfig.User_id)
-	config = strings.ReplaceAll(config, "HOSTHOST", testConfig.Ws_header_host)
-	config = strings.ReplaceAll(config, "ENDPOINTENDPOINT", testConfig.Ws_header_path)
-	config = strings.ReplaceAll(config, "RANDOMHOST", testConfig.Sni)
+	config = strings.ReplaceAll(config, "CFPORTCFPORT", testConfig.Config.AddressPort)
+	config = strings.ReplaceAll(config, "IDID", testConfig.Config.UserId)
+	config = strings.ReplaceAll(config, "HOSTHOST", testConfig.Config.WsHeaderHost)
+	config = strings.ReplaceAll(config, "ENDPOINTENDPOINT", testConfig.Config.WsHeaderPath)
+	config = strings.ReplaceAll(config, "RANDOMHOST", testConfig.Config.Sni)
 
-	configPath := fmt.Sprintf("%s/config-%s.json", configuration.CONFIGDIR, IP)
+	configPath := fmt.Sprintf("%s/config-%s.json", configuration.DIR, IP)
 	configFile, err := os.Create(configPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer configFile.Close()
+	defer func(configFile *os.File) {
+		err := configFile.Close()
+		if err != nil {
 
-	configFile.WriteString(config)
+		}
+	}(configFile)
+
+	_, configErr := configFile.WriteString(config)
+	if configErr != nil {
+		return ""
+	}
 
 	return configPath
 }
 
-// start v2ray service based on bin path
+// StartV2RayService start VPN service based on bin path
 func StartV2RayService(v2rayConfPath string, timeout time.Duration) (*exec.Cmd, map[string]string, error) {
 	v2rayConfFile, err := os.Open(v2rayConfPath)
 	if err != nil {
 		return nil, nil, err
 	}
-	defer v2rayConfFile.Close()
+	defer func(v2rayConfFile *os.File) {
+		err := v2rayConfFile.Close()
+		if err != nil {
+
+		}
+	}(v2rayConfFile)
 
 	var v2rayConf map[string]interface{}
 	err = json.NewDecoder(v2rayConfFile).Decode(&v2rayConf)

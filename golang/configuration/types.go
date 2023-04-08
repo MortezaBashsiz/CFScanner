@@ -1,42 +1,47 @@
 package config
 
+type Configuration struct {
+	Config    ConfigStruct
+	Worker    Worker
+	Shuffling bool
+}
+
+type Worker struct {
+	Download            Download
+	Upload              Upload
+	StartProcessTimeout float64 // seconds
+	Threads             int
+	Vpn                 bool
+}
+
 type ConfigStruct struct {
-	Local_port       int
-	Address_port     string
-	User_id          string
-	Ws_header_host   string
-	Ws_header_path   string
-	Sni              string
-	Fronting_timeout float64 // seconds
-	N_tries          int
+	LocalPort       int
+	AddressPort     string
+	UserId          string
+	WsHeaderHost    string
+	WsHeaderPath    string
+	Sni             string
+	FrontingTimeout float64 // seconds
+	NTries          int
+	Writer          string
 	TestBool
 }
 
 type TestBool struct {
-	Do_upload_test   bool
-	Do_fronting_test bool
+	DoUploadTest   bool
+	DoFrontingTest bool
 }
 
 type Download struct {
-	Min_dl_speed   float64 // kilobytes per second
-	Max_dl_time    float64 // seconds
-	Max_dl_latency float64 // seconds
+	MinDlSpeed   float64 // kilobytes per second
+	MaxDlTime    float64 // seconds
+	MaxDlLatency float64 // seconds
 
 }
 
 type Upload struct {
-	Min_ul_speed   float64 // kilobytes per second
-	Max_ul_time    float64 // seconds
-	Max_ul_latency float64 // seconds
+	MinUlSpeed   float64 // kilobytes per second
+	MaxUlTime    float64 // seconds
+	MaxUlLatency float64 // seconds
 
 }
-
-type Worker struct {
-	Download             Download
-	Upload               Upload
-	Startprocess_timeout float64 // seconds
-	Threads              int
-	Vpn                  bool
-}
-
-type Shuffling bool

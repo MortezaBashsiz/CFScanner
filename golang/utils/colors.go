@@ -1,6 +1,6 @@
 package utils
 
-type _COLORS struct {
+type COLORS struct {
 	OKBLUE  string
 	OKGREEN string
 	WARNING string
@@ -8,7 +8,7 @@ type _COLORS struct {
 	ENDC    string
 }
 
-var Colors = _COLORS{
+var Colors = COLORS{
 	OKBLUE:  "\033[94m",
 	OKGREEN: "\033[92m",
 	WARNING: "\033[93m",

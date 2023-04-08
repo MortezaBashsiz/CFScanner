@@ -2,28 +2,38 @@ package speedtest
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 )
 
-// conducts a upload speed test on ip and returns upload speed and upload latency
+// UploadSpeedTest conducts a upload speed test on ip and returns upload speed and upload latency
 func UploadSpeedTest(nBytes int, proxies map[string]string, timeout time.Duration) (float64, float64, error) {
 	startTime := time.Now()
 	req, err := http.NewRequest("POST", "https://speed.cloudflare.com/__up", strings.NewReader(strings.Repeat("0", nBytes)))
 	if err != nil {
 		return 0, 0, err
 	}
+
 	for k, v := range proxies {
 		req.Header.Set(k, v)
 	}
-	client := &http.Client{Timeout: timeout * time.Second}
+
+	client := &http.Client{
+		Timeout: timeout * time.Second}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return 0, 0, err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Errorf("error occured when closing upload body %v", err)
+		}
+	}(resp.Body)
 
 	totalTime := time.Since(startTime).Seconds()
 	cfTime := float64(0)
