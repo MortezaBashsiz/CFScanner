@@ -1,4 +1,4 @@
-{
+vmess_ws_tls = '''{
   "inbounds": [
     {
       "port": PORTPORT,
@@ -52,4 +52,4 @@
     }
   ],
   "other": {}
-}
+}'''

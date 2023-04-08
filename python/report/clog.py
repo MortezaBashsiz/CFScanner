@@ -4,7 +4,6 @@ import sys
 from logging import StreamHandler as _SH
 from logging.handlers import TimedRotatingFileHandler as _TRFH
 
-# windows only: ←[0m enfernen
 if os.name == "nt":
     os.system("color")
 
@@ -176,7 +175,7 @@ class CLogger(object):
 
 if __name__ == "__main__":
     for _ in range(2):
-        log = CLogger("testinstance")
+        log = CLogger("test-instance")
 
         log.info("INFO MESSAGE")
         log.warn("WARNING MESSAGE", "403")
