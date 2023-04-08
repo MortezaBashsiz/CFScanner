@@ -35,14 +35,13 @@ in the config file the variables are :
   "Host": "Host address which is behind Cloudflare",
   "Port": "Port which you are using behind Cloudflare on your origin server",
   "path": "Websocket endpoint like api20",
-  "serverName": "SNI",
-  "subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/cf.local.iplist"
+  "serverName": "SNI"
 }
 ```
 
 - NOTE: If you want to use your custom config DO NOT use it as config.real since script will update this file. Store your config in another file and pass it as an argument to script instead of config.real
 
-- The configuration file are similer to the bash version.
+- The configuration file are similar to the bash version.
 
 # Usage
 
@@ -55,7 +54,7 @@ To see CFScanner help , run the following command:
 CFScanner takes several arguments:
 
 | Arguments              | Short Descriptions                                                                               |
-| ---------------------- | ------------------------------------------------------------------------------------------------ |
+|------------------------|--------------------------------------------------------------------------------------------------|
 | --threads -t           | Number of threads to use for parallel scanning. Default is 1.                                    |
 | --config -c            | The path to the config file. (Required)                                                          |
 | --vpn                  | If passed, test with creating VPN connections.                                                   |
@@ -72,8 +71,14 @@ CFScanner takes several arguments:
 | --download-latency     | Maximum allowed latency for download. Default is 2.0.                                            |
 | --upload-latency       | Maximum allowed latency for upload. Default is 2.0.                                              |
 | --startprocess-timeout | Process timeout for v2ray. Default is 12.                                                        |
-| --v2ray-path           | Custom V2Ray binary path for using v2ray binary in another directory.                            |
+| --vpn-path             | Custom V2Ray binary path for using v2ray binary in another directory.                            |
+| --writer               | Custom output writer for writing interim results. available writers : `csv`/`json`                   |
+# KeyEvent Listeners
+CFScanner supports pause and resume progress 
 
+- For Pausing current progress press `p`
+  
+- For Resuming current progress press `r`
 # Examples
 
 ### Load configuration file and load subnet file for scanning
@@ -103,17 +108,17 @@ CFScanner takes several arguments:
 ### Load configurations file with subnet file and using vpn mode with another v2ray binary
 
 ```bash
-./CFScanner --config config.real --subnets 172.20.0.0/24 --vpn --v2ray-path ~/v2ray-macos-arm64-v8a/v2ray
+./CFScanner --config config.real --subnets 172.20.0.0/24 --vpn --vpn-path ~/v2ray-macos-arm64-v8a/v2ray
 ```
 
 ## Output
 
 Two files are stored for each (complete) run of the program
 
-- Interim results file (e.g., `2023-03-10_20:49:30_result.csv`)
-  - Includes the unsorted intermediate results in CSV format. Useful in case the scanning process is not complete.
+- Interim results file (e.g., `2023-03-10_20:49:30_result.csv` or `2023-03-10_20:49:30_result.json`)
+  - Includes the unsorted intermediate results in writer format. Useful in case the scanning process is not complete.
 - Final results file (e.g., `2023-03-10_20:49:30_final.txt`)
-  - Includes the final sorted results. The results are sorted ascendingly based on the download latency time.
+  - Includes the final sorted results. The results are sorted ascending ly based on the download latency time.
 
 # License
 
@@ -124,4 +129,4 @@ CFScanner is released under the [GPL-3](../LICENSE) license.
 Contributions are welcome! Please read [CONTRIBUTING.md](../CONTRIBUTING.md) for more information.
 
 [go]: https://img.shields.io/badge/Go-cyan?logo=go
-[version]: https://img.shields.io/badge/Version-1.2-blue
+[version]: https://img.shields.io/badge/Version-1.4-blue
