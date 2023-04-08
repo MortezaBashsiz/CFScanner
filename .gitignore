@@ -7,6 +7,7 @@ python/log/
 python/venv/
 python/__pycache__/
 python/*/__pycache__/
+python/.vscode/
 python/*/log/
 .tmp
 golang/CFScanner
