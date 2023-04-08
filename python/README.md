@@ -44,23 +44,23 @@ pip install -r ./requirements.txt
 ## **How to run**
 * To run without providing a subnets (CIDRs) file and using 8 threads: 
 ```bash
-python3 cfFindIP.py --threads 8 --config ./myconfig.json
+python3 cfscanner.py --threads 8 --config ./myconfig.json
 ```
 * To run on a list of subnets (recommended). Each line
 ```bash
-python3 cfFindIP.py --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection
+python3 cfscanner.py --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection
 ```
 * To run with a minimum acceptable download speed (in KBps)
 ```bash
-python3 cfFindIP.py --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100
+python3 cfscanner.py --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100
 ```
 * To run with a minimum acceptable download and upload speed (in KBps)
 ```bash
-python3 cfFindIP.py --upload-test --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100 --upload-speed 25
+python3 cfscanner.py --upload-test --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100 --upload-speed 25
 ```
 * To run and try each IP multiple (3 in this case) times. An IP is marked ok if it passes all the tests.
 ```bash
-python3 cfFindIP.py --upload-test --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100 --upload-speed 25 --tries 3
+python3 cfscanner.py --upload-test --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100 --upload-speed 25 --tries 3
 ```
 
 
