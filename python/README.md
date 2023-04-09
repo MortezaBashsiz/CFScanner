@@ -10,7 +10,7 @@ CFSCanner runs on different operating systems including and not limited to:
 - Linux
 - MacOS
 - Windows
-- Android (termux)
+- Android (termux, UserLAnd, etc.)
 
 # Dependencies
 
