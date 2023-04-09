@@ -10,7 +10,7 @@ CFSCanner runs on different operating systems including and not limited to:
 - Linux
 - MacOS
 - Windows
-- Android (termux)
+- Android (termux, UserLAnd, etc.)
 
 # Dependencies
 
@@ -65,7 +65,7 @@ pip install -r ./requirements.txt
 
 ## **How to run**
 
-In the following, you can find examples of running the script with and without custom config and subnets file. For more details on the arguments, please see
+In the following, you can find examples of running the script with and without custom config and subnets file. For more details on the arguments, please see [Arguments](#anchor-args)
 
 * To run with sudoer default config and only one thread on the default subnets list:
   ```bash
@@ -111,7 +111,7 @@ In the following, you can find examples of running the script with and without c
   ```
 ---
 
-## Arguments
+## <a name="anchor-args"></a>Arguments
 
 To use this tool, you can specify various options as follows:
 
@@ -192,6 +192,8 @@ Contributors names and contact info
   * Use xray by default
   * Arguments reorginazed
   * Changed default behavior when a subnet list is not provided. The list is read from the repo and not asnlookup anymore
+* 1.0.1
+  * Fixed a bug in detect system (issue #385)
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.0.0-blue
+[version]: https://img.shields.io/badge/Version-1.0.1-blue

@@ -17,7 +17,7 @@ def detect_system() -> tuple:
     if current_system == "linux":
         if hasattr(sys, "getandroidapilevel"):
             return ('android', 'arm64', 'v8a')
-        if "arm" in current_machine:
+        if "arm" in current_machine or "aarch" in current_machine:
             if "v5" in current_machine:
                 return ('linux', 'arm32', 'v5')
             elif "v6" in current_machine:
