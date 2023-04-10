@@ -1,0 +1,33 @@
+# CFScanner Golang Builder
+name: GoBuild
+
+on:
+  push:
+    tags:
+      - v*.*
+permissions:
+  contents: write
+  # packages: write
+  # issues: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20.2
+      - name: Install goreleaser
+        run: go install github.com/goreleaser/goreleaser@latest
+
+      - name: Build and release
+        run: |
+          cd golang
+          goreleaser release
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
