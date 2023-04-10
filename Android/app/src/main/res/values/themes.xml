@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.CFScanner" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/orange_flare1</item>
+        <item name="android:navigationBarColor">@color/orange_flare1</item>
+    </style>
+</resources>
