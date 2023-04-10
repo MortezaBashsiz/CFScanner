@@ -194,6 +194,8 @@ Contributors names and contact info
   * Changed default behavior when a subnet list is not provided. The list is read from the repo and not asnlookup anymore
 * 1.0.1
   * Fixed a bug in detect system (issue [#385](https://github.com/MortezaBashsiz/CFScanner/issues/385))
+* 1.0.2
+  * Fixed a bug in the min UL speed, especially for ``min_upload_speed = 0``
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.0.1-blue
+[version]: https://img.shields.io/badge/Version-1.0.2-blue
