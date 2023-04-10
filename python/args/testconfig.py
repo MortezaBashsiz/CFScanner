@@ -67,7 +67,7 @@ class TestConfig:
         # speed related config
         test_config.startprocess_timeout = args.startprocess_timeout
         test_config.do_upload_test = args.do_upload_test or args.min_ul_speed is not None
-        test_config.min_ul_speed = args.min_ul_speed or 50
+        test_config.min_ul_speed = args.min_ul_speed if args.min_ul_speed is not None else 50
         test_config.min_dl_speed = args.min_dl_speed
         test_config.max_dl_time = args.max_dl_time
         test_config.max_ul_time = args.max_ul_time
