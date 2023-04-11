@@ -66,7 +66,7 @@ def parse_args():
     )
     general_grp.add_argument(
         "--sample", "-r",
-        help="Size of the sample to take from each subnet. The sample size can either be "
+        help="Size of the random sample to take from each subnet. The sample size can either be "
              "a float between 0 and 1 or an integer. If it is a float, it will be interpreted "
              "as a percentage of the subnet size. If it is an integer, it will be interpreted as "
              "the number of ips to take from each subnet. If not provided, the program will take "
