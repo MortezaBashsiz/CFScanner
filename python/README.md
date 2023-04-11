@@ -206,6 +206,8 @@ Contributors names and contact info
   * Fixed a bug in the min UL speed, especially for ``min_upload_speed = 0``
 * 1.0.3
   * Fixed a bug in custom config template
+* 1.1.0 
+  * Added random sampling
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
 [version]: https://img.shields.io/badge/Version-1.0.3-blue
