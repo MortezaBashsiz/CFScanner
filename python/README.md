@@ -68,20 +68,23 @@ pip install -r ./requirements.txt
 In the following, you can find examples of running the script with and without custom config and subnets file. For more details on the arguments, please see [Arguments](#anchor-args)
 
 * To run with sudoer default config and only one thread on the default subnets list:
+
   ```bash
   python3 cfscanner.py 
   ```
 * To run with sudoer default config and 8 threads:
+
   ```bash
   python3 cfscanner.py -t 8
   ```
-
 * To run on a list of subnets:
+
   ```bash
   python3 cfscanner.py -t 8 -c ./myconfig.json -s ./mysubnets.selection
   ```
 
   Each line of the file can be either a subnet (in CIDR notation) or a single IP (v4 or v6):
+
   ```
   1.0.0.0/24
   108.162.218.0/24
@@ -93,22 +96,22 @@ In the following, you can find examples of running the script with and without c
   2606:4700:3032::6815:3819
   ...
   ```
-
 * To run with a minimum acceptable download speed of 100 kilobytes per second
+
   ```bash
   python3 cfscanner.py -t 8 -c ./myconfig.json -s ./mysubnets.selection -DS 100
   ```
-
 * To run with a minimum acceptable download and upload speed (in KBps)
+
   ```bash
   python3 cfscanner.py -t 8 -c ./myconfig.json -s ./mysubnets.selection -DS 100 -US 25
   ```
-
 * To run and try each IP multiple (in this case 3) times. An IP is marked ok if it passes all the tests.
 
   ```bash
   python3 cfscanner.py --upload-test --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100 --upload-speed 25 --tries 3
   ```
+
 ---
 
 ## <a name="anchor-args"></a>Arguments
@@ -196,6 +199,8 @@ Contributors names and contact info
   * Fixed a bug in detect system (issue [#385](https://github.com/MortezaBashsiz/CFScanner/issues/385))
 * 1.0.2
   * Fixed a bug in the min UL speed, especially for ``min_upload_speed = 0``
+* 1.0.3
+  * Fixed a bug in custom config template
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.0.2-blue
+[version]: https://img.shields.io/badge/Version-1.0.3-blue

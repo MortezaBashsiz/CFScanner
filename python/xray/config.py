@@ -24,11 +24,13 @@ def create_proxy_config(
     config = test_config.proxy_config_template.replace(
         "PORTPORT", local_port_str)
     config = config.replace("IP.IP.IP.IP", edge_ip)
-    config = config.replace("CFPORTCFPORT", str(test_config.address_port))
-    config = config.replace("IDID", test_config.user_id)
-    config = config.replace("HOSTHOST", test_config.ws_header_host)
-    config = config.replace("ENDPOINTENDPOINT", test_config.ws_header_path)
-    config = config.replace("RANDOMHOST", test_config.sni)
+    
+    if not test_config.custom_template and (not test_config.novpn):
+        config = config.replace("CFPORTCFPORT", str(test_config.address_port))
+        config = config.replace("IDID", test_config.user_id)
+        config = config.replace("HOSTHOST", test_config.ws_header_host)
+        config = config.replace("ENDPOINTENDPOINT", test_config.ws_header_path)
+        config = config.replace("RANDOMHOST", test_config.sni)
 
     config_path = os.path.join(config_dir, f"config-{edge_ip}.json")
     with open(config_path, "w") as configFile:

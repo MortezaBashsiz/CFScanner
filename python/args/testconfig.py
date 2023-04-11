@@ -47,8 +47,10 @@ class TestConfig:
                     (file_content["path"].lstrip("/"))
 
         if args.template_path is None:
+            test_config.custom_template = False # user did not provide a custom template
             test_config.proxy_config_template = templates.vmess_ws_tls
         else:
+            test_config.custom_template = True # user provided a custom template 
             try:
                 with open(args.template_path, "r") as infile:
                     test_config.proxy_config_template = infile.read()
