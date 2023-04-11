@@ -4,7 +4,7 @@ name: GoBuild
 on:
   push:
     tags:
-      - v*.*
+      - 'v\d+\.\d+'
 permissions:
   contents: write
   # packages: write
