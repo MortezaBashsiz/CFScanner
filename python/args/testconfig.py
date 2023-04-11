@@ -78,6 +78,8 @@ class TestConfig:
         test_config.max_ul_latency = args.max_ul_latency
         test_config.n_tries = args.n_tries
         test_config.novpn = args.no_vpn
+        
+        test_config.sample_size = args.sample_size
 
         system_info = detect_system()
         if test_config.novpn:
