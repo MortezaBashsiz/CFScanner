@@ -1,31 +1,48 @@
-import requests
+import ipaddress
+import math
+import os
+import random
 import re
+from typing import Union
+from urllib.parse import urlparse
+
+import requests
+
 from report.clog import CLogger
 from utils.exceptions import *
-from urllib.parse import urlparse
-import os
-import ipaddress
-
 
 logger = CLogger("subnets.cidr")
 
 
 def cidr_to_ip_list(
-    cidr: str
+    cidr: str,
+    sample_size: Union[int, float, None] = None
 ) -> list:
     """converts a subnet to a list of ips
 
     Args:
         cidr (str): the cidr in the form of "ip/subnet"
+        sample_size (Union[int, float, None], optional): The number of ips to sample from the subnet or
+        the ratio of ips to sample from the subnet. If None, all ips will be returned Defaults to None.
 
     Returns:
         list: a list of ips associated with the subnet
     """
-    ip_network = ipaddress.ip_network(cidr, strict=False)
-    return (list(map(str, ip_network)))
+    ip_list = list(map(str, ipaddress.ip_network(cidr, strict=False)))
+    if sample_size is None or sample_size >= len(ip_list):
+        return ip_list
+    elif 1 <= sample_size < len(ip_list):
+        return random.sample(ip_list, round(sample_size))
+    elif 0 < sample_size < 1:
+        return random.sample(ip_list, math.ceil(len(ip_list) * sample_size))
+    else:
+        raise ValueError(f"Invalid sample size: {sample_size}")
 
 
-def get_num_ips_in_cidr(cidr):
+def get_num_ips_in_cidr(
+    cidr: str,
+    sample_size: Union[int, float, None] = None
+):
     """
     Returns the number of IP addresses in a CIDR block.
     """
@@ -35,9 +52,17 @@ def get_num_ips_in_cidr(cidr):
         subnet_mask = int(parts[1])
     except IndexError as e:
         subnet_mask = 128 if ":" in cidr else 32
+
     n_ips = 2**(128 - subnet_mask) if ":" in cidr else 2**(32 - subnet_mask)
 
-    return n_ips
+    if sample_size is None:
+        return n_ips
+    elif 1 <= sample_size:
+        return min(n_ips, round(sample_size))
+    elif 0 < sample_size < 1:
+        return min(math.ceil(n_ips * sample_size), n_ips)
+    else:
+        raise ValueError(f"Invalid sample size: {sample_size}")
 
 
 def read_cidrs_from_asnlookup(
