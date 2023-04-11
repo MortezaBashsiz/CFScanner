@@ -1,6 +1,9 @@
 import argparse
 
+from report.clog import CLogger
 from report.print import color_text
+
+logger = CLogger("args")
 
 
 def _title(text):
@@ -59,6 +62,18 @@ def parse_args():
         type=str,
         metavar="",
         dest="subnets",
+        required=False
+    )
+    general_grp.add_argument(
+        "--sample", "-r",
+        help="Size of the sample to take from each subnet. The sample size can either be "
+             "a float between 0 and 1 or an integer. If it is a float, it will be interpreted "
+             "as a percentage of the subnet size. If it is an integer, it will be interpreted as "
+             "the number of ips to take from each subnet. If not provided, the program will take "
+             "all ips from each subnet",
+        type=float,
+        metavar="",
+        dest="sample_size",
         required=False
     )
     ############################################################
@@ -197,7 +212,16 @@ def parse_args():
 
     parsed_args = parser.parse_args()
 
+    if parsed_args.sample_size is not None:
+        if 0 < parsed_args.sample_size < 1:
+            parsed_args.sample_size = float(parsed_args.sample_size)
+        elif parsed_args.sample_size >= 1:
+            if parsed_args.sample_size % 1 > 0.000001:
+                logger.warn(
+                    f"Sample size rounded to integer value: {round(parsed_args.sample_size)}"
+                )
+            parsed_args.sample_size = round(parsed_args.sample_size)
+        else:
+            raise ValueError(color_text("Sample size must be a positive number.", rgb=(255, 0, 0)))
+
     return parsed_args
-
-
-parse_args()
