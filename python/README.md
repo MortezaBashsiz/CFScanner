@@ -109,8 +109,12 @@ In the following, you can find examples of running the script with and without c
 * To run and try each IP multiple (in this case 3) times. An IP is marked ok if it passes all the tests.
 
   ```bash
-  python3 cfscanner.py --upload-test --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100 --upload-speed 25 --tries 3
+  python3 cfscanner.py --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100 --upload-speed 25 --tries 3
   ```
+* To run on a random sample of size 20 of the subnets and minimum acceptable download and upload speed of 10 KBps with the default config
+  ```bash
+  python3 cfscanner.py -t 8 -DS 10 -US 10 -r 20
+  ``` 
 
 ---
 
