@@ -129,6 +129,11 @@ To see the help message, use the `--help` or `-h` option.
 * `--subnets`, `-s`: The path to the custom subnets file. Each line should be either a single ip (v4 or v6) or a
   subnet in cidr notation (v4 or v6). If not provided, the program will
   read the list of cidrs from [https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/cf.local.iplist](https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/cf.local.iplist).
+* `--sample`, `-r`: Size of the random sample to take from each subnet. The sample size can either
+be a float between 0 and 1 ($0 < s < 1$) or an integer ($ s \ge 1$). If it is a float, it will be
+interpreted as a percentage of the subnet size. If it is an integer, it
+will be interpreted as the number of ips to take from each subnet. If
+not provided, the program will take all ips from each subnet
 
 #### Xray Config Options
 
