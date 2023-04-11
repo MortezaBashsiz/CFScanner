@@ -69,10 +69,10 @@ if __name__ == "__main__":
         log.exception(e)
         exit(1)
 
-    n_total_ips = sum(get_num_ips_in_cidr(cidr) for cidr in cidr_list)
+    n_total_ips = sum(get_num_ips_in_cidr(cidr, sample_size=test_config.sample_size) for cidr in cidr_list)
     log.info(f"Starting to scan {n_total_ips} ips...")
 
-    big_ip_list = [ip for cidr in cidr_list for ip in cidr_to_ip_list(cidr)]
+    big_ip_list = [ip for cidr in cidr_list for ip in cidr_to_ip_list(cidr, sample_size=test_config.sample_size)]
 
     with multiprocessing.Pool(processes=threadsCount) as pool:
         for res in pool.imap(partial(test_ip, test_config=test_config, config_dir=CONFIGDIR), big_ip_list):
