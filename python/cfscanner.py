@@ -100,7 +100,7 @@ if __name__ == "__main__":
                 progress.update(all_ips_task, advance=1)
                 if cidr_scanned_ips[res.cidr] == 0:
                     n_ips_cidr = get_num_ips_in_cidr(res.cidr, sample_size=test_config.sample_size)
-                    cidr_prog_tasks[res.cidr] = progress.add_task(f"{res.cidr} - {n_ips_cidr}", total=n_ips_cidr)
+                    cidr_prog_tasks[res.cidr] = progress.add_task(f"{res.cidr} - {n_ips_cidr} ips", total=n_ips_cidr)
                 progress.update(cidr_prog_tasks[res.cidr], advance=1)
                 
                 if res.is_ok:
