@@ -1,0 +1,475 @@
+[33mcommit e19a0d52a262d451e6300562235b762255626887[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 19:20:35 2023 +0200
+
+    Update README.md
+
+:100644 100644 4eecec6 30a40a4 M	python/README.md
+
+[33mcommit 6ec5dc714a78e2111f8f2c761c763633ea877795[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 13:55:53 2023 +0200
+
+    Update README.md
+
+:100644 100644 3559300 4eecec6 M	python/README.md
+
+[33mcommit c0197a54a02112ecb3a20702c86dea9648d59af0[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 13:55:33 2023 +0200
+
+    Update README.md
+
+:100644 100644 804191a 3559300 M	python/README.md
+
+[33mcommit 0760e842dc3be5c103243d24b67ec5d87ed8c6e7[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 13:48:04 2023 +0200
+
+    implemented random sampling
+    
+    IPs are sampled randomly if the respective argument is provided. Argument can be either a 0 < float < 1 indicating ratio of the ips to take from each subnet (math.ceil(sample_size * len(subnet_ip_list)) or an integer indicating (maximum) number of ips to take from each subnet.
+    
+    Co-Authored-By: MITI <127666010+miytiy@users.noreply.github.com>
+
+:100644 100644 e701a0f 7d2ff51 M	python/cfscanner.py
+:100644 100644 52b0ed6 e43cadc M	python/subnets/cidr.py
+
+[33mcommit 32eebec89c74df493690a68bcde4a0bcd3da2551[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 12:59:09 2023 +0200
+
+    updated testconfig
+
+:100644 100644 d7b2ee6 c2afb06 M	python/args/testconfig.py
+
+[33mcommit bda649934c3e0ddf6736389c0cd3b2142aa665d1[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 12:58:45 2023 +0200
+
+    added explanation to the readme
+
+:100644 100644 d8b805b 804191a M	python/README.md
+
+[33mcommit bb632a55fe0c8b16f26d5dc40b870a87c86fc4e6[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 12:56:11 2023 +0200
+
+    added random to the description
+
+:100644 100644 4108dee 1b6a6a9 M	python/args/parser.py
+
+[33mcommit 2ab34d59e6d562edeecd7b2c015f2ee2e7ab0e85[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 12:31:27 2023 +0200
+
+    added option to argparse
+
+:100644 100644 3832dd6 4108dee M	python/args/parser.py
+
+[33mcommit 0e702be7855258c266cad12eca24ff6d45852ef2[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 13:55:53 2023 +0200
+
+    Update README.md
+
+:100644 100644 3559300 4eecec6 M	python/README.md
+
+[33mcommit a29318bb3b883464bf1ea794cbedf9db4bfa7422[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 13:55:33 2023 +0200
+
+    Update README.md
+
+:100644 100644 804191a 3559300 M	python/README.md
+
+[33mcommit c81b34d5c6c90865b86975d1da3086f538ce4377[m
+Author: Morteza Bashsiz <morteza.bashsiz@gmail.com>
+Date:   Tue Apr 11 13:54:21 2023 +0200
+
+    update new configuration
+
+:100644 100644 8fded66 6b09a41 M	bash/ClientConfig.json
+
+[33mcommit 88d8f72345f7e2d894324a90d794e2117d4dfb83[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 13:48:04 2023 +0200
+
+    implemented random sampling
+    
+    IPs are sampled randomly if the respective argument is provided. Argument can be either a 0 < float < 1 indicating ratio of the ips to take from each subnet (math.ceil(sample_size * len(subnet_ip_list)) or an integer indicating (maximum) number of ips to take from each subnet.
+    
+    Co-Authored-By: MITI <127666010+miytiy@users.noreply.github.com>
+
+:100644 100644 e701a0f 7d2ff51 M	python/cfscanner.py
+:100644 100644 52b0ed6 e43cadc M	python/subnets/cidr.py
+
+[33mcommit a18561e6a138f12dd2fbc10292b852dfb1fc4dfc[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 12:59:09 2023 +0200
+
+    updated testconfig
+
+:100644 100644 d7b2ee6 c2afb06 M	python/args/testconfig.py
+
+[33mcommit 727933f1a7d34f719adbcd83552ce997d6c9ab0e[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 12:58:45 2023 +0200
+
+    added explanation to the readme
+
+:100644 100644 d8b805b 804191a M	python/README.md
+
+[33mcommit f6e63d4ffa1afdaa9b9d8641720cb0c9bf91f00a[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 12:56:11 2023 +0200
+
+    added random to the description
+
+:100644 100644 4108dee 1b6a6a9 M	python/args/parser.py
+
+[33mcommit f52816679b7ed1c5db46d17d36b32504dc13806a[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 12:31:27 2023 +0200
+
+    added option to argparse
+
+:100644 100644 3832dd6 4108dee M	python/args/parser.py
+
+[33mcommit 84927dea285aed1fb38b5e825d8f13520281de93[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Tue Apr 11 11:25:38 2023 +0200
+
+    fixbug custom template
+    
+    Fixed the bug for the situation in which the user provides a custom config
+
+:100644 100644 279a52a d8b805b M	python/README.md
+:100644 100644 99037cd d7b2ee6 M	python/args/testconfig.py
+:100644 100644 2c38286 71884ce M	python/xray/config.py
+
+[33mcommit d2d3b4dfced6e91a2fdfa68e069ea4477eaddcc3[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Tue Apr 11 09:24:51 2023 +0330
+
+    added release regex tag
+
+:100644 100644 bf32e42 386d25c M	.github/workflows/gobuild.yml
+
+[33mcommit 3046b2514f806b17b5984b5c8c0ce569a2d51740[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Tue Apr 11 02:47:44 2023 +0330
+
+    added releaser workflow
+
+:000000 100644 0000000 bf32e42 A	.github/workflows/gobuild.yml
+:000000 100644 0000000 1b2299f A	golang/.goreleaser.yaml
+
+[33mcommit c8cf486231b6d756d4fe9ea167e46fd08428472f[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Mon Apr 10 23:06:00 2023 +0200
+
+    Update README.md
+
+:100644 100644 f88ed7b 279a52a M	python/README.md
+
+[33mcommit c84b8af1c3fb23fcf40330e57567c960311dc6b0[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Mon Apr 10 22:58:40 2023 +0200
+
+    fixed bug
+
+:100644 100644 fc13616 99037cd M	python/args/testconfig.py
+
+[33mcommit b53749957ab41e8ed7fb52fb217cfa12e865ea3b[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Sun Apr 9 09:14:13 2023 +0200
+
+    Update README.md
+
+:100644 100644 367aea9 f88ed7b M	python/README.md
+
+[33mcommit 31c86a355c8ec580733ac4680e5f989ac570cb25[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Sun Apr 9 09:06:14 2023 +0200
+
+    Update README.md
+
+:100644 100644 881525c 367aea9 M	python/README.md
+
+[33mcommit fff99983d5ae23f12d74ac2098f8e8d2c84f8a5c[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Sun Apr 9 09:00:12 2023 +0200
+
+    Update README.md
+
+:100644 100644 fdb7908 881525c M	python/README.md
+
+[33mcommit dbdec3265118337e1e02dcf9110d26fcfc4b876e[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Sun Apr 9 08:49:17 2023 +0200
+
+    Update os.py
+    
+    fixed bug detecting arm machines (e.g., UserLand on android)
+
+:100644 100644 d9209cf bc4a8b6 M	python/utils/os.py
+
+[33mcommit 3830e3d9228fea930e827a3b5202e277a0d04b81[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Sat Apr 8 22:06:48 2023 +0200
+
+    added version file
+
+:000000 100644 0000000 369b4e0 A	python/version.py
+
+[33mcommit 7748efa3ef408957a52d2630076d52d527003414[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Sat Apr 8 22:04:04 2023 +0200
+
+    updated readme
+
+:100644 100644 16ea6de fdb7908 M	python/README.md
+
+[33mcommit af3fa1cf27ab56cb6a8ebbdbcd9815a92e6337fe[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Sat Apr 8 19:33:48 2023 +0200
+
+    added .vscode
+
+:100644 100644 6765a06 dd7942c M	.gitignore
+
+[33mcommit 6e628023329a8dc877a8536182da014bfc17e69e[m
+Author: tempookian <124298725+tempookian@users.noreply.github.com>
+Date:   Sat Apr 8 19:27:04 2023 +0200
+
+    organized the code
+
+:100644 000000 e69de29 0000000 D	python/__init__.py
+:100644 100644 58bce96 3832dd6 M	python/args/parser.py
+:100644 100644 a515002 fc13616 M	python/args/testconfig.py
+:100644 100644 7db7ad9 e701a0f M	python/cfscanner.py
+:100644 100644 b345f35 693c315 M	python/report/__init__.py
+:100644 100644 ebd23cb 1828662 M	python/report/clog.py
+:000000 100644 0000000 7b29710 A	python/report/result.py
+:100644 100644 c1126a3 e69de29 M	python/speedtest/__init__.py
+:000000 100644 0000000 656e7c0 A	python/speedtest/conduct.py
+:100644 100644 308e51b ecb72ce M	python/speedtest/download.py
+:100644 100644 36a9d23 191831d M	python/subnets/__init__.py
+:000000 100644 0000000 52b0ed6 A	python/subnets/cidr.py
+:100644 100644 a1e130b 4d7ee77 M	python/utils/requests.py
+:000000 100644 0000000 2c38286 A	python/xray/config.py
+:100644 100644 26123d2 7368f34 M	python/xray/service.py
+
+[33mcommit 8d157a51df8b74691cfcb136be82d9db5a0b5e6e[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Fri Apr 7 16:49:17 2023 +0330
+
+    fixed jitter calculation
+
+:100644 100644 d66c95b d43ad3f M	golang/utils/mean.go
+
+[33mcommit a0ad8c51661d4c0f0ab1fea49ac394d285d4b4ab[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Fri Apr 7 16:34:00 2023 +0330
+
+    fixed jitter calculation
+
+:100644 100644 0840949 d66c95b M	golang/utils/mean.go
+
+[33mcommit 7d8669b0899b4333c1ce1de38f5a8924b3fd3d53[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Fri Apr 7 14:24:57 2023 +0330
+
+    removed unused structs
+
+:100644 100644 9ba613d 2587fad M	golang/configuration/types.go
+:100644 100644 ee8770b eae9b49 M	golang/run.go
+:100644 100644 1ed484a 0995dff M	golang/scanner/scanner.go
+
+[33mcommit b9e01b8eb0b68fd401825d6461a8f6a7eae35897[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Fri Apr 7 14:17:20 2023 +0330
+
+    fixed vpn typo issue
+
+:100644 100644 85f9564 0caead4 M	golang/configuration/config.go
+:100644 100644 27a47a8 9ba613d M	golang/configuration/types.go
+:100644 100644 3f73883 ee8770b M	golang/run.go
+:100644 100644 c93d9a9 1ed484a M	golang/scanner/scanner.go
+:100644 100644 b712105 7d3b291 M	golang/v2raysvc/v2raysvc.go
+
+[33mcommit b25b83d6072da907bf89b27db1e89f601ecfecf5[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Fri Apr 7 13:26:34 2023 +0330
+
+    refactored configuration structure
+
+:100644 100644 151f0ab 85f9564 M	golang/configuration/config.go
+:100644 100644 712f9ef 27a47a8 M	golang/configuration/types.go
+:100644 100644 57f1be0 3f73883 M	golang/run.go
+:100644 100644 d241a21 b487047 M	golang/speedtest/download.go
+:100644 100644 5d3794a 27a92be M	golang/speedtest/fronting.go
+:100644 100644 bc71b7b 66039df M	golang/speedtest/upload.go
+:100644 100644 41df8f6 fafb522 M	golang/utils/colors.go
+
+[33mcommit 0f6cb4e84e67221c2cc7a19822c7ccec820fedc2[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Thu Apr 6 23:33:03 2023 +0330
+
+    updated readme example
+
+:100644 100644 9a4915b 3aa762b M	golang/README.md
+
+[33mcommit 93189fbee286be0df209e9cc50383b7ea9ac31fc[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Thu Apr 6 23:29:08 2023 +0330
+
+    added json writer interface
+    added write arg
+    fixed one ip scanning issue
+    added json output writer
+
+:100644 100644 e138270 9a4915b M	golang/README.md
+:100644 100644 94cbee1 093293d M	golang/cmd.go
+:100644 100644 8ededdf 151f0ab M	golang/configuration/config.go
+:100644 100644 20eaa17 712f9ef M	golang/configuration/types.go
+:100644 100644 6725a12 3b21e38 M	golang/main.go
+:100644 100644 0e9bd42 57f1be0 M	golang/run.go
+:100644 100644 23a1341 423985f M	golang/scanner/csv.go
+:000000 100644 0000000 b82affe A	golang/scanner/json.go
+:100644 100644 28b4be9 c93d9a9 M	golang/scanner/scanner.go
+:100644 100644 72f2c36 48c953f M	golang/scanner/types.go
+:100644 100644 ef34ecc b712105 M	golang/v2raysvc/v2raysvc.go
+
+[33mcommit 55af7563afb13edd84a1357d93c5d0f99ddf6580[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Thu Apr 6 18:08:21 2023 +0330
+
+    added close keyboard event after quitting program
+
+:100644 100644 048b898 28b4be9 M	golang/scanner/scanner.go
+
+[33mcommit ee08d0136595f34ccef69263ce825cdf0f7dda6e[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Thu Apr 6 17:40:11 2023 +0330
+
+    added resume & pause listener
+
+:100644 100644 119fc31 e138270 M	golang/README.md
+:100644 100644 eccf96d 4d3937c M	golang/go.mod
+:100644 100644 442875a 34c70aa M	golang/go.sum
+:100644 100644 63247e8 6725a12 M	golang/main.go
+:100644 100644 658444b 0e9bd42 M	golang/run.go
+:100644 100644 8e9e695 048b898 M	golang/scanner/scanner.go
+
+[33mcommit e0483818c6c93758628e7d81d868064c8ffe0352[m
+Author: Morteza Bashsiz <morteza.bashsiz@gmail.com>
+Date:   Wed Apr 5 15:36:57 2023 +0200
+
+    remove ASN from script and read subnets locally
+
+:100755 100755 eefcefc 4c68031 M	bash/cfScanner.sh
+
+[33mcommit 02699aab5a7f726c28551cccd38a86a89353c51f[m
+Author: Morteza Bashsiz <morteza.bashsiz@gmail.com>
+Date:   Tue Apr 4 11:09:57 2023 +0200
+
+    fix random bug
+
+:100755 100755 5bebdb2 eefcefc M	bash/cfScanner.sh
+
+[33mcommit 0526e8cfa84a64306a5716d7c6daae00960afdf4[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Mon Apr 3 01:10:16 2023 +0330
+
+    refactor struct & config
+    cmd vars
+
+:100644 100644 f217b86 94cbee1 M	golang/cmd.go
+:100644 100644 86f9eea 8ededdf M	golang/configuration/config.go
+:100644 100644 387ed14 20eaa17 M	golang/configuration/types.go
+:100644 100644 8cc69c1 658444b M	golang/run.go
+:100644 100644 db26e98 8e9e695 M	golang/scanner/scanner.go
+
+[33mcommit 14755baec70c123f1a6ea26855cec2582291665c[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Mon Apr 3 00:53:09 2023 +0330
+
+    code refactoring & added Result struct for using scanning func
+
+:100644 100644 a1b53e0 86f9eea M	golang/configuration/config.go
+:100644 100644 35df6f9 387ed14 M	golang/configuration/types.go
+:100644 100644 509bba7 8cc69c1 M	golang/run.go
+:100644 100644 5ab5699 23a1341 M	golang/scanner/csv.go
+:100644 100644 25110f9 db26e98 M	golang/scanner/scanner.go
+:100644 100644 bc4ffd1 72f2c36 M	golang/scanner/types.go
+:000000 100644 0000000 0840949 A	golang/utils/mean.go
+:100644 100644 921fff7 ad60716 M	golang/utils/utils.go
+:100644 100644 9750806 ef34ecc M	golang/v2raysvc/v2raysvc.go
+
+[33mcommit dbc3a75a1064cb899c320937ccdbf5f8d262aa67[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Sun Apr 2 14:47:07 2023 +0330
+
+    code refactoring
+
+:100644 100644 73fcfbb f217b86 M	golang/cmd.go
+:100644 100644 2a3d4a4 a1b53e0 M	golang/configuration/config.go
+:100644 100644 039e617 35df6f9 M	golang/configuration/types.go
+:100644 100644 cac48e8 eccf96d M	golang/go.mod
+:100644 100644 5656577 442875a M	golang/go.sum
+:100644 100644 dfb805f 63247e8 M	golang/main.go
+:000000 100644 0000000 509bba7 A	golang/run.go
+:100644 100644 97b71d8 5ab5699 M	golang/scanner/csv.go
+:100644 100644 3c7a761 25110f9 M	golang/scanner/scanner.go
+:100644 100644 01a093c d241a21 M	golang/speedtest/download.go
+:100644 100644 6d94732 5d3794a M	golang/speedtest/fronting.go
+:100644 100644 1b4984a bc71b7b M	golang/speedtest/upload.go
+:100644 100644 c25e8c2 921fff7 M	golang/utils/utils.go
+:100644 100644 5ec5c93 9750806 M	golang/v2raysvc/v2raysvc.go
+
+[33mcommit 1b0c45d993a5be438c2ba7b7ed18e56b2f98774a[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Sat Apr 1 00:28:53 2023 +0330
+
+    fixed fronting test issue
+
+:100644 100644 269ff4b dfb805f M	golang/main.go
+:100644 100644 a99e007 3c7a761 M	golang/scanner/scanner.go
+:100644 100644 8b69b59 6d94732 M	golang/speedtest/fronting.go
+
+[33mcommit d5fdd485cec3a24b87d830c4af4a2674712a5de5[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Fri Mar 31 12:48:13 2023 +0330
+
+    updated readme version
+
+:100644 100644 d584161 119fc31 M	golang/README.md
+
+[33mcommit 21d620051b3f147cdbd8394223989e50a6f59e2c[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Fri Mar 31 12:46:48 2023 +0330
+
+    updated README
+
+:100644 100644 98eeefd d584161 M	golang/README.md
+
+[33mcommit fc4c9cc019d9b1e371ad62cd18e183732fec10fd[m[33m ([m[1;31morigin/win-develop[m[33m)[m
+Author: goingfine <goingfine@gmail.com>
+Date:   Fri Mar 31 11:42:39 2023 +0330
+
+    update latest version
+
+:100644 100644 ac06eeb 1f93772 M	windows/Properties/latest-version
+
+[33mcommit 69918898a904817795103c2b67be0a2cd452dc39[m
+Author: Sonya <sonyacore@protonmail.com>
+Date:   Fri Mar 31 11:28:46 2023 +0330
+
+    added timer & cleaner code
+
+:100644 100644 8274ee6 269ff4b M	golang/main.go
+:000000 100644 0000000 97b71d8 A	golang/scanner/csv.go
+:100644 100644 d506c6a a99e007 M	golang/scanner/scanner.go
+:000000 100644 0000000 bc4ffd1 A	golang/scanner/types.go
