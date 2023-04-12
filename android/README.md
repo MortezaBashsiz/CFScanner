@@ -45,8 +45,7 @@ application does not require any special permission to run.
 </br></br>
 
 #### Import Config
-
-At first users must input their configs by Copy or Scan QR option then use application.
+import your own config by Clipboard or Scan QR option.
 </br></br>
 
 #### Edit/Delete Config
