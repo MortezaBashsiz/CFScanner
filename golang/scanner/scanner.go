@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -80,7 +79,6 @@ func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 				}
 
 				// using Wait for clean up zombie process after Kill func
-				process.Process.Signal(syscall.SIGCHLD)
 				_, err := process.Process.Wait()
 				if err != nil {
 					log.Printf("%vERROR - %vFailed to wait for process to exit%v\n",
