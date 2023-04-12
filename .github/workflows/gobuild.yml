@@ -4,11 +4,9 @@ name: GoBuild
 on:
   push:
     tags:
-      - 'v\d+\.\d+'
+      - 'v*.*.*'
 permissions:
   contents: write
-  # packages: write
-  # issues: write
 
 jobs:
   build:
