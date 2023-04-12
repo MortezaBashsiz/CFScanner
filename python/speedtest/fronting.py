@@ -1,9 +1,5 @@
 import requests
 
-from report.clog import CLogger
-
-logger = CLogger("fronting")
-
 
 def fronting_test(
     ip: str,
@@ -42,9 +38,6 @@ def fronting_test(
     except requests.exceptions.ConnectionError as e:
         return f"[red]NO[/red] [dark_orange3]{ip:15s}[/dark_orange3][yellow] fronting connection error[/yellow]"
     except Exception as e:
-        logger.error(f"Fronting test Unknown error {ip:15}")
-        logger.exception(e)
         return f"[red]NO[/red] [dark_orange3]{ip:15s}[/dark_orange3][yellow] fronting Unknown error[/yellow]"
-    
 
     return "OK"
