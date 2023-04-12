@@ -42,6 +42,9 @@ interface ScanDao {
     @Delete
     suspend fun delete(scan: ScanEntity)
 
+    @Query("DELETE FROM scans WHERE configId = :configId")
+    suspend fun deleteByConfigId(configId: Int)
+
     @Query("DELETE FROM scans")
     suspend fun deleteAll()
 }

@@ -35,4 +35,8 @@ class ScanRepository @Inject constructor() : BasicRepository() {
         return scanDao.delete(scan.mapToScanEntity())
     }
 
+    suspend fun getScanByConfig(config: Config) {
+        return scanDao.deleteByConfigId(config.uid)
+    }
+
 }

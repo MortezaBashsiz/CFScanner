@@ -19,7 +19,7 @@ import ir.filternet.cfscanner.db.entity.*
         ISPEntity::class,
         ConnectionEntity::class,
         ScanEntity::class,
-    ], version = 1
+    ], version = 2
 )
 @TypeConverters(DateConvertor::class, ScanStatusConvertor::class, ProgressConvertor::class)
 abstract class CFSDatabase : RoomDatabase() {

@@ -18,7 +18,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class ConfigRepository @Inject constructor(private val retrofit: OkHttpClient) : BasicRepository() {
+class ConfigRepository @Inject constructor(
+    private val retrofit: OkHttpClient,
+    private val scanRepository: ScanRepository
+    ) : BasicRepository() {
 
     private val configDao by lazy { db.configDao() }
 
@@ -40,6 +43,7 @@ class ConfigRepository @Inject constructor(private val retrofit: OkHttpClient) :
 
     suspend fun deleteConfig(config: Config) {
         configDao.delete(config.mapToConfigEntity())
+        scanRepository.getScanByConfig(config)
     }
 
     suspend fun checkConfigIsCloudflare(config: V2rayConfig): Boolean {
