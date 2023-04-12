@@ -7,7 +7,7 @@ import ir.filternet.cfscanner.model.CIDR
 import ir.filternet.cfscanner.model.Log
 import ir.filternet.cfscanner.model.STATUS
 import ir.filternet.cfscanner.scanner.CFSLogger
-import ir.filternet.cfscanner.utils.calculateIpCountBySubnetMask
+import ir.filternet.cfscanner.utils.AppConfig
 import ir.filternet.cfscanner.utils.calculateUsableHostCountBySubnetMask
 import kotlinx.coroutines.delay
 import okhttp3.Request
@@ -100,10 +100,9 @@ class CIDRRepository @Inject constructor(
 
 
     private fun getCIDRSGithub(): List<String>? {
-        // https://gist.github.com/[gist_user]/[gist_id]/raw/
         return try {
             val request = Request.Builder()
-                .url("https://gist.github.com/0ut0fCode/7940951de279508dae576126628abb77/raw/")
+                .url(AppConfig.CIDR_Address)
                 .build()
             val response = okHttp.newCall(request).execute()
             val body = response.body?.string()

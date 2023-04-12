@@ -90,4 +90,6 @@
     <string name="checking_title">Checking</string>
     <string name="done">Done</string>
     <string name="save">Save</string>
+    <string name="default_config_updated">default config updated.</string>
+    <string name="default_config_cannot_delete">can not delete default config!</string>
 </resources>

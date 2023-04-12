@@ -102,7 +102,7 @@ fun ConfigEditDialog(
                         }
                     }
 
-                    if (config.uid > 0) {
+                    if (config.uid >= 0) {
                         Spacer(modifier = Modifier.width(10.dp))
 
                         Card(

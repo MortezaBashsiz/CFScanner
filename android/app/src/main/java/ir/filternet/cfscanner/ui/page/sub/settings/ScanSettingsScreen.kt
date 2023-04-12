@@ -26,6 +26,7 @@ import dev.vivvvek.seeker.Segment
 import dev.vivvvek.seeker.rememberSeekerState
 import ir.filternet.cfscanner.BuildConfig
 import ir.filternet.cfscanner.R
+import ir.filternet.cfscanner.utils.AppConfig
 import ir.filternet.cfscanner.utils.openBrowser
 import kotlinx.coroutines.flow.Flow
 
@@ -68,7 +69,7 @@ fun ScanSettingScreen(
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
-                    context.openBrowser("https://github.com/sinadalvand/CFScanner/releases")
+                    context.openBrowser(AppConfig.APPLICATION_REPOSITORY)
                 }
                 .padding(8.dp), textAlign = TextAlign.Center
         )

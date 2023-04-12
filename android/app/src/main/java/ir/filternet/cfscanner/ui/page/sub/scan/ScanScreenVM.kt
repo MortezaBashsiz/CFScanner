@@ -136,6 +136,10 @@ class ScanScreenVM @Inject constructor(
 
 
     private fun deleteConfig(config: Config) = vmScope(Dispatchers.IO) {
+        if(config.uid==1324){
+            setEffect { ScanContract.Effect.Messenger.Toast(messageId = R.string.default_config_cannot_delete) }
+            return@vmScope
+        }
         configRepository.deleteConfig(config)
         updateConfigs()
     }
@@ -154,6 +158,8 @@ class ScanScreenVM @Inject constructor(
     }
 
     private fun updateConfigs() = vmScope(Dispatchers.IO) {
+        setState { copy(loading = true) }
+        updateDefaultConfig()
         val configs = configRepository.getAllConfig()
         setState {
             val selectedUID = this.configs.find { it.selected }?.uid ?: -1
@@ -165,6 +171,26 @@ class ScanScreenVM @Inject constructor(
             copy(loading = false, configs = confs)
         }
         onServiceStatusChanged(binder?.getServiceStatus())
+    }
+
+    private suspend fun updateDefaultConfig(){
+        val configs = configRepository.getAllConfig()
+        val defaultConfig = configs.find { it.uid == 1324}
+        if(defaultConfig == null){
+            configRepository.getDefaultConfig()?.let {
+                configRepository.addConfig(it)
+            }
+        }else{
+            vmScope(Dispatchers.IO) {
+                configRepository.getDefaultConfig()?.let {
+                    if(defaultConfig.config != it.config){
+                        setEffect { ScanContract.Effect.Messenger.Toast(messageId = R.string.default_config_updated) }
+                        configRepository.updateConfig(it)
+                        updateConfigs()
+                    }
+                }
+            }
+        }
     }
 
     override fun onServiceStatusChanged(status: CloudScannerService.ServiceStatus?) {
