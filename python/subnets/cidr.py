@@ -7,11 +7,10 @@ from typing import Union
 from urllib.parse import urlparse
 
 import requests
-
-from report.clog import CLogger
+from rich.console import Console
 from utils.exceptions import *
 
-logger = CLogger("subnets.cidr")
+console = Console()
 
 
 def cidr_to_ip_list(
@@ -105,9 +104,7 @@ def read_cidrs_from_url(
         cidr_regex = r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}\/[\d]+"
         cidrs = re.findall(cidr_regex, r.text)
     except Exception as e:
-        logger.error(f"Could not read cidrs from url", url)
-        logger.exception(e)
-        raise SubnetsReadError(f"Could not read cidrs from url {url}")
+        raise SubnetsReadError(f"Could not read cidrs from url \"{url}\"")
 
     return cidrs
 
@@ -151,8 +148,7 @@ def read_cidrs(
     elif os.path.isfile(url_or_path):
         cidrs = read_cidrs_from_file(url_or_path)
     else:
-        logger.error(
-            "url_or_path is neither a valid url or a file path.", url_or_path)
         raise SubnetsReadError(
-            f"{url_or_path} is neither a valid url or a file path.")
+            f"\"{url_or_path}\" is neither a valid url nor a file path."
+        )
     return cidrs

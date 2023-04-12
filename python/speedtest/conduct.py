@@ -1,23 +1,17 @@
 import statistics
 
 import requests
-import rich
 from args.testconfig import TestConfig
-from report.clog import CLogger
-from report.print import no_and_kill
-from speedtest.tools import mean_jitter
+from report.print import no_and_kill, ok_message
 from utils.decorators import timeout_fun
+from utils.exceptions import *
 from xray.config import create_proxy_config
 from xray.service import start_proxy_service
 
 from .download import download_speed_test
 from .fronting import fronting_test
 from .upload import upload_speed_test
-from report.print import ok_message
 
-from rich import print as rprint
-
-log = CLogger("cfscanner-speedtest")
 
 
 class TestResult:
@@ -90,8 +84,6 @@ def test_ip(
                 config_dir=config_dir
             )
         except Exception as e:
-            log.error("Could not save proxy (xray/v2ray) config to file", ip)
-            log.exception(e)
             test_result.message = no_and_kill(
                 ip=ip,
                 message="Could not save proxy (xray/v2ray) config to file",
@@ -108,10 +100,9 @@ def test_ip(
                 timeout=test_config.startprocess_timeout
             )
         except Exception as e:
-            message = "Could not start proxy (v2ray/xray) service"
-            log.error(message, ip)
-            log.exception(e)
-            no_and_kill(ip=ip, message=message, process=process)
+            test_result.is_ok = False
+            raise StartProxyServiceError(f"Could not start xray service - {ip}")
+            
     else:
         process = _FakeProcess()
         proxies = None
@@ -142,10 +133,11 @@ def test_ip(
             test_result.is_ok = False
             return test_result
         except Exception as e:
-            log.error("Download - unknown error", ip)
-            log.exception(e)
             fail_msg = no_and_kill(
-                ip=ip, message="download unknown error", process=process)
+                ip=ip, 
+                message="download unknown error", 
+                process=process
+            )
             test_result.message = fail_msg
             test_result.is_ok = False
             return test_result
@@ -195,8 +187,6 @@ def test_ip(
                 test_result.is_ok = False
                 return test_result
             except Exception as e:
-                log.error("Upload - unknown error", ip)
-                log.exception(e)
                 fail_msg = no_and_kill(ip, 'upload unknown error', process)
                 test_result.message = fail_msg
                 test_result.is_ok = False
