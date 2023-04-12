@@ -179,4 +179,4 @@ working with you!
 ```
 ## ☎️ Contact
 reach me at:<br>
-[Telegram: @logandlv](https://t.me/SinLikeSinister)<br>
+[Telegram: @Sina](https://t.me/SinLikeSinister)<br>
