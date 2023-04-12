@@ -16,3 +16,11 @@ class TemplateReadError(Exception):
 class BinaryNotFoundError(Exception):
     """Raised when the xray binary file is not found"""
     pass
+
+
+class BinaryDownloadError(Exception):
+    """Raised when xray binary could not be downloaded"""
+
+
+class StartProxyServiceError(Exception):
+    "Raised when the xray binary could not start"

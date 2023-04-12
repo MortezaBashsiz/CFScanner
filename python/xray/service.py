@@ -1,12 +1,8 @@
 import json
-import os
 import subprocess
 from typing import Tuple
 
-from report.clog import CLogger
 from utils.socket import wait_for_port
-
-logger = CLogger("xray-service")
 
 
 def start_proxy_service(
@@ -18,7 +14,7 @@ def start_proxy_service(
 
     Args:
         proxy_conf_path (str): the path to the proxy (v2ray or xray) config json file
-        binfilepath (str): the path to the xray binary file. Defaults to None.
+        binary_path (str): the path to the xray binary file. Defaults to None.
         timeout (int, optional): total time in seconds to wait for the proxy service to start. Defaults to 5.
 
     Returns:
