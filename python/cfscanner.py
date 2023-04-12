@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import itertools
 import multiprocessing
 import os
 import statistics
@@ -9,7 +10,9 @@ from functools import partial
 from args.parser import parse_args
 from args.testconfig import TestConfig
 from report.clog import CLogger
-from report.print import print_ok
+from report.print import ok_message
+from rich import print as rprint
+from rich.progress import Progress
 from speedtest.conduct import test_ip
 from speedtest.tools import mean_jitter
 from subnets import cidr_to_ip_list, get_num_ips_in_cidr, read_cidrs
@@ -69,35 +72,69 @@ if __name__ == "__main__":
         log.exception(e)
         exit(1)
 
-    n_total_ips = sum(get_num_ips_in_cidr(cidr, sample_size=test_config.sample_size) for cidr in cidr_list)
+    n_total_ips = sum(get_num_ips_in_cidr(
+        cidr,
+        sample_size=test_config.sample_size
+    ) for cidr in cidr_list)
     log.info(f"Starting to scan {n_total_ips} ips...")
 
-    big_ip_list = [ip for cidr in cidr_list for ip in cidr_to_ip_list(cidr, sample_size=test_config.sample_size)]
+    cidr_ip_lists = [
+        cidr_to_ip_list(
+            cidr,
+            sample_size=test_config.sample_size)
+        for cidr in cidr_list
+    ]
+    big_ip_list = [(ip, cidr) for cidr, ip_list in zip(
+        cidr_list, cidr_ip_lists) for ip in ip_list]
+    
+    cidr_scanned_ips = {cidr: 0 for cidr in cidr_list}
+    
+    cidr_prog_tasks = dict()
 
-    with multiprocessing.Pool(processes=threadsCount) as pool:
-        for res in pool.imap(partial(test_ip, test_config=test_config, config_dir=CONFIGDIR), big_ip_list):
-            if res:
-                down_mean_jitter = mean_jitter(res["download"]["latency"])
-                up_mean_jitter = mean_jitter(
-                    res["upload"]["latency"]) if test_config.do_upload_test else -1
-                mean_down_speed = statistics.mean(res["download"]["speed"])
-                mean_up_speed = statistics.mean(
-                    res["upload"]["speed"]) if test_config.do_upload_test else -1
-                mean_down_latency = statistics.mean(res["download"]["latency"])
-                mean_up_latency = statistics.mean(
-                    res["upload"]["latency"]) if test_config.do_upload_test else -1
+    with Progress() as progress:
+        all_ips_task = progress.add_task(
+            f"all subnets - {n_total_ips} ips", total=n_total_ips)
 
-                print_ok(scan_result=res)
+        with multiprocessing.Pool(processes=threadsCount) as pool:
+            for res in pool.imap(partial(test_ip, test_config=test_config, config_dir=CONFIGDIR), big_ip_list):
+                progress.update(all_ips_task, advance=1)
+                if cidr_scanned_ips[res.cidr] == 0:
+                    n_ips_cidr = get_num_ips_in_cidr(res.cidr, sample_size=test_config.sample_size)
+                    cidr_prog_tasks[res.cidr] = progress.add_task(f"{res.cidr} - {n_ips_cidr}", total=n_ips_cidr)
+                progress.update(cidr_prog_tasks[res.cidr], advance=1)
+                
+                if res.is_ok:
+                    down_mean_jitter = mean_jitter(
+                        res.result["download"]["latency"])
+                    up_mean_jitter = mean_jitter(
+                        res.result["upload"]["latency"]) if test_config.do_upload_test else -1
+                    mean_down_speed = statistics.mean(
+                        res.result["download"]["speed"])
+                    mean_up_speed = statistics.mean(
+                        res.result["upload"]["speed"]) if test_config.do_upload_test else -1
+                    mean_down_latency = statistics.mean(
+                        res.result["download"]["latency"])
+                    mean_up_latency = statistics.mean(
+                        res.result["upload"]["latency"]) if test_config.do_upload_test else -1
 
-                with open(INTERIM_RESULTS_PATH, "a") as outfile:
-                    res_parts = [
-                        res["ip"], mean_down_speed, mean_up_speed,
-                        mean_down_latency, mean_up_latency,
-                        down_mean_jitter, up_mean_jitter
-                    ]
-                    res_parts += res["download"]["speed"]
-                    res_parts += res["upload"]["speed"]
-                    res_parts += res["download"]["latency"]
-                    res_parts += res["upload"]["latency"]
+                    rprint(res.message)
 
-                    outfile.write(",".join(map(str, res_parts)) + "\n")
+                    with open(INTERIM_RESULTS_PATH, "a") as outfile:
+                        res_parts = [
+                            res.ip, mean_down_speed, mean_up_speed,
+                            mean_down_latency, mean_up_latency,
+                            down_mean_jitter, up_mean_jitter
+                        ]
+                        res_parts += res.result["download"]["speed"]
+                        res_parts += res.result["upload"]["speed"]
+                        res_parts += res.result["download"]["latency"]
+                        res_parts += res.result["upload"]["latency"]
+
+                        outfile.write(",".join(map(str, res_parts)) + "\n")
+                else:
+                    rprint(res.message)
+                    
+                cidr_scanned_ips[res.cidr] += 1
+                if cidr_scanned_ips[res.cidr] == get_num_ips_in_cidr(res.cidr, sample_size=test_config.sample_size):
+                    progress.remove_task(cidr_prog_tasks[res.cidr])
+                
