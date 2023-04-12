@@ -1,6 +1,5 @@
 import requests
 
-from report import Colors
 from report.clog import CLogger
 
 logger = CLogger("fronting")
@@ -25,7 +24,6 @@ def fronting_test(
     s.get_adapter(
         'https://').poolmanager.connection_pool_kw['assert_hostname'] = "speed.cloudflare.com"
 
-    success = False
     try:
         compatible_ip = f"[{ip}]" if ":" in ip else ip
         r = s.get(
@@ -34,25 +32,19 @@ def fronting_test(
             headers={"Host": "speed.cloudflare.com"}
         )
         if r.status_code != 200:
-            print(
-                f"{Colors.FAIL}NO {Colors.WARNING}{ip:15s} fronting error {r.status_code} {Colors.ENDC}")
+            return f"[red]NO[/red] [dark_orange3]{ip:15s}[/dark_orange3][yellow] fronting error {r.status_code} [/yellow]"
         else:
             success = True
     except requests.exceptions.ConnectTimeout as e:
-        print(
-            f"{Colors.FAIL}NO {Colors.WARNING}{ip:15s} fronting connect timeout{Colors.ENDC}"
-        )
+        return f"[red]NO[/red] [dark_orange3]{ip:15s}[/dark_orange3][yellow] fronting connect timeout[/yellow]"
     except requests.exceptions.ReadTimeout as e:
-        print(
-            f"{Colors.FAIL}NO {Colors.WARNING}{ip:15s} fronting read timeout{Colors.ENDC}"
-        )
+        return f"[red]NO[/red] [dark_orange3]{ip:15s}[/dark_orange3][yellow] fronting read timeout[/yellow]"
     except requests.exceptions.ConnectionError as e:
-        print(
-            f"{Colors.FAIL}NO {Colors.WARNING}{ip:15s} fronting connection error{Colors.ENDC}"
-        )
+        return f"[red]NO[/red] [dark_orange3]{ip:15s}[/dark_orange3][yellow] fronting connection error[/yellow]"
     except Exception as e:
-        f"{Colors.FAIL}NO {Colors.WARNING}{ip:15s}fronting Unknown error{Colors.ENDC}"
         logger.error(f"Fronting test Unknown error {ip:15}")
         logger.exception(e)
+        return f"[red]NO[/red] [dark_orange3]{ip:15s}[/dark_orange3][yellow] fronting Unknown error[/yellow]"
+    
 
-    return success
+    return "OK"
