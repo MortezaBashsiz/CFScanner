@@ -9,7 +9,7 @@ import (
 
 // Program Info
 var (
-	version  = "1.4"
+	version  = "1.5"
 	build    = "Custom"
 	codename = "CFScanner , CloudFlare Scanner."
 )

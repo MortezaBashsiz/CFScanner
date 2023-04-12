@@ -15,8 +15,8 @@ import (
 var (
 	PROGRAMDIR             = filepath.Dir(os.Args[0])
 	BIN                    = filepath.Join(PROGRAMDIR, "..", "bin", "v2ray")
-	DIR                    = filepath.Join(PROGRAMDIR, "..", "config")
-	RESULTDIR              = filepath.Join(PROGRAMDIR, "..", "result")
+	DIR                    = filepath.Join(PROGRAMDIR, "config")
+	RESULTDIR              = filepath.Join(PROGRAMDIR, "result")
 	StartDtStr             = time.Now().Format("2006-01-02_15:04:05")
 	CSVInterimResultsPath  = filepath.Join(RESULTDIR, StartDtStr+"_result.csv")
 	JSONInterimResultsPath = filepath.Join(RESULTDIR, StartDtStr+"_result.json")

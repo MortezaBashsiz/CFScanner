@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -46,7 +47,6 @@ var (
 )
 
 // const WorkerCount = 48
-
 func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 
 	result := &Result{
@@ -64,29 +64,37 @@ func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 		var err error
 		process, proxies, err = v2raysvc.StartV2RayService(v2rayConfigPath, time.Duration(Worker.StartProcessTimeout))
 		if err != nil {
-			log.Printf("%vERROR - %vCould not start v2ray service%v\n",
+			log.Printf("%vERROR - %vCould not start vpn service%v\n",
 				utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)
 			log.Fatal(err)
 			return nil
 		}
 
-		defer func(Process *os.Process) {
-			err := Process.Kill()
-			if err != nil {
-				_ = fmt.Errorf("could not kill the process %v", process.Process.Pid)
-			}
-		}(process.Process)
 		defer func() {
-			if r := recover(); r != nil {
-				log.Printf("%sFAIL %v%15s Panic: %v%v\n", utils.Colors.FAIL, utils.Colors.WARNING, ip, r, utils.Colors.ENDC)
+			if process != nil && process.Process != nil {
+				// terminate process
+				err = process.Process.Kill()
+				if err != nil {
+					log.Printf("%vERROR - %vFailed to kill process%v\n",
+						utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)
+				}
+
+				// using Wait for clean up zombie process after Kill func
+				process.Process.Signal(syscall.SIGCHLD)
+				_, err := process.Process.Wait()
+				if err != nil {
+					log.Printf("%vERROR - %vFailed to wait for process to exit%v\n",
+						utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)
+				}
 			}
 		}()
 	}
 
 	for tryIdx := 0; tryIdx < C.Config.NTries; tryIdx++ {
 		// Fronting test
+
 		if C.Config.DoFrontingTest {
-			fronting := speedtest.FrontingTest(ip, time.Duration(C.Config.FrontingTimeout))
+			fronting := speedtest.FrontingTest(ip, proxies, time.Duration(C.Config.FrontingTimeout))
 
 			if !fronting {
 				return nil
@@ -114,6 +122,7 @@ func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 
 	return result
 }
+
 func uploader(ip string, Upload *config.Upload, proxies map[string]string, result *Result) (*Result, bool) {
 	var err error
 	nBytes := Upload.MinUlSpeed * 1000 * Upload.MaxUlTime
@@ -180,6 +189,7 @@ func downloader(ip string, Download *config.Download, proxies map[string]string,
 
 func scan(C *config.Configuration, worker *config.Worker, ip string) {
 	res := scanner(ip, *C, *worker)
+
 	if res == nil {
 		return
 	}

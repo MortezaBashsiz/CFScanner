@@ -13,7 +13,7 @@ import (
 )
 
 // FrontingTest conducts a fronting test on an ip and return true if status 200 is received
-func FrontingTest(ip string, timeout time.Duration) bool {
+func FrontingTest(ip string, proxies map[string]string, timeout time.Duration) bool {
 
 	var success = false
 
@@ -30,6 +30,12 @@ func FrontingTest(ip string, timeout time.Duration) bool {
 		return false
 	}
 	req.Host = "speed.cloudflare.com"
+
+	// set proxies to req header
+	for k, v := range proxies {
+		req.Header.Set(k, v)
+	}
+
 	client := &http.Client{
 		Timeout: timeout * time.Second,
 		Transport: &http.Transport{
