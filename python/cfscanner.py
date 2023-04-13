@@ -34,7 +34,7 @@ START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
 INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
 
 
-def main():
+if __name__ == "__main__":
     console = Console()
     original_sigint_handler = signal.signal(
         signal.SIGINT, _prescan_sigint_handler
@@ -223,7 +223,3 @@ def main():
                 except Exception as e:
                     progress.log("[red]Unknown error![/red]")
                     console.print_exception()
-
-
-if __name__ == "__main__":
-    main()
