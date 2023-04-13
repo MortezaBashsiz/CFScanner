@@ -120,7 +120,7 @@ In the following, you can find examples of running the script with and without c
 
 ---
 
-## `<a name="anchor-args"></a>`Arguments
+## <a name="anchor-args"></a>Arguments
 
 To use this tool, you can specify various options as follows:
 
