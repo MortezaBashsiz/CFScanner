@@ -18,6 +18,7 @@ CFSCanner runs on different operating systems including and not limited to:
 * Libraries
   - requests
   - pysocks
+  - rich
 
 # Installing
 
@@ -112,13 +113,14 @@ In the following, you can find examples of running the script with and without c
   python3 cfscanner.py --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100 --upload-speed 25 --tries 3
   ```
 * To run on a random sample of size 20 of the subnets and minimum acceptable download and upload speed of 10 KBps with the default config
+
   ```bash
   python3 cfscanner.py -t 8 -DS 10 -US 10 -r 20
-  ``` 
+  ```
 
 ---
 
-## <a name="anchor-args"></a>Arguments
+## `<a name="anchor-args"></a>`Arguments
 
 To use this tool, you can specify various options as follows:
 
@@ -134,10 +136,10 @@ To see the help message, use the `--help` or `-h` option.
   subnet in cidr notation (v4 or v6). If not provided, the program will
   read the list of cidrs from [https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/cf.local.iplist](https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/cf.local.iplist).
 * `--sample`, `-r`: Size of the random sample to take from each subnet. The sample size can either
-be a float between 0 and 1 ($0 < s < 1$) or an integer ($ s \ge 1$). If it is a float, it will be
-interpreted as a percentage of the subnet size. If it is an integer, it
-will be interpreted as the number of ips to take from each subnet. If
-not provided, the program will take all ips from each subnet
+  be a float between 0 and 1 ($0 < s < 1$) or an integer ($ s \ge 1$). If it is a float, it will be
+  interpreted as a percentage of the subnet size. If it is an integer, it
+  will be interpreted as the number of ips to take from each subnet. If
+  not provided, the program will take all ips from each subnet
 
 #### Xray Config Options
 
@@ -210,7 +212,7 @@ Contributors names and contact info
   * Fixed a bug in the min UL speed, especially for ``min_upload_speed = 0``
 * 1.0.3
   * Fixed a bug in custom config template
-* 1.1.0 
+* 1.1.0
   * Added random sampling
 * 1.2.0
   * Added progress bar
