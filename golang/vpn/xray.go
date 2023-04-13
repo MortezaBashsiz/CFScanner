@@ -6,8 +6,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"time"
-
 	// The following are necessary as they register handlers in their init functions.
 
 	_ "github.com/xtls/xray-core/app/dispatcher"
@@ -94,7 +92,7 @@ import (
 	//_ "github.com/xtls/xray-core/main/commands/all"
 )
 
-func XRayInstance(configPath string, timeout time.Duration) ScanWorker {
+func XRayInstance(configPath string) ScanWorker {
 	config, err := LoadConfig(configPath)
 	if err != nil {
 		log.Fatal(err)

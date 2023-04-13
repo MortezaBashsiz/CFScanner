@@ -73,7 +73,7 @@ func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 		}
 
 		var err error
-		process = vpn.XRayInstance(xrayConfigPath, time.Duration(Worker.StartProcessTimeout))
+		process = vpn.XRayInstance(xrayConfigPath)
 
 		if err != nil {
 			log.Printf("%vERROR - %vCould not start vpn service%v\n",

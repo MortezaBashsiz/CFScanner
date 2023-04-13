@@ -30,7 +30,6 @@ WS Header Host: %v%v%v
 WS Header Path : %v%v%v
 Address Port : %v%v%v
 SNI : %v%v%v
-Start Proccess Timeout : %v%v%v
 Upload Test : %v%v%v
 Fronting Request Test : %v%v%v
 Minimum Download Speed : %v%v%v
@@ -53,7 +52,6 @@ Total Threads : %v%v%v
 		utils.Colors.OKBLUE, C.Config.WsHeaderPath, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.AddressPort, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.Sni, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, C.Worker.StartProcessTimeout, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.DoUploadTest, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.DoFrontingTest, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Worker.Download.MinDlSpeed, utils.Colors.ENDC,

@@ -8,11 +8,10 @@ type Configuration struct {
 }
 
 type Worker struct {
-	Download            Download
-	Upload              Upload
-	StartProcessTimeout float64 // seconds
-	Threads             int
-	Vpn                 bool
+	Download Download
+	Upload   Upload
+	Threads  int
+	Vpn      bool
 }
 
 type ConfigStruct struct {

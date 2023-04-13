@@ -19,7 +19,6 @@ var minULSpeed float64
 var maxDLTime float64
 var maxULTime float64
 
-var startProcessTimeout float64
 var frontingTimeout float64
 var maxDLLatency float64
 var maxULLatency float64
@@ -45,7 +44,6 @@ func RegisterCommands(rootCmd *cobra.Command) {
 	rootCmd.PersistentFlags().Float64Var(&frontingTimeout, "fronting-timeout", 1.0, "Maximum time to wait for fronting response")
 	rootCmd.PersistentFlags().Float64Var(&maxDLLatency, "download-latency", 3.0, "Maximum allowed latency for download")
 	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 3.0, "Maximum allowed latency for upload")
-	rootCmd.PersistentFlags().Float64Var(&startProcessTimeout, "startprocess-timeout", 12, "Process timeout for v2ray")
 	rootCmd.PersistentFlags().StringVar(&writerType, "writer", "csv", "Custom output writer for writing interim results. [csv/json]")
 
 }

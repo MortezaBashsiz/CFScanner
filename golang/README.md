@@ -75,7 +75,7 @@ CFScanner takes several arguments:
 | --threads -t           | Number of threads to use for parallel scanning. Default is 1.                                    |
 | --config -c            | The path to the config file. (Required)                                                          |
 | --vpn                  | If passed, test with creating xray-core connections.                                             |
-| -l --loglevel          | The log level for xray-core (default "none")                                                     |
+| --loglevel -l          | The log level for xray-core (default "none")                                                     |
 | --subnets -s           | The file or subnet. Each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip.   |
 | --shuffle              | Shuffling given subnet file or input                                                             |
 | --upload               | If passed, upload test will be conducted.                                                        |
@@ -88,7 +88,6 @@ CFScanner takes several arguments:
 | --fronting-timeout     | Maximum time to wait for fronting response. Default is 1.0.                                      |
 | --download-latency     | Maximum allowed latency for download. Default is 2.0.                                            |
 | --upload-latency       | Maximum allowed latency for upload. Default is 2.0.                                              |
-| --startprocess-timeout | Process timeout for v2ray. Default is 12.                                                        |
 | --writer               | Custom output writer for writing interim results. available writers : `csv`/`json`               |
 
 # Features

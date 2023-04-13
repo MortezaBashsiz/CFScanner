@@ -78,9 +78,8 @@ func run() *cobra.Command {
 				},
 
 				Worker: configuration.Worker{
-					Threads:             threads,
-					Vpn:                 Vpn,
-					StartProcessTimeout: startProcessTimeout,
+					Threads: threads,
+					Vpn:     Vpn,
 					Download: struct {
 						MinDlSpeed   float64
 						MaxDlTime    float64
