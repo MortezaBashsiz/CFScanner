@@ -177,7 +177,7 @@ if __name__ == "__main__":
                     cidr_scanned_ips[res.cidr] += 1
                     if cidr_scanned_ips[res.cidr] == get_num_ips_in_cidr(res.cidr, sample_size=test_config.sample_size):
                         progress.remove_task(cidr_prog_tasks[res.cidr])
-            except (StartProxyServiceError, KeyboardInterrupt) as e:
+            except StartProxyServiceError as e:
                 progress.stop()
                 console.log(f"[red]{e}[/red]")
                 pool.terminate()
