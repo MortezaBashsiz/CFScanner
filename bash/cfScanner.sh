@@ -274,14 +274,14 @@ function fncCheckIPList {
 							downAvgStr="$downAvgStr $downTimeMil"
 							upAvgStr="$upAvgStr $upTimeMil"
 						done
-						if [[ $downSuccessedCount -gt $downThreshold ]]
+						if [[ $downSuccessedCount -ge $downThreshold ]]
 						then
 							downOK="YES"
 							downRealTime=$(( downTotalTime/downSuccessedCount ))
 						else
 							downRealTime=0
 						fi
-						if [[ $upSuccessedCount -gt $upThreshold ]]
+						if [[ $upSuccessedCount -ge $upThreshold ]]
 						then
 							upOK="YES"
 							upRealTime=$(( upTotalTime/upSuccessedCount ))
@@ -372,14 +372,14 @@ function fncCheckIPList {
 							downAvgStr="$downAvgStr $downTimeMil"
 							upAvgStr="$upAvgStr $upTimeMil"
 						done
-						if [[ $downSuccessedCount -gt $downThreshold ]]
+						if [[ $downSuccessedCount -ge $downThreshold ]]
 						then
 							downOK="YES"
 							downRealTime=$(( downTotalTime/downSuccessedCount ))
 						else
 							downRealTime=0
 						fi
-						if [[ $upSuccessedCount -gt $upThreshold ]]
+						if [[ $upSuccessedCount -ge $upThreshold ]]
 						then
 							upOK="YES"
 							upRealTime=$(( upTotalTime/upSuccessedCount ))
