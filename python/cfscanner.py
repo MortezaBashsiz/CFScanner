@@ -20,8 +20,8 @@ from utils.os import create_dir
 console = Console()
 
 SCRIPTDIR = os.path.dirname(os.path.realpath(__file__))
-CONFIGDIR = f"{SCRIPTDIR}/../config"
-RESULTDIR = f"{SCRIPTDIR}/../result"
+CONFIGDIR = f"{SCRIPTDIR}/.xray-configs"
+RESULTDIR = f"{SCRIPTDIR}/result"
 START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
 INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
 

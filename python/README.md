@@ -215,5 +215,6 @@ Contributors names and contact info
 * 1.2.0
   * Added progress bar
   * Improved logging
+
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
 [version]: https://img.shields.io/badge/Version-1.2.0-blue
