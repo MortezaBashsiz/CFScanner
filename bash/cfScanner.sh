@@ -194,8 +194,19 @@ function fncCheckIPList {
 	then
 		for ip in ${ipList}
 			do
-				downOK="NO"
-				upOK="NO"
+				if [[  "$downloadOrUpload" == "BOTH" ]]
+				then
+					downOK="NO"
+					upOK="NO"
+				elif [[ "$downloadOrUpload" == "UP" ]]
+				then
+					downOK="YES"
+					upOK="NO"
+				elif [[ "$downloadOrUpload" == "DOWN" ]]
+				then
+					downOK="NO"
+					upOK="YES"
+				fi
 				if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 				then
 					domainFronting=$($timeoutCommand 1 curl -k -s -w "%{http_code}\n" --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=1000" -o /dev/null)
@@ -274,14 +285,14 @@ function fncCheckIPList {
 							downAvgStr="$downAvgStr $downTimeMil"
 							upAvgStr="$upAvgStr $upTimeMil"
 						done
-						if [[ $downSuccessedCount -ge $downThreshold ]]
+						if [[ $downSuccessedCount -ge $downThreshold ]] && [[ "$downloadOrUpload" != "UP" ]]
 						then
 							downOK="YES"
 							downRealTime=$(( downTotalTime/downSuccessedCount ))
 						else
 							downRealTime=0
 						fi
-						if [[ $upSuccessedCount -ge $upThreshold ]]
+						if [[ $upSuccessedCount -ge $upThreshold ]] && [[ "$downloadOrUpload" != "DOWN" ]]
 						then
 							upOK="YES"
 							upRealTime=$(( upTotalTime/upSuccessedCount ))
@@ -326,8 +337,19 @@ function fncCheckIPList {
 	then
 		for ip in ${ipList}
 			do
-				downOK="NO"
-				upOK="NO"
+				if [[  "$downloadOrUpload" == "BOTH" ]]
+				then
+					downOK="NO"
+					upOK="NO"
+				elif [[ "$downloadOrUpload" == "UP" ]]
+				then
+					downOK="YES"
+					upOK="NO"
+				elif [[ "$downloadOrUpload" == "DOWN" ]]
+				then
+					downOK="NO"
+					upOK="YES"
+				fi
 				if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 				then
 					domainFronting=$($timeoutCommand 1 curl -k -s -w "%{http_code}\n" --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=1000" -o /dev/null)
@@ -372,14 +394,14 @@ function fncCheckIPList {
 							downAvgStr="$downAvgStr $downTimeMil"
 							upAvgStr="$upAvgStr $upTimeMil"
 						done
-						if [[ $downSuccessedCount -ge $downThreshold ]]
+						if [[ $downSuccessedCount -ge $downThreshold ]] && [[ "$downloadOrUpload" != "UP" ]]
 						then
 							downOK="YES"
 							downRealTime=$(( downTotalTime/downSuccessedCount ))
 						else
 							downRealTime=0
 						fi
-						if [[ $upSuccessedCount -ge $upThreshold ]]
+						if [[ $upSuccessedCount -ge $upThreshold ]] && [[ "$downloadOrUpload" != "DOWN" ]]
 						then
 							upOK="YES"
 							upRealTime=$(( upTotalTime/upSuccessedCount ))
