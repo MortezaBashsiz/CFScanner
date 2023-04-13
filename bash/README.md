@@ -62,9 +62,9 @@ You have following switches to define the arguments
 
 -r: This is an integer that specifies randomness. Instead of testing all IPs in a subnet, a random sample of size ``d`` will be tested.
 
--d: This is the threshold to download succeed count. With this option you can filter to show you only the IPs which have successfully download count more than the amount you specified. This will be AND with -u
+-d: This is the threshold to download succeed count. With this option you can filter to show you only the IPs which have successfully download count more than or equal the amount you specified. This will be AND with -u
 
--u: This is the threshold to upload succeed count. With this option you can filter to show you only the IPs which have successfully upload count more than the amount you specified. This will be AND with -d
+-u: This is the threshold to upload succeed count. With this option you can filter to show you only the IPs which have successfully upload count more than or equal the amount you specified. This will be AND with -d
 
 ```shell
 [~/CFScanner/bash]>$ bash cfScanner.sh -c <config file> -v <YES/NO> -m <SUBNET/IP> -t <DOWN/UP/BOTH> -p <int> -n <int> -r <int> -s <int> -d <int> -u <int> -f <Custome Subnet File>
@@ -114,7 +114,7 @@ In this example script will select only 5 random IPs from each subnet.
 
 #### EXAMPLE: Use upload and download threshold
 
-In this example script will try 5 time for each IP and the IPs which have more than 5 successful download AND more than 3 successful upload will be select as OK
+In this example script will try 5 time for each IP and the IPs which have more than or equal 5 successful download AND more than or equal 3 successful upload will be select as OK
 
 ```shell
 [~/CFScanner/bash]>$ bash cfScanner.sh -v YES -m SUBNET -t BOTH -p 8 -n 8 -s 100 -d 5 -u 3 -f custom.subnets
