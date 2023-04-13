@@ -217,6 +217,9 @@ Contributors names and contact info
 * 1.2.0
   * Added progress bar
   * Improved logging
+* 1.2.1
+  * Fixed the bug for keyboard interrupt in windows
+  * improved the keyboard interrupt handling in general
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.2.0-blue
+[version]: https://img.shields.io/badge/Version-1.2.1-blue
