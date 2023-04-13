@@ -9,6 +9,7 @@ var configPath string
 var subnets string
 
 var Vpn bool
+var Loglevel string
 var doUploadTest bool
 var fronting bool
 var shuffle bool
@@ -30,7 +31,8 @@ var writerType string
 func RegisterCommands(rootCmd *cobra.Command) {
 	rootCmd.PersistentFlags().IntVarP(&threads, "threads", "t", 1, "Number of threads to use for parallel scanning")
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "The path to the config file")
-	rootCmd.PersistentFlags().BoolVar(&Vpn, "vpn", false, "If passed, test with creating vpn connections")
+	rootCmd.PersistentFlags().BoolVar(&Vpn, "vpn", false, "If passed, test with creating xray-core connections")
+	rootCmd.PersistentFlags().StringVarP(&Loglevel, "loglevel", "l", "none", "The log level for xray-core")
 	rootCmd.PersistentFlags().StringVarP(&subnets, "subnets", "s", "", "The file or subnet. each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip.")
 	rootCmd.PersistentFlags().BoolVar(&shuffle, "shuffle", false, "Shuffling given subnet file or input")
 	rootCmd.PersistentFlags().BoolVar(&doUploadTest, "upload", false, "If passed, upload test will be conducted")

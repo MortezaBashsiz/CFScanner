@@ -94,6 +94,7 @@ func run() *cobra.Command {
 				},
 
 				Shuffling: shuffle,
+				LogLevel:  Loglevel,
 			}
 
 			// Create Configuration file & append vpn fields

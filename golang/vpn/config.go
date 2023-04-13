@@ -10,9 +10,24 @@ import (
 	"strings"
 )
 
-var v2rayTemplate = `{
+var logger = []string{"debug",
+	"info",
+	"warning",
+	"error",
+	"none"}
+
+func loglevel(level string) string {
+	for _, log := range logger {
+		if strings.ToLower(level) == log {
+			return level
+		}
+	}
+	return logger[4]
+}
+
+var XRayTemplate = `{
   "log": {
-    "loglevel": "none"
+    "loglevel": "LOG"
   },
   "inbounds": [{
     "port": PORTPORT,
@@ -35,7 +50,7 @@ var v2rayTemplate = `{
     "settings": {
       "vnext": [{
         "address": "IP.IP.IP.IP",
-        "port": CFPORTCFPORT,
+        "port": CFPORT,
         "users": [{"id": "IDID" }]
       }]
     },
@@ -60,9 +75,10 @@ var v2rayTemplate = `{
 // XRayConfig create VPN configuration
 func XRayConfig(IP string, testConfig *configuration.Configuration) string {
 	localPortStr := strconv.Itoa(utils.GetFreePort())
-	config := strings.ReplaceAll(v2rayTemplate, "PORTPORT", localPortStr)
+	config := strings.ReplaceAll(XRayTemplate, "PORTPORT", localPortStr)
+	config = strings.ReplaceAll(config, "LOG", loglevel(testConfig.LogLevel))
 	config = strings.ReplaceAll(config, "IP.IP.IP.IP", IP)
-	config = strings.ReplaceAll(config, "CFPORTCFPORT", testConfig.Config.AddressPort)
+	config = strings.ReplaceAll(config, "CFPORT", testConfig.Config.AddressPort)
 	config = strings.ReplaceAll(config, "IDID", testConfig.Config.UserId)
 	config = strings.ReplaceAll(config, "HOSTHOST", testConfig.Config.WsHeaderHost)
 	config = strings.ReplaceAll(config, "ENDPOINTENDPOINT", testConfig.Config.WsHeaderPath)

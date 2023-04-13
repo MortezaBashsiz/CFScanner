@@ -4,6 +4,7 @@ type Configuration struct {
 	Config    ConfigStruct
 	Worker    Worker
 	Shuffling bool
+	LogLevel  string
 }
 
 type Worker struct {
