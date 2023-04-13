@@ -671,8 +671,8 @@ function fncUsage {
 # End of Function fncUsage
 
 randomNumber="NULL"
-downThreshold="0"
-upThreshold="0"
+downThreshold="1"
+upThreshold="1"
 osVersion="$(fncCheckDpnd)"
 vpnOrNot="NO"
 subnetOrIP="SUBNET"

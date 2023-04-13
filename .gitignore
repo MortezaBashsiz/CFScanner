@@ -2,7 +2,7 @@ tempConfig/
 result/
 files/
 files/upload_file
-bash/config.real
+bash/config.default
 bash/subnets.list
 python/log/
 python/venv/
