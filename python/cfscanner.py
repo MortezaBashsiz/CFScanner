@@ -2,6 +2,7 @@
 
 import multiprocessing
 import os
+import signal
 import statistics
 from datetime import datetime
 from functools import partial
@@ -19,6 +20,16 @@ from utils.os import create_dir
 
 console = Console()
 
+
+def _prescan_sigint_handler(sig, frame):
+    console.log(
+        "[yellow]KeyboardInterrupt detected (pre-scan phase)[/yellow]")
+    exit(1)
+    
+def _init_pool():
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+
 SCRIPTDIR = os.path.dirname(os.path.realpath(__file__))
 CONFIGDIR = f"{SCRIPTDIR}/.xray-configs"
 RESULTDIR = f"{SCRIPTDIR}/result"
@@ -28,6 +39,9 @@ INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
 
 if __name__ == "__main__":
     console = Console()
+    original_sigint_handler = signal.signal(
+        signal.SIGINT, _prescan_sigint_handler
+    )
 
     args = parse_args()
 
@@ -57,13 +71,21 @@ if __name__ == "__main__":
                     "avg_download_latency", "avg_upload_latency",
                     "avg_download_jitter", "avg_upload_jitter"
                 ]
-                titles += [f"download_speed_{i+1}" for i in range(args.n_tries)]
+                titles += [
+                    f"download_speed_{i+1}" for i in range(args.n_tries)
+                ]
                 titles += [f"upload_speed_{i+1}" for i in range(args.n_tries)]
-                titles += [f"download_latency_{i+1}" for i in range(args.n_tries)]
-                titles += [f"upload_latency_{i+1}" for i in range(args.n_tries)]
+                titles += [
+                    f"download_latency_{i+1}" for i in range(args.n_tries)
+                ]
+                titles += [
+                    f"upload_latency_{i+1}" for i in range(args.n_tries)
+                ]
                 empty_file.write(",".join(titles) + "\n")
         except Exception as e:
-            console.log(f"[red]Could not create empty result file:\n\"{INTERIM_RESULTS_PATH}\"[/red]")
+            console.log(
+                f"[red]Could not create empty result file:\n\"{INTERIM_RESULTS_PATH}\"[/red]"
+            )
 
     threadsCount = args.threads
 
@@ -94,7 +116,7 @@ if __name__ == "__main__":
                 exit(1)
             except Exception as e:
                 console.log(f"Unknown error in reading subnets: {e}")
-                exit(1) 
+                exit(1)
     try:
         test_config = TestConfig.from_args(args)
     except TemplateReadError:
@@ -131,10 +153,13 @@ if __name__ == "__main__":
     with Progress() as progress:
         all_ips_task = progress.add_task(
             f"all subnets - {n_total_ips} ips", total=n_total_ips)
-
-        with multiprocessing.Pool(processes=threadsCount) as pool:
-            try:
-                for res in pool.imap(partial(test_ip, test_config=test_config, config_dir=CONFIGDIR), big_ip_list):
+        with multiprocessing.Pool(processes=threadsCount, initializer=_init_pool) as pool:
+            signal.signal(signal.SIGINT, original_sigint_handler)
+            iterator = pool.imap(
+                partial(test_ip, test_config=test_config, config_dir=CONFIGDIR), big_ip_list)
+            while True:
+                try:
+                    res = next(iterator)
                     progress.update(all_ips_task, advance=1)
                     if cidr_scanned_ips[res.cidr] == 0:
                         n_ips_cidr = get_num_ips_in_cidr(
@@ -177,7 +202,26 @@ if __name__ == "__main__":
                     cidr_scanned_ips[res.cidr] += 1
                     if cidr_scanned_ips[res.cidr] == get_num_ips_in_cidr(res.cidr, sample_size=test_config.sample_size):
                         progress.remove_task(cidr_prog_tasks[res.cidr])
-            except StartProxyServiceError as e:
-                progress.stop()
-                console.log(f"[red]{e}[/red]")
-                pool.terminate()
+                except StartProxyServiceError as e:
+                    progress.stop()
+                    console.log(f"[red]{e}[/red]")
+                    pool.terminate()
+                except StopIteration as e:
+                    for task in progress.tasks:
+                        progress.stop_task(task.id)
+                        progress.remove_task(task.id)
+                    progress.stop()
+                    progress.log("Finished scanning ips.")
+                    break
+                except KeyboardInterrupt as e:
+                    for task_id in progress.task_ids:
+                        progress.stop_task(task_id)
+                        progress.remove_task(task_id)
+                    progress.stop()
+                    progress.log(
+                        "[yellow]KeyboardInterrupt detected (scan phase)[/yellow]")
+                    pool.terminate()
+                    break
+                except Exception as e:
+                    progress.log("[red]Unknown error![/red]")
+                    console.print_exception()
