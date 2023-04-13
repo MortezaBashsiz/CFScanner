@@ -23,8 +23,11 @@ console = Console()
 
 def _prescan_sigint_handler(sig, frame):
     console.log(
-        "[yellow]KeyboardInterrupt detected (pre-scan phase). stopping[/yellow]")
+        "[yellow]KeyboardInterrupt detected (pre-scan phase)[/yellow]")
     exit(1)
+    
+def _init_pool():
+    signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 
 SCRIPTDIR = os.path.dirname(os.path.realpath(__file__))
@@ -147,11 +150,10 @@ if __name__ == "__main__":
 
     cidr_prog_tasks = dict()
 
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
     with Progress() as progress:
         all_ips_task = progress.add_task(
             f"all subnets - {n_total_ips} ips", total=n_total_ips)
-        with multiprocessing.Pool(processes=threadsCount) as pool:
+        with multiprocessing.Pool(processes=threadsCount, initializer=_init_pool) as pool:
             signal.signal(signal.SIGINT, original_sigint_handler)
             iterator = pool.imap(
                 partial(test_ip, test_config=test_config, config_dir=CONFIGDIR), big_ip_list)
@@ -217,7 +219,7 @@ if __name__ == "__main__":
                         progress.remove_task(task_id)
                     progress.stop()
                     progress.log(
-                        "[yellow]KeyboardInterrupt detected (scan phase). stopping[/yellow]")
+                        "[yellow]KeyboardInterrupt detected (scan phase)[/yellow]")
                     pool.terminate()
                     break
                 except Exception as e:
