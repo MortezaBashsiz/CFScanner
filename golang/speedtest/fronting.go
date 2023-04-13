@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -16,6 +17,13 @@ import (
 func FrontingTest(ip string, proxies map[string]string, timeout time.Duration) bool {
 
 	var success = false
+
+	// set proxy to request
+	var proxy *url.URL
+	// set proxies to req header
+	for _, v := range proxies {
+		proxy, _ = url.Parse(v)
+	}
 
 	compatibleIP := ip
 	if strings.Contains(ip, ":") {
@@ -31,15 +39,9 @@ func FrontingTest(ip string, proxies map[string]string, timeout time.Duration) b
 	}
 	req.Host = "speed.cloudflare.com"
 
-	// set proxies to req header
-	for k, v := range proxies {
-		req.Header.Set(k, v)
-	}
-
 	client := &http.Client{
 		Timeout: timeout * time.Second,
-		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
+		Transport: &http.Transport{Proxy: http.ProxyURL(proxy),
 			TLSClientConfig: &tls.Config{
 				ServerName:         "speed.cloudflare.com",
 				InsecureSkipVerify: true,

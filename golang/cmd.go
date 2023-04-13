@@ -7,7 +7,6 @@ var nTries int
 
 var configPath string
 var subnets string
-var vpnPath string
 
 var Vpn bool
 var doUploadTest bool
@@ -45,7 +44,6 @@ func RegisterCommands(rootCmd *cobra.Command) {
 	rootCmd.PersistentFlags().Float64Var(&maxDLLatency, "download-latency", 3.0, "Maximum allowed latency for download")
 	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 3.0, "Maximum allowed latency for upload")
 	rootCmd.PersistentFlags().Float64Var(&startProcessTimeout, "startprocess-timeout", 12, "Process timeout for v2ray")
-	rootCmd.PersistentFlags().StringVar(&vpnPath, "vpn-path", "", "Custom V2Ray binary path for using v2ray binary in another directory")
 	rootCmd.PersistentFlags().StringVar(&writerType, "writer", "csv", "Custom output writer for writing interim results. [csv/json]")
 
 }

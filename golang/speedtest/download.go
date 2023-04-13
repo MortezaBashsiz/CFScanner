@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -16,16 +17,19 @@ func DownloadSpeedTest(nBytes int, proxies map[string]string, timeout time.Durat
 	// Create byte slice of nBytes
 	data := make([]byte, nBytes)
 
+	// set proxy to request
+	var proxy *url.URL
+	// set proxies to req header
+	for _, v := range proxies {
+		proxy, _ = url.Parse(v)
+	}
+
 	// Create request
 	req, err := http.NewRequest("GET", "https://speed.cloudflare.com/__down", nil)
 	if err != nil {
 		return 0, 0, fmt.Errorf("error creating request: %v", err)
 	}
 
-	// set proxies to req header
-	for k, v := range proxies {
-		req.Header.Set(k, v)
-	}
 	// Add bytes query parameter
 	q := req.URL.Query()
 	q.Add("bytes", strconv.Itoa(nBytes))
@@ -33,10 +37,8 @@ func DownloadSpeedTest(nBytes int, proxies map[string]string, timeout time.Durat
 
 	// Set up client
 	client := &http.Client{
-		Timeout: timeout * time.Second,
-		Transport: &http.Transport{
-			Proxy: http.ProxyFromEnvironment,
-		},
+		Timeout:   timeout * time.Second,
+		Transport: &http.Transport{Proxy: http.ProxyURL(proxy)},
 	}
 
 	// Send request and write response to data slice

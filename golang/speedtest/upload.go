@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -17,12 +18,16 @@ func UploadSpeedTest(nBytes int, proxies map[string]string, timeout time.Duratio
 		return 0, 0, err
 	}
 
-	for k, v := range proxies {
-		req.Header.Set(k, v)
+	// set proxy to request
+	var proxy *url.URL
+	// set proxies to req header
+	for _, v := range proxies {
+		proxy, _ = url.Parse(v)
 	}
 
 	client := &http.Client{
-		Timeout: timeout * time.Second}
+		Timeout:   timeout * time.Second,
+		Transport: &http.Transport{Proxy: http.ProxyURL(proxy)}}
 
 	resp, err := client.Do(req)
 	if err != nil {
