@@ -4,13 +4,12 @@ import (
 	config "CFScanner/configuration"
 	"CFScanner/speedtest"
 	"CFScanner/utils"
-	"CFScanner/v2raysvc"
+	"CFScanner/vpn"
 	"fmt"
 	"github.com/eiannone/keyboard"
 	"log"
 	"math"
 	"os"
-	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
@@ -56,12 +55,26 @@ func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 	var Download = &Worker.Download
 
 	var proxies map[string]string = nil
-	var process *exec.Cmd = nil
+	var process vpn.ScanWorker
 
 	if Worker.Vpn {
-		v2rayConfigPath := v2raysvc.CreateV2rayConfig(ip, &C)
+		// create config for desired ip
+		xrayConfigPath := vpn.XRayConfig(ip, &C)
+		listen, port, _ := vpn.XRayReceiver(xrayConfigPath)
+
+		// bind proxy
+		proxies = vpn.ProxyBind(listen, port)
+
+		// wait for port
+		waitPort := utils.WaitForPort(listen, port, time.Duration(5))
+
+		if waitPort != nil {
+			fmt.Errorf(waitPort.Error())
+		}
+
 		var err error
-		process, proxies, err = v2raysvc.StartV2RayService(v2rayConfigPath, time.Duration(Worker.StartProcessTimeout))
+		process = vpn.XRayInstance(xrayConfigPath)
+
 		if err != nil {
 			log.Printf("%vERROR - %vCould not start vpn service%v\n",
 				utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)
@@ -70,21 +83,13 @@ func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 		}
 
 		defer func() {
-			if process != nil && process.Process != nil {
-				// terminate process
-				err = process.Process.Kill()
-				if err != nil {
-					log.Printf("%vERROR - %vFailed to kill process%v\n",
-						utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)
-				}
-
-				// using Wait for clean up zombie process after Kill func
-				_, err := process.Process.Wait()
-				if err != nil {
-					log.Printf("%vERROR - %vFailed to wait for process to exit%v\n",
-						utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)
-				}
+			// terminate process
+			err = process.Instance.Close()
+			if err != nil {
+				log.Printf("%vERROR - %vFailed to stop xray instance%v\n",
+					utils.Colors.FAIL, utils.Colors.WARNING, utils.Colors.ENDC)
 			}
+
 		}()
 	}
 

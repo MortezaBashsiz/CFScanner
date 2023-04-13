@@ -7,9 +7,9 @@ var nTries int
 
 var configPath string
 var subnets string
-var vpnPath string
 
 var Vpn bool
+var Loglevel string
 var doUploadTest bool
 var fronting bool
 var shuffle bool
@@ -19,7 +19,6 @@ var minULSpeed float64
 var maxDLTime float64
 var maxULTime float64
 
-var startProcessTimeout float64
 var frontingTimeout float64
 var maxDLLatency float64
 var maxULLatency float64
@@ -31,7 +30,8 @@ var writerType string
 func RegisterCommands(rootCmd *cobra.Command) {
 	rootCmd.PersistentFlags().IntVarP(&threads, "threads", "t", 1, "Number of threads to use for parallel scanning")
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "", "The path to the config file")
-	rootCmd.PersistentFlags().BoolVar(&Vpn, "vpn", false, "If passed, test with creating vpn connections")
+	rootCmd.PersistentFlags().BoolVar(&Vpn, "vpn", false, "If passed, test with creating xray-core connections")
+	rootCmd.PersistentFlags().StringVarP(&Loglevel, "loglevel", "l", "none", "The log level for xray-core")
 	rootCmd.PersistentFlags().StringVarP(&subnets, "subnets", "s", "", "The file or subnet. each line should be in the form of ip.ip.ip.ip/subnet_mask or ip.ip.ip.ip.")
 	rootCmd.PersistentFlags().BoolVar(&shuffle, "shuffle", false, "Shuffling given subnet file or input")
 	rootCmd.PersistentFlags().BoolVar(&doUploadTest, "upload", false, "If passed, upload test will be conducted")
@@ -44,8 +44,6 @@ func RegisterCommands(rootCmd *cobra.Command) {
 	rootCmd.PersistentFlags().Float64Var(&frontingTimeout, "fronting-timeout", 1.0, "Maximum time to wait for fronting response")
 	rootCmd.PersistentFlags().Float64Var(&maxDLLatency, "download-latency", 3.0, "Maximum allowed latency for download")
 	rootCmd.PersistentFlags().Float64Var(&maxULLatency, "upload-latency", 3.0, "Maximum allowed latency for upload")
-	rootCmd.PersistentFlags().Float64Var(&startProcessTimeout, "startprocess-timeout", 12, "Process timeout for v2ray")
-	rootCmd.PersistentFlags().StringVar(&vpnPath, "vpn-path", "", "Custom V2Ray binary path for using v2ray binary in another directory")
 	rootCmd.PersistentFlags().StringVar(&writerType, "writer", "csv", "Custom output writer for writing interim results. [csv/json]")
 
 }

@@ -4,6 +4,7 @@ import (
 	configuration "CFScanner/configuration"
 	"CFScanner/scanner"
 	"CFScanner/utils"
+	"CFScanner/vpn"
 	"bufio"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -21,10 +22,6 @@ func run() *cobra.Command {
 		Version: version,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(VersionStatement())
-
-			if vpnPath != "" {
-				configuration.BIN = vpnPath
-			}
 
 			if Vpn {
 				utils.CreateDir(configuration.DIR)
@@ -81,9 +78,8 @@ func run() *cobra.Command {
 				},
 
 				Worker: configuration.Worker{
-					Threads:             threads,
-					Vpn:                 Vpn,
-					StartProcessTimeout: startProcessTimeout,
+					Threads: threads,
+					Vpn:     Vpn,
 					Download: struct {
 						MinDlSpeed   float64
 						MaxDlTime    float64
@@ -97,12 +93,16 @@ func run() *cobra.Command {
 				},
 
 				Shuffling: shuffle,
+				LogLevel:  Loglevel,
 			}
 
 			// Create Configuration file & append vpn fields
 			config = config.CreateTestConfig(configPath)
 
 			timer := time.Now()
+			if config.Worker.Vpn {
+				vpn.XRayVersion()
+			}
 			fmt.Printf("Starting to scan %v%d%v IPS.\n\n", utils.Colors.OKGREEN, numberIPS, utils.Colors.ENDC)
 			// Begin scanning process
 			scanner.Start(config, config.Worker, bigIPList, threadsCount)

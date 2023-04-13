@@ -4,14 +4,14 @@ type Configuration struct {
 	Config    ConfigStruct
 	Worker    Worker
 	Shuffling bool
+	LogLevel  string
 }
 
 type Worker struct {
-	Download            Download
-	Upload              Upload
-	StartProcessTimeout float64 // seconds
-	Threads             int
-	Vpn                 bool
+	Download Download
+	Upload   Upload
+	Threads  int
+	Vpn      bool
 }
 
 type ConfigStruct struct {

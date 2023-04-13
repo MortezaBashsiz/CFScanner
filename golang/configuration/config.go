@@ -14,7 +14,6 @@ import (
 
 var (
 	PROGRAMDIR             = filepath.Dir(os.Args[0])
-	BIN                    = filepath.Join(PROGRAMDIR, "..", "bin", "v2ray")
 	DIR                    = filepath.Join(PROGRAMDIR, "config")
 	RESULTDIR              = filepath.Join(PROGRAMDIR, "result")
 	StartDtStr             = time.Now().Format("2006-01-02_15:04:05")
@@ -31,7 +30,6 @@ WS Header Host: %v%v%v
 WS Header Path : %v%v%v
 Address Port : %v%v%v
 SNI : %v%v%v
-Start Proccess Timeout : %v%v%v
 Upload Test : %v%v%v
 Fronting Request Test : %v%v%v
 Minimum Download Speed : %v%v%v
@@ -42,7 +40,8 @@ Fronting Timeout : %v%v%v
 Maximum Download Latency : %v%v%v
 Maximum Upload Latency : %v%v%v
 Number of Tries : %v%v%v
-VPN Mode : %v%v%v
+Xray-core : %v%v%v
+Xray-loglevel : %v%v%v
 Shuffling : %v%v%v
 Writer : %v%v%v
 Total Threads : %v%v%v
@@ -53,7 +52,6 @@ Total Threads : %v%v%v
 		utils.Colors.OKBLUE, C.Config.WsHeaderPath, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.AddressPort, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.Sni, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, C.Worker.StartProcessTimeout, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.DoUploadTest, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.DoFrontingTest, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Worker.Download.MinDlSpeed, utils.Colors.ENDC,
@@ -65,6 +63,7 @@ Total Threads : %v%v%v
 		utils.Colors.OKBLUE, C.Worker.Upload.MaxUlLatency, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.NTries, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Worker.Vpn, utils.Colors.ENDC,
+		utils.Colors.OKBLUE, C.LogLevel, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Shuffling, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.Writer, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Worker.Threads, utils.Colors.ENDC,
