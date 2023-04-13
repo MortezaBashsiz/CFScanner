@@ -50,7 +50,6 @@ fncIpToLongInt() {
 }
 # End of Function fncIpToLongInt
 
-
 # Function fncSubnetToIP
 # converts subnet to IP list
 fncSubnetToIP() {
@@ -156,7 +155,7 @@ function fncShowProgress {
 # Function fncCheckIPList
 # Check Subnet
 function fncCheckIPList {
-	local ipList scriptDir resultFile timeoutCommand domainFronting
+	local ipList scriptDir resultFile timeoutCommand domainFronting downOK upOK
 	ipList="${1}"
 	resultFile="${3}"
 	scriptDir="${4}"
@@ -169,11 +168,13 @@ function fncCheckIPList {
 	osVersion="${11}"
 	v2rayCommand="${12}"
 	tryCount="${13}"
-	downloadOrUpload="${14}"
-	vpnOrNot="${15}"
+	downThreshold="${14}"
+	upThreshold="${15}"
+	downloadOrUpload="${16}"
+	vpnOrNot="${17}"
 	uploadFile="$scriptDir/../files/upload_file"
 	binDir="$scriptDir/../bin"
-	configDir="$scriptDir/../config"
+	tempConfigDir="$scriptDir/../tempConfig"
 	configPath=$(echo "$configPath" | sed 's/\//\\\//g')
 	# set proper command for linux
 	if command -v timeout >/dev/null 2>&1; 
@@ -193,12 +194,14 @@ function fncCheckIPList {
 	then
 		for ip in ${ipList}
 			do
+				downOK="NO"
+				upOK="NO"
 				if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 				then
 					domainFronting=$($timeoutCommand 1 curl -k -s -w "%{http_code}\n" --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=1000" -o /dev/null)
 					if [[ "$domainFronting" == "200" ]]
 					then
-						ipConfigFile="$configDir/config.json.$ip"
+						ipConfigFile="$tempConfigDir/config.json.$ip"
 						cp "$scriptDir"/config.json.temp "$ipConfigFile"
 						ipO1=$(echo "$ip" | awk -F '.' '{print $1}')
 						ipO2=$(echo "$ip" | awk -F '.' '{print $2}')
@@ -271,14 +274,16 @@ function fncCheckIPList {
 							downAvgStr="$downAvgStr $downTimeMil"
 							upAvgStr="$upAvgStr $upTimeMil"
 						done
-						if [[ $downSuccessedCount -gt 0 ]]
+						if [[ $downSuccessedCount -ge $downThreshold ]]
 						then
+							downOK="YES"
 							downRealTime=$(( downTotalTime/downSuccessedCount ))
 						else
 							downRealTime=0
 						fi
-						if [[ $upSuccessedCount -gt 0 ]]
+						if [[ $upSuccessedCount -ge $upThreshold ]]
 						then
+							upOK="YES"
 							upRealTime=$(( upTotalTime/upSuccessedCount ))
 						else
 							upRealTime=0
@@ -289,18 +294,23 @@ function fncCheckIPList {
 						then
 							kill -9 "$pid" > /dev/null 2>&1
 						fi
-						if [[ "$downRealTime" && $downRealTime -gt 100 ]] || [[ "$upRealTime" && $upRealTime -gt 100 ]]
+						if [[ "$downOK" == "YES" ]] && [[ "$upOK" == "YES" ]]
 						then
-							echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr ${ORANGE}UP: Avg $upRealTime, $upAvgStr${NC}" 
-							if [[ "$downRealTime" && $downRealTime -gt 100 ]]
+							if [[ "$downRealTime" && $downRealTime -gt 100 ]] || [[ "$upRealTime" && $upRealTime -gt 100 ]]
 							then
-								#echo "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr${NC}" 
-								echo "$downRealTime, $downAvgStr DOWN FOR IP $ip" >> "$resultFile"
-							fi
-							if [[ "$upRealTime" && $upRealTime -gt 100 ]]
-							then
-								#echo "${GREEN}OK${NC} $ip ${BLUE}UP: $upRealTime, $upAvgStr${NC}" 
-								echo "$upRealTime, $upAvgStr UP FOR IP $ip" >> "$resultFile"
+								echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr ${ORANGE}UP: Avg $upRealTime, $upAvgStr${NC}" 
+								if [[ "$downRealTime" && $downRealTime -gt 100 ]]
+								then
+									#echo "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr${NC}" 
+									echo "$downRealTime, $downAvgStr DOWN FOR IP $ip" >> "$resultFile"
+								fi
+								if [[ "$upRealTime" && $upRealTime -gt 100 ]]
+								then
+									#echo "${GREEN}OK${NC} $ip ${BLUE}UP: $upRealTime, $upAvgStr${NC}" 
+									echo "$upRealTime, $upAvgStr UP FOR IP $ip" >> "$resultFile"
+								fi
+							else
+								echo -e "${RED}FAILED${NC} $ip"
 							fi
 						else
 							echo -e "${RED}FAILED${NC} $ip"
@@ -316,6 +326,8 @@ function fncCheckIPList {
 	then
 		for ip in ${ipList}
 			do
+				downOK="NO"
+				upOK="NO"
 				if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 				then
 					domainFronting=$($timeoutCommand 1 curl -k -s -w "%{http_code}\n" --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=1000" -o /dev/null)
@@ -360,30 +372,37 @@ function fncCheckIPList {
 							downAvgStr="$downAvgStr $downTimeMil"
 							upAvgStr="$upAvgStr $upTimeMil"
 						done
-						if [[ $downSuccessedCount -gt 0 ]]
+						if [[ $downSuccessedCount -ge $downThreshold ]]
 						then
+							downOK="YES"
 							downRealTime=$(( downTotalTime/downSuccessedCount ))
 						else
 							downRealTime=0
 						fi
-						if [[ $upSuccessedCount -gt 0 ]]
+						if [[ $upSuccessedCount -ge $upThreshold ]]
 						then
+							upOK="YES"
 							upRealTime=$(( upTotalTime/upSuccessedCount ))
 						else
 							upRealTime=0
 						fi
-						if [[ "$downRealTime" && $downRealTime -gt 100 ]] || [[ "$upRealTime" && $upRealTime -gt 100 ]]
+						if [[ "$downOK" == "YES" ]] && [[ "$upOK" == "YES" ]]
 						then
-							echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr ${ORANGE}UP: Avg $upRealTime, $upAvgStr${NC}" 
-							if [[ "$downRealTime" && $downRealTime -gt 100 ]]
+							if [[ "$downRealTime" && $downRealTime -gt 100 ]] || [[ "$upRealTime" && $upRealTime -gt 100 ]]
 							then
-								#echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr${NC}" 
-								echo "$downRealTime, $downAvgStr DOWN FOR IP $ip" >> "$resultFile"
-							fi
-							if [[ "$upRealTime" && $upRealTime -gt 100 ]]
-							then
-								#echo -e "${GREEN}OK${NC} $ip ${BLUE}UP: $upRealTime, $upAvgStr${NC}" 
-								echo "$upRealTime, $upAvgStr UP FOR IP $ip" >> "$resultFile"
+								echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr ${ORANGE}UP: Avg $upRealTime, $upAvgStr${NC}" 
+								if [[ "$downRealTime" && $downRealTime -gt 100 ]]
+								then
+									#echo -e "${GREEN}OK${NC} $ip ${BLUE}DOWN: Avg $downRealTime $downAvgStr${NC}" 
+									echo "$downRealTime, $downAvgStr DOWN FOR IP $ip" >> "$resultFile"
+								fi
+								if [[ "$upRealTime" && $upRealTime -gt 100 ]]
+								then
+									#echo -e "${GREEN}OK${NC} $ip ${BLUE}UP: $upRealTime, $upAvgStr${NC}" 
+									echo "$upRealTime, $upAvgStr UP FOR IP $ip" >> "$resultFile"
+								fi
+							else
+								echo -e "${RED}FAILED${NC} $ip"
 							fi
 						else
 							echo -e "${RED}FAILED${NC} $ip"
@@ -460,7 +479,7 @@ function fncCreateDir {
 # Function fncMainCFFindSubnet
 # main Function for Subnet
 function fncMainCFFindSubnet {
-	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName fileSize osVersion parallelVersion subnetsFile breakedSubnets network netmask downloadOrUpload
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName fileSize osVersion parallelVersion subnetsFile breakedSubnets network netmask downloadOrUpload tryCount downThreshold upThreshold vpnOrNot
 	threads="${1}"
 	progressBar="${2}"
 	resultFile="${3}"
@@ -474,8 +493,10 @@ function fncMainCFFindSubnet {
 	osVersion="${11}"
 	subnetsFile="${12}"
 	tryCount="${13}"
-	downloadOrUpload="${14}"
-	vpnOrNot="${15}"
+	downThreshold="${14}"
+	upThreshold="${15}"
+	downloadOrUpload="${16}"
+	vpnOrNot="${17}"
 
 	if [[ "$osVersion" == "Linux" ]]
 	then
@@ -493,8 +514,8 @@ function fncMainCFFindSubnet {
 	echo "" > "$scriptDir/subnets.list"
 	if [[ "$subnetsFile" == "NULL" ]]	
 	then
-		echo "Reading subnets from file $scriptDir/cf.local.iplist"
-		cfSubnetList=$(cat "$scriptDir/cf.local.iplist")
+		echo "Reading subnets from file $scriptDir/../config/cf.local.iplist"
+		cfSubnetList=$(cat "$scriptDir/../config/cf.local.iplist")
 	else
 		echo "Reading subnets from file $subnetsFile"
 		cfSubnetList=$(cat "$subnetsFile")
@@ -548,10 +569,10 @@ function fncMainCFFindSubnet {
 	  	tput cuu1; tput ed # rewrites Parallel's bar
 	  	if [[ $parallelVersion -gt 20220515 ]];
 	  	then
-	  	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downloadOrUpload" ::: "$vpnOrNot"
+	  	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downThreshold" ::: "$upThreshold" ::: "$downloadOrUpload" ::: "$vpnOrNot"
 	  	else
 	  	  echo -e "${RED}$progressBar${NC}"
-	  	  parallel -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downloadOrUpload" ::: "$vpnOrNot"
+	  	  parallel -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downThreshold" ::: "$upThreshold" ::: "$downloadOrUpload" ::: "$vpnOrNot"
 	  	fi
 			killall v2ray > /dev/null 2>&1
 			passedIpsCount=$(( passedIpsCount+1 ))
@@ -564,7 +585,7 @@ function fncMainCFFindSubnet {
 # Function fncMainCFFindIP
 # main Function for IP
 function fncMainCFFindIP {
-	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName fileSize osVersion parallelVersion IPFile downloadOrUpload
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath configServerName fileSize osVersion parallelVersion IPFile downloadOrUpload downThreshold upThreshold
 	threads="${1}"
 	progressBar="${2}"
 	resultFile="${3}"
@@ -578,8 +599,10 @@ function fncMainCFFindIP {
 	osVersion="${11}"
 	IPFile="${12}"
 	tryCount="${13}"
-	downloadOrUpload="${14}"
-	vpnOrNot="${15}"
+	downThreshold="${14}" 
+	upThreshold="${15}"
+	downloadOrUpload="${16}"
+	vpnOrNot="${17}"
 
 	if [[ "$osVersion" == "Linux" ]]
 	then
@@ -599,17 +622,17 @@ function fncMainCFFindIP {
 	tput cuu1; tput ed # rewrites Parallel's bar
 	if [[ $parallelVersion -gt 20220515 ]];
 	then
-	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downloadOrUpload" ::: "$vpnOrNot"
+	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downThreshold" ::: "$upThreshold" ::: "$downloadOrUpload" ::: "$vpnOrNot"
 	else
 	  echo -e "${RED}$progressBar${NC}"
-	  parallel -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downloadOrUpload" ::: "$vpnOrNot"
+	  parallel -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$configServerName" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downThreshold" ::: "$upThreshold" ::: "$downloadOrUpload" ::: "$vpnOrNot"
 	fi
 	killall v2ray > /dev/null 2>&1
 	sort -n -k1 -t, "$resultFile" -o "$resultFile"
 }
 # End of Function fncMainCFFindIP
 
-clientConfigFile="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/ClientConfig.json"
+clientConfigFile="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/ClientConfig.json"
 subnetIPFile="NULL"
 
 # Function fncUsage
@@ -620,23 +643,27 @@ function fncUsage {
 		echo -e "Usage: cfScanner [ -v YES/NO ]
 			[ -m SUBNET/IP ] 
 			[ -t DOWN/UP/BOTH ]
-			[ -p <int> ]
-			[ -r <int> ]
+			[ -p <int> ] threads
+			[ -n <int> ] trycount
 			[ -c <configfile> ]
-			[ -s <int> ] 
-			[ -d <int> ]
+			[ -s <int> ] speed
+			[ -r <int> ] randomness
+			[ -d <int> ] download threshold
+			[ -u <int> ] upload threshold
 			[ -f <custome-ip-file> (if you chose IP mode)]\n"
 		exit 2
 	elif [[ "$osVersion" == "Linux" ]]
 	then
-		echo -e "Usage: cfScanner [ -vpn|--vpn-mode YES/NO ]
+		echo -e "Usage: cfScanner [ -v|--vpn-mode YES/NO ]
 			[ -m|--mode  SUBNET/IP ] 
 			[ -t|--test-type  DOWN/UP/BOTH ]
-			[ -thr|--thread <int> ]
-			[ -try|--tryCount <int> ]
+			[ -p|--thread <int> ]
+			[ -n|--tryCount <int> ]
 			[ -c|--config <configfile> ]
 			[ -s|--speed <int> ] 
-			[ -d|--random <int> ]
+			[ -r|--random <int> ]
+			[ -d|--down-threshold <int> ]
+			[ -u|--up-threshold <int> ]
 			[ -f|--file <custome-ip-file> (if you chose IP mode)]\n"
 		 exit 2
 	fi
@@ -644,22 +671,26 @@ function fncUsage {
 # End of Function fncUsage
 
 randomNumber="NULL"
+downThreshold="0"
+upThreshold="0"
 osVersion="$(fncCheckDpnd)"
 vpnOrNot="NO"
 subnetOrIP="SUBNET"
 downloadOrUpload="BOTH"
 threads="4"
 tryCount="1"
-config="ClientConfig.json"
+config="NULL"
 speed="100"
 
 if [[ "$osVersion" == "Mac" ]]
 then
-	parsedArguments=$(getopt v:m:t:p:r:c:s:d:f:h "$@")
+	parsedArguments=$(getopt v:m:t:p:n:c:s:r:d:u:f:h "$@")
 elif [[ "$osVersion" == "Linux" ]]
 then
-	parsedArguments=$(getopt -a -n  cfScanner -o vpn:m:t:thr:try:c:s:d:f: --long vpn-mode:,mode:,test-type:,thread:,tryCount:,config:,speed:,random:,file: -- "$@")
+	parsedArguments=$(getopt -a -n cfScanner -o v:m:t:p:n:c:s:r:d:u:f:h --long vpn-mode:,mode:,test-type:,thread:,tryCount:,config:,speed:,random:,down-threshold:,up-threshold:,file:,help -- "$@")
 fi
+
+echo "$parsedArguments" >> /tmp/adaspolo
 
 eval set -- "$parsedArguments"
 if [[ "$osVersion" == "Mac" ]]
@@ -671,14 +702,16 @@ then
 			-m) subnetOrIP="$2" ; shift 2 ;;
 			-t) downloadOrUpload="$2" ; shift 2 ;;
 			-p) threads="$2" ; shift 2 ;;
-			-r) tryCount="$2" ; shift 2 ;;
+			-n) tryCount="$2" ; shift 2 ;;
 			-c) config="$2" ; shift 2 ;;
 			-s) speed="$2" ; shift 2 ;;
-			-d) randomNumber="$2" ; shift 2 ;;
+			-r) randomNumber="$2" ; shift 2 ;;
+			-d) downThreshold="$2" ; shift 2 ;;
+			-u) upThreshold="$2" ; shift 2 ;;
 			-f) subnetIPFile="$2" ; shift 2 ;;
 			-h) fncUsage ;;
 			--) shift; break ;;
-			*) echo "Unexpected option: $1 - this should not happen."
+			*) echo "Unexpected option: $1 is not acceptable"
 			fncUsage ;;
 		esac
 	done
@@ -687,18 +720,20 @@ then
 	while :
 	do
 		case "$1" in
-			-vpn|--vpn-mode) vpnOrNot="$2" ; shift 2 ;;
+			-v|--vpn-mode) vpnOrNot="$2" ; shift 2 ;;
 			-m|--mode) subnetOrIP="$2" ; shift 2 ;;
 			-t|--test-type) downloadOrUpload="$2" ; shift 2 ;;
-			-thr|--thread) threads="$2" ; shift 2 ;;
-			-try|--tryCount) tryCount="$2" ; shift 2 ;;
+			-p|--thread) threads="$2" ; shift 2 ;;
+			-n|--tryCount) tryCount="$2" ; shift 2 ;;
 			-c|--config) config="$2" ; shift 2 ;;
 			-s|--speed) speed="$2" ; shift 2 ;;
-			-d|--random) randomNumber="$2" ; shift 2 ;;
+			-r|--random) randomNumber="$2" ; shift 2 ;;
+			-d|--down-threshold) downThreshold="$2" ; shift 2 ;;
+			-u|--up-threshold) upThreshold="$2" ; shift 2 ;;
 			-f|--file) subnetIPFile="$2" ; shift 2 ;;
 			-h|--help) fncUsage ;;
 			--) shift; break ;;
-			*) echo "Unexpected option: $1 - this should not happen."
+			*) echo "Unexpected option: $1 is not acceptable"
 			fncUsage ;;
 		esac
 	done
@@ -739,7 +774,7 @@ now=$(date +"%Y%m%d-%H%M%S")
 scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 resultDir="$scriptDir/../result"
 resultFile="$resultDir/$now-result.cf"
-configDir="$scriptDir/../config"
+tempConfigDir="$scriptDir/../tempConfig"
 filesDir="$scriptDir/../files"
 
 uploadFile="$filesDir/upload_file"
@@ -760,19 +795,19 @@ export YELLOW='\033[1;33m'
 export NC='\033[0m'
 
 fncCreateDir "${resultDir}"
-fncCreateDir "${configDir}"
+fncCreateDir "${tempConfigDir}"
 echo "" > "$resultFile"
 
-echo "updating config.real"
-if [[ "$config" == "config.real"  ]]
+if [[ "$config" == "NULL"  ]]
 then
+	echo "updating config"
 	configRealUrlResult=$(curl -I -L -s "$clientConfigFile" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
 	if [[ "$configRealUrlResult" == "200" ]]
 	then
-		curl -s "$clientConfigFile" -o "$scriptDir"/config.real
-		echo "config.real updated with $clientConfigFile"
+		curl -s "$clientConfigFile" -o "$scriptDir"/config.default
+		echo "config.default updated with $clientConfigFile"
 		echo ""
-		config="$scriptDir/config.real"
+		config="$scriptDir/config.default"
 		cat "$config"
 	else
 		echo ""
@@ -805,12 +840,11 @@ fncValidateConfig "$config"
 
 if [[ "$subnetOrIP" == "SUBNET" ]]
 then
-	fncMainCFFindSubnet	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$fileSize" "$osVersion" "$subnetIPFile" "$tryCount" "$downloadOrUpload" "$vpnOrNot"
+	fncMainCFFindSubnet	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$fileSize" "$osVersion" "$subnetIPFile" "$tryCount" "$downThreshold" "$upThreshold" "$downloadOrUpload" "$vpnOrNot"
 elif [[ "$subnetOrIP" == "IP" ]]
 then
-	fncMainCFFindIP	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$fileSize" "$osVersion" "$subnetIPFile" "$tryCount" "$downloadOrUpload" "$vpnOrNot"
+	fncMainCFFindIP	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$configServerName" "$fileSize" "$osVersion" "$subnetIPFile" "$tryCount" "$downThreshold" "$upThreshold" "$downloadOrUpload" "$vpnOrNot"
 else
 	echo "$subnetOrIP is not correct choose one SUBNET or IP"
 	exit 1
 fi
-
