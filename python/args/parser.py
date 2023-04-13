@@ -1,9 +1,9 @@
 import argparse
 
-from report.clog import CLogger
 from report.print import color_text
+from rich.console import Console
 
-logger = CLogger("args")
+console = Console()
 
 
 def _title(text):
@@ -217,11 +217,12 @@ def parse_args():
             parsed_args.sample_size = float(parsed_args.sample_size)
         elif parsed_args.sample_size >= 1:
             if parsed_args.sample_size % 1 > 0.000001:
-                logger.warn(
-                    f"Sample size rounded to integer value: {round(parsed_args.sample_size)}"
+                console.log(
+                    f"[yellow]Sample size rounded to integer value: {round(parsed_args.sample_size)}[/yellow]"
                 )
             parsed_args.sample_size = round(parsed_args.sample_size)
         else:
-            raise ValueError(color_text("Sample size must be a positive number.", rgb=(255, 0, 0)))
+            raise ValueError(color_text(
+                "Sample size must be a positive number.", rgb=(255, 0, 0)))
 
     return parsed_args

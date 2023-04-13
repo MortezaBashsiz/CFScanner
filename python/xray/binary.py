@@ -2,16 +2,14 @@ import os
 import zipfile
 
 import requests
-
-from report.clog import CLogger
+from rich.console import Console
 from utils.decorators import timeout_fun
 from utils.exceptions import *
 from utils.requests import download_file
-import traceback
 
 from . import LATEST_SUPPORTED_VERSION, SUPPORTED
 
-logger = CLogger("xraybinary")
+console = Console()
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -42,44 +40,42 @@ def download_binary(
     zipdir = os.path.join(PATH, ".tmp")
     os.makedirs(zipdir, exist_ok=True)
     zip_path = os.path.join(zipdir, f"{platform_str}.zip")
-    bin_fname = f"xray-{'-'.join(system_info)}"        
-    bin_path = os.path.join(bin_dir, bin_fname)  
+    bin_fname = f"xray-{'-'.join(system_info)}"
+    bin_path = os.path.join(bin_dir, bin_fname)
     # if windows, add .exe
     if system_info[0] == "windows":
         bin_path += ".exe"
-        
+
     if not os.path.exists(bin_path):
-        try:  
-            logger.info("Downloading xray...", bin_path)    
-            timeout_fun(timeout=timeout)(download_file)(
-                zip_url, zip_path, timeout=max_latency
-            )
-            logger.success("Downloaded xray", bin_path)
-            with zipfile.ZipFile(zip_path, "r") as archive:
-                if system_info[0] == "windows":
-                    xray_file = archive.read("xray.exe")
-                else:
-                    xray_file = archive.read("xray")
-            with open(bin_path, "wb") as binoutfile:
-                binoutfile.write(xray_file)
-            os.chmod(bin_path, 0o775)
-            return bin_path
-        except FileDownloadError as e:
-            logger.error(
-                "Failed to download the release zip file from xtls xray-core github repo", str(system_info))
-            logger.exception(e)
-            return False
-        except KeyError as e:
-            logger.error("Failed to get binary from zip file", zip_url)
-            logger.exception(e)
-            return False
-        except Exception as e:
-            logger.error("Unknown error", str(system_info))
-            logger.exception(e)
-            traceback.print_exc()
-            return False
+        with console.status("[bold green]Downloading xray[/bold green]") as console_status:
+            try:
+                timeout_fun(timeout=timeout)(download_file)(
+                    zip_url, zip_path, timeout=max_latency
+                )
+                console.log(f"[green]Downloaded xray {bin_path}[green]")
+                with zipfile.ZipFile(zip_path, "r") as archive:
+                    if system_info[0] == "windows":
+                        xray_file = archive.read("xray.exe")
+                    else:
+                        xray_file = archive.read("xray")
+                with open(bin_path, "wb") as binoutfile:
+                    binoutfile.write(xray_file)
+                os.chmod(bin_path, 0o775)
+                return bin_path
+            except FileDownloadError as e:
+                raise BinaryDownloadError(
+                    f"Failed to download the release zip file from xtls xray-core github repo {str(system_info)}")
+                return False
+            except KeyError as e:
+                raise BinaryDownloadError(
+                    f"Failed to get binary from zip file {zip_url}")
+                return False
+            except Exception as e:
+                raise BinaryDownloadError(
+                    f"Unknown error - detected system: {str(system_info)}")
+                return False
     else:
-        logger.info("Binary file already exists", bin_path)
+        console.log(f"[blue]Binary file already exists {bin_path}[/blue]")
         return bin_path
 
 
@@ -99,4 +95,3 @@ def get_latest_release() -> dict:
         raise e
 
     return release_info
-

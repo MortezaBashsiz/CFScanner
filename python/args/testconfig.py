@@ -2,14 +2,13 @@ import argparse
 import json
 import os
 
-from report.clog import CLogger
 from utils.exceptions import BinaryNotFoundError, TemplateReadError
 from utils.os import detect_system
 from utils.requests import download_file
 from xray import templates
 from xray.binary import download_binary
 
-logger = CLogger("testconfig")
+from utils.exceptions import *
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 PARENT_PATH = os.path.dirname(PATH)
@@ -47,10 +46,10 @@ class TestConfig:
                     (file_content["path"].lstrip("/"))
 
         if args.template_path is None:
-            test_config.custom_template = False # user did not provide a custom template
+            test_config.custom_template = False  # user did not provide a custom template
             test_config.proxy_config_template = templates.vmess_ws_tls
         else:
-            test_config.custom_template = True # user provided a custom template 
+            test_config.custom_template = True  # user provided a custom template
             try:
                 with open(args.template_path, "r") as infile:
                     test_config.proxy_config_template = infile.read()
@@ -78,7 +77,7 @@ class TestConfig:
         test_config.max_ul_latency = args.max_ul_latency
         test_config.n_tries = args.n_tries
         test_config.novpn = args.no_vpn
-        
+
         test_config.sample_size = args.sample_size
 
         system_info = detect_system()
@@ -92,9 +91,12 @@ class TestConfig:
                 )
             test_config.binpath = args.binpath
         else:
-            test_config.binpath = download_binary(
-                system_info=system_info,
-                bin_dir=PARENT_PATH
-            )
+            try:
+                test_config.binpath = download_binary(
+                    system_info=system_info,
+                    bin_dir=PARENT_PATH
+                )
+            except Exception as e:
+                raise BinaryDownloadError(str(e))
 
         return test_config

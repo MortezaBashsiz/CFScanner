@@ -4,7 +4,7 @@ from speedtest.tools import mean_jitter
 from statistics import mean
 
 
-def print_and_kill(
+def no_and_kill(
     ip: str,
     message: str,
     process: Popen
@@ -16,11 +16,11 @@ def print_and_kill(
         message (str): the message related to the error
         process (Popen): the process (xray) to be killed
     """
-    print(f"{Colors.FAIL}NO {Colors.WARNING}{ip:15s} {message}{Colors.ENDC}")
     process.kill()
+    return f"[bold red]NO[/bold red] [orange]{ip:15s}[/orange] [yellow]{message}[/yellow]"
 
 
-def print_ok(
+def ok_message(
     scan_result: dict
 ) -> None:
     """prints the result if test is ok
@@ -34,18 +34,16 @@ def print_ok(
     mean_up_speed = mean(scan_result["upload"]["speed"])
     mean_down_latency = mean(scan_result["download"]["latency"])
     mean_up_latency = mean(scan_result["upload"]["latency"])
-    print(
-        f"{Colors.OKGREEN}"
-        f"OK {scan_result['ip']:15s} "
-        f"{Colors.OKBLUE}"
-        f"avg_down_speed: {mean_down_speed:7.4f}mbps "
-        f"avg_up_speed: {mean_up_speed:7.4f}mbps "
-        f"avg_down_latency: {mean_down_latency:7.2f}ms "
-        f"avg_up_latency: {mean_up_latency:7.2f}ms ",
-        f"avg_down_jitter: {down_mean_jitter:7.2f}ms ",
-        f"avg_up_jitter: {up_mean_jitter:4.2f}ms"
-        f"{Colors.ENDC}"
-    )
+    return f"[green]"\
+        f"OK [green][blue_violet]{scan_result['ip']:15s}[/blue_violet][blue] "\
+        f"avg_down_speed: {mean_down_speed:7.4f}mbps "\
+        f"avg_up_speed: {mean_up_speed:7.4f}mbps "\
+        f"avg_down_latency: {mean_down_latency:7.2f}ms "\
+        f"avg_up_latency: {mean_up_latency:7.2f}ms "\
+        f"avg_down_jitter: {down_mean_jitter:7.2f}ms "\
+        f"avg_up_jitter: {up_mean_jitter:4.2f}ms"\
+        f"[/blue]"
+    
     
     
 def color_text(text: str, rgb: tuple, bold: bool = False):
