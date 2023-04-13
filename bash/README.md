@@ -23,13 +23,6 @@ You have to install the following packages:
 [~]>$ cd CFScanner/bash
 [~/CFScanner/bash]> chmod +x ../bin/*
 ```
-
-### 3. Get config.real
-
-```shell
-[~/CFScanner/bash]>$ curl -s https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/ClientConfig.json -o config.real
-```
-
 In the config file the variables are
 ```shell
 {
@@ -38,11 +31,11 @@ In the config file the variables are
 	"Port": "Port which you are using behind Cloudflare on your origin server",
 	"path": "Websocket endpoint like api20",
 	"serverName": "SNI",
-   	"subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/cf.local.iplist"
+   	"subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist"
 }
 ```
 
-### 4. Execute it
+### 3. Execute it
 
 You have following switches to define the arguments 
 
@@ -149,7 +142,7 @@ Which the `ip.list` is like as follows. You can edit this file and add your IPs 
 [~/CFScanner/bash]>$
 ```
 
-### 5. Result
+### 4. Result
 
 It will generate a file in datetime format in the result directory.
 
