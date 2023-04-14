@@ -3,6 +3,7 @@ package vpn
 import (
 	configuration "CFScanner/configuration"
 	"CFScanner/utils"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -25,81 +26,106 @@ func loglevel(level string) string {
 	return logger[4]
 }
 
-var XRayTemplate = `{
-  "log": {
-    "loglevel": "LOG"
-  },
-  "inbounds": [{
-    "port": PORTPORT,
-    "listen": "127.0.0.1",
-    "tag": "socks-inbound",
-    "protocol": "socks",
-    "settings": {
-      "auth": "noauth",
-      "udp": false,
-      "ip": "127.0.0.1"
-    },
-    "sniffing": {
-      "enabled": true,
-      "destOverride": ["http", "tls"]
-    }
-  }],
-  "outbounds": [
-    {
-		"protocol": "vmess",
-    "settings": {
-      "vnext": [{
-        "address": "IP.IP.IP.IP",
-        "port": CFPORT,
-        "users": [{"id": "IDID" }]
-      }]
-    },
-		"streamSettings": {
-        "network": "ws",
-        "security": "tls",
-        "wsSettings": {
-            "headers": {
-                "Host": "HOSTHOST"
-            },
-            "path": "ENDPOINTENDPOINT"
-        },
-        "tlsSettings": {
-            "serverName": "RANDOMHOST",
-            "allowInsecure": false
-        }
-    }
-	}],
-  "other": {}
-}`
+func createInbound() []Inbound {
+	localPortStr := utils.GetFreePort()
+
+	config := Inbound{
+		Port:     localPortStr,
+		Listen:   "127.0.0.1",
+		Tag:      "socks-inbound",
+		Protocol: "socks",
+		Settings: struct {
+			Auth string `json:"auth"`
+			UDP  bool   `json:"udp"`
+			IP   string `json:"ip"`
+		}{"noauth", false, "127.0.0.1"},
+		Sniffing: struct {
+			Enabled      bool     `json:"enabled"`
+			DestOverride []string `json:"destOverride"`
+		}{true, []string{"http", "tls"}},
+	}
+	configSlice := []Inbound{config}
+	return configSlice
+}
+
+func createOutbound(C *configuration.Configuration, IP string) []Outbound {
+	vnextIP, _ := strconv.Atoi(C.Config.AddressPort)
+	config := Outbound{
+		Protocol: "vmess",
+		Settings: struct {
+			VNext []VNext `json:"vnext"`
+		}{
+			VNext: []VNext{
+				{
+					Address: IP,
+					Port:    vnextIP,
+					Users: []User{
+						{
+							ID: C.Config.UserId,
+						},
+					},
+				},
+			},
+		},
+		StreamSettings: StreamSettings{
+			Network:  "ws",
+			Security: "tls",
+			WSSettings: WSSettings{
+				Headers: struct {
+					Host string `json:"Host"`
+				}{
+					Host: C.Config.WsHeaderHost,
+				},
+				Path: C.Config.WsHeaderPath,
+			},
+			TLSSettings: TLSSettings{
+				ServerName:    C.Config.Sni,
+				AllowInsecure: false,
+			},
+		},
+	}
+	configSlice := []Outbound{config}
+	return configSlice
+}
 
 // XRayConfig create VPN configuration
 func XRayConfig(IP string, testConfig *configuration.Configuration) string {
-	localPortStr := strconv.Itoa(utils.GetFreePort())
-	config := strings.ReplaceAll(XRayTemplate, "PORTPORT", localPortStr)
-	config = strings.ReplaceAll(config, "LOG", loglevel(testConfig.LogLevel))
-	config = strings.ReplaceAll(config, "IP.IP.IP.IP", IP)
-	config = strings.ReplaceAll(config, "CFPORT", testConfig.Config.AddressPort)
-	config = strings.ReplaceAll(config, "IDID", testConfig.Config.UserId)
-	config = strings.ReplaceAll(config, "HOSTHOST", testConfig.Config.WsHeaderHost)
-	config = strings.ReplaceAll(config, "ENDPOINTENDPOINT", testConfig.Config.WsHeaderPath)
-	config = strings.ReplaceAll(config, "RANDOMHOST", testConfig.Config.Sni)
+	config := XRay{
+		Log: Log{
+			Loglevel: loglevel(testConfig.LogLevel),
+		},
+		Inbounds:  createInbound(),
+		Outbounds: createOutbound(testConfig, IP),
+		Other:     struct{}{},
+	}
+
+	configByte, err := json.Marshal(config)
+	if err != nil {
+		log.Fatal("Marshal error", err)
+	}
 
 	configPath := fmt.Sprintf("%s/config-%s.json", configuration.DIR, IP)
-	configFile, err := os.Create(configPath)
+
+	err = writeJSONToFile(configByte, configPath)
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer func(configFile *os.File) {
-		err := configFile.Close()
-		if err != nil {
-
-		}
-	}(configFile)
-
-	_, configErr := configFile.WriteString(config)
-	if configErr != nil {
+		log.Fatal("Failed to write JSON to file", err)
 		return ""
 	}
 
 	return configPath
+}
+
+func writeJSONToFile(jsonBytes []byte, filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.Write(jsonBytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -7,51 +7,66 @@ import (
 type ScanWorker struct {
 	Instance *core.Instance
 }
+type Log struct {
+	Loglevel string `json:"loglevel"`
+}
+
+type Inbound struct {
+	Port     int    `json:"port"`
+	Listen   string `json:"listen"`
+	Tag      string `json:"tag"`
+	Protocol string `json:"protocol"`
+	Settings struct {
+		Auth string `json:"auth"`
+		UDP  bool   `json:"udp"`
+		IP   string `json:"ip"`
+	} `json:"settings"`
+	Sniffing struct {
+		Enabled      bool     `json:"enabled"`
+		DestOverride []string `json:"destOverride"`
+	} `json:"sniffing"`
+}
+
+type User struct {
+	ID string `json:"id"`
+}
+
+type VNext struct {
+	Address string `json:"address"`
+	Port    int    `json:"port"`
+	Users   []User `json:"users"`
+}
+
+type WSSettings struct {
+	Headers struct {
+		Host string `json:"Host"`
+	} `json:"headers"`
+	Path string `json:"path"`
+}
+
+type TLSSettings struct {
+	ServerName    string `json:"serverName"`
+	AllowInsecure bool   `json:"allowInsecure"`
+}
+
+type StreamSettings struct {
+	Network     string      `json:"network"`
+	Security    string      `json:"security"`
+	WSSettings  WSSettings  `json:"wsSettings"`
+	TLSSettings TLSSettings `json:"tlsSettings"`
+}
+
+type Outbound struct {
+	Protocol string `json:"protocol"`
+	Settings struct {
+		VNext []VNext `json:"vnext"`
+	} `json:"settings"`
+	StreamSettings StreamSettings `json:"streamSettings"`
+}
 
 type XRay struct {
-	Log struct {
-		Loglevel string `json:"loglevel"`
-	} `json:"log"`
-	Inbounds []struct {
-		Port     string `json:"port"`
-		Listen   string `json:"listen"`
-		Tag      string `json:"tag"`
-		Protocol string `json:"protocol"`
-		Settings struct {
-			Auth string `json:"auth"`
-			UDP  bool   `json:"udp"`
-			IP   string `json:"ip"`
-		} `json:"settings"`
-		Sniffing struct {
-			Enabled      bool     `json:"enabled"`
-			DestOverride []string `json:"destOverride"`
-		} `json:"sniffing"`
-	} `json:"inbounds"`
-	Outbounds []struct {
-		Protocol string `json:"protocol"`
-		Settings struct {
-			Vnext []struct {
-				Address string `json:"address"`
-				Port    string `json:"port"`
-				Users   []struct {
-					ID string `json:"id"`
-				} `json:"users"`
-			} `json:"vnext"`
-		} `json:"settings"`
-		StreamSettings struct {
-			Network    string `json:"network"`
-			Security   string `json:"security"`
-			WSSettings struct {
-				Headers struct {
-					Host string `json:"Host"`
-				} `json:"headers"`
-				Path string `json:"path"`
-			} `json:"wsSettings"`
-			TLSSettings struct {
-				ServerName    string `json:"serverName"`
-				AllowInsecure bool   `json:"allowInsecure"`
-			} `json:"tlsSettings"`
-		} `json:"streamSettings"`
-	} `json:"outbounds"`
-	Other struct{} `json:"other"`
+	Log       Log        `json:"log"`
+	Inbounds  []Inbound  `json:"inbounds"`
+	Outbounds []Outbound `json:"outbounds"`
+	Other     struct{}   `json:"other"`
 }

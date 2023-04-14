@@ -68,7 +68,7 @@ func WriteCSV(file string, result []interface{}) {
 
 func (c CSV) Output() {
 
-	log.Printf("%sOK %-15s %s avg_down_speed: %7.2fmbps avg_up_speed: %7.4fmbps avg_down_latency: %6.2fms avg_up_latency: %6.2fms avg_down_jitter: %6.2fms avg_up_jitter: %4.2fms%s\n",
+	log.Printf("%s[OK] %-15s %s avg_down_speed: %7.2fmbps avg_up_speed: %7.4fmbps avg_down_latency: %6.2fms avg_up_latency: %6.2fms avg_down_jitter: %6.2fms avg_up_jitter: %4.2fms%s\n",
 		utils.Colors.OKGREEN,
 		c.res.IP,
 		utils.Colors.OKBLUE,
