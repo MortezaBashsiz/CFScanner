@@ -2,6 +2,7 @@ import os
 
 from args.testconfig import TestConfig
 from utils.socket import get_free_port
+import uuid
 
 
 def create_proxy_config(
@@ -30,7 +31,9 @@ def create_proxy_config(
         config = config.replace("IDID", test_config.user_id)
         config = config.replace("HOSTHOST", test_config.ws_header_host)
         config = config.replace("ENDPOINTENDPOINT", test_config.ws_header_path)
-        config = config.replace("RANDOMHOST", test_config.sni)
+        hostname = test_config.ws_header_host.split(".", maxsplit=1)[1]
+        random_sni = f"{uuid.uuid4()}.{hostname}"
+        config = config.replace("RANDOMHOST", random_sni)
 
     config_path = os.path.join(config_dir, f"config-{edge_ip}.json")
     with open(config_path, "w") as configFile:
