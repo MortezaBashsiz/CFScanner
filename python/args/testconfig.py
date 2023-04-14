@@ -40,7 +40,6 @@ class TestConfig:
                 test_config.user_id = file_content["id"]
                 test_config.ws_header_host = file_content["host"]
                 test_config.address_port = int(file_content["port"])
-                test_config.sni = file_content["serverName"]
                 test_config.user_id = file_content["id"]
                 test_config.ws_header_path = "/" + \
                     (file_content["path"].lstrip("/"))
