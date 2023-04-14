@@ -147,9 +147,9 @@ Which the `ip.list` is like as follows. You can edit this file and add your IPs 
 It will generate a file in datetime format in the result directory.
 
 ```shell
-[~/CFScanner]>$ ls result/
+[~/CFScanner/bash]>$ ls result/
 20230120-203358-result.cf
-[~/CFScanner]>$
+[~/CFScanner/bash]>$
 ```
 ## Video Guide
 You can find a video guide for this script on [youtube](https://youtu.be/BKLRAHolhvM "youtube") and [youtube](https://youtu.be/4xJvWYdGuV8 "youtube").
