@@ -1,7 +1,9 @@
-from . import Colors
-from subprocess import Popen
-from speedtest.tools import mean_jitter
 from statistics import mean
+from subprocess import Popen
+
+from speedtest.tools import mean_jitter
+
+from . import Colors
 
 
 def no_and_kill(
@@ -43,23 +45,21 @@ def ok_message(
         f"avg_down_jitter: {down_mean_jitter:7.2f}ms "\
         f"avg_up_jitter: {up_mean_jitter:4.2f}ms"\
         f"[/blue]"
-    
-    
-    
+
+
 def color_text(text: str, rgb: tuple, bold: bool = False):
     """prints a colored text in the terminal using ANSI escape codes based on the rgb values
 
     Args:
         text (str): the text to be printed
         rgb (tuple): the rgb values of the color
-    """    
+    """
     if bold:
         return f"\033[1m\033[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m{text}\033[m"
     else:
         return f"\033[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m{text}\033[m"
 
 
-    
 def box_text(text: str):
     """prints a box around the text
 
@@ -68,15 +68,15 @@ def box_text(text: str):
 
     Returns:
         str: the text with the box around it 
-    """ 
+    """
     lines = text.splitlines()
     max_width = max(len(line) for line in lines)
-    
+
     # Define the ANSI escape codes for the header
     HEADER_COLOR = '\033[38;2;64;224;208m'
     BORDER_COLOR = '\033[38;2;100;100;100m'
     BOX_WIDTH = max_width + 10
-    
+
     res_text = ""
 
     # Print the header with a colored border
@@ -84,5 +84,5 @@ def box_text(text: str):
     for line in lines:
         res_text += f"{BORDER_COLOR}|{HEADER_COLOR}{line.center(BOX_WIDTH - 2)}{BORDER_COLOR}|\n"
     res_text += f"{BORDER_COLOR}{'+' + '-' * (BOX_WIDTH - 2) + '+'}\033[m"
-    
+
     return res_text

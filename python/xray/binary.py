@@ -3,6 +3,7 @@ import zipfile
 
 import requests
 from rich.console import Console
+
 from utils.decorators import timeout_fun
 from utils.exceptions import *
 from utils.requests import download_file
@@ -65,15 +66,12 @@ def download_binary(
             except FileDownloadError as e:
                 raise BinaryDownloadError(
                     f"Failed to download the release zip file from xtls xray-core github repo {str(system_info)}")
-                return False
             except KeyError as e:
                 raise BinaryDownloadError(
                     f"Failed to get binary from zip file {zip_url}")
-                return False
             except Exception as e:
                 raise BinaryDownloadError(
                     f"Unknown error - detected system: {str(system_info)}")
-                return False
     else:
         console.log(f"[blue]Binary file already exists {bin_path}[/blue]")
         return bin_path

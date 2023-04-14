@@ -1,6 +1,5 @@
-import statistics
-
 import requests
+
 from args.testconfig import TestConfig
 from report.print import no_and_kill, ok_message
 from utils.decorators import timeout_fun
@@ -11,7 +10,6 @@ from xray.service import start_proxy_service
 from .download import download_speed_test
 from .fronting import fronting_test
 from .upload import upload_speed_test
-
 
 
 class TestResult:
@@ -101,8 +99,10 @@ def test_ip(
             )
         except Exception as e:
             test_result.is_ok = False
-            raise StartProxyServiceError(f"Could not start xray service - {ip}")
-            
+            raise StartProxyServiceError(
+                f"Could not start xray service - {ip}"
+            )
+
     else:
         process = _FakeProcess()
         proxies = None
@@ -134,8 +134,8 @@ def test_ip(
             return test_result
         except Exception as e:
             fail_msg = no_and_kill(
-                ip=ip, 
-                message="download unknown error", 
+                ip=ip,
+                message="download unknown error",
                 process=process
             )
             test_result.message = fail_msg
@@ -213,7 +213,7 @@ def test_ip(
     process.kill()
 
     test_ok_msg = ok_message(test_result.result)
-    
+
     test_result.is_ok = True
     test_result.message = test_ok_msg
     return test_result
