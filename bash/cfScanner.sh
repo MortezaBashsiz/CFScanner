@@ -712,8 +712,6 @@ then
 	parsedArguments=$(getopt -a -n cfScanner -o v:m:t:p:n:c:s:r:d:u:f:h --long vpn-mode:,mode:,test-type:,thread:,tryCount:,config:,speed:,random:,down-threshold:,up-threshold:,file:,help -- "$@")
 fi
 
-echo "$parsedArguments" >> /tmp/adaspolo
-
 eval set -- "$parsedArguments"
 if [[ "$osVersion" == "Mac" ]]
 then
