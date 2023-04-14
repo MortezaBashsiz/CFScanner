@@ -173,7 +173,7 @@ function fncCheckIPList {
 	downloadOrUpload="${16}"
 	vpnOrNot="${17}"
 	binDir="$scriptDir/../bin"
-	tempConfigDir="$scriptDir/../tempConfig"
+	tempConfigDir="$scriptDir/tempConfig"
 	uploadFile="$tempConfigDir/upload_file"
 	configPath=$(echo "$configPath" | sed 's/\//\\\//g')
 	# set proper command for linux
