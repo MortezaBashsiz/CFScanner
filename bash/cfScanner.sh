@@ -172,9 +172,9 @@ function fncCheckIPList {
 	upThreshold="${15}"
 	downloadOrUpload="${16}"
 	vpnOrNot="${17}"
-	uploadFile="$scriptDir/../files/upload_file"
 	binDir="$scriptDir/../bin"
 	tempConfigDir="$scriptDir/../tempConfig"
+	uploadFile="$tempConfigDir/upload_file"
 	configPath=$(echo "$configPath" | sed 's/\//\\\//g')
 	# set proper command for linux
 	if command -v timeout >/dev/null 2>&1; 
@@ -792,10 +792,10 @@ fi
 
 now=$(date +"%Y%m%d-%H%M%S")
 scriptDir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-resultDir="$scriptDir/../result"
+resultDir="$scriptDir/result"
 resultFile="$resultDir/$now-result.cf"
-tempConfigDir="$scriptDir/../tempConfig"
-filesDir="$scriptDir/../files"
+tempConfigDir="$scriptDir/tempConfig"
+filesDir="$tempConfigDir"
 
 uploadFile="$filesDir/upload_file"
 

@@ -1,9 +1,8 @@
-tempConfig/
-result/
-files/
-files/upload_file
 bash/config.default
 bash/subnets.list
+bash/tempConfig/
+bash/result/
+bash/log/
 python/log/
 python/venv/
 python/__pycache__/
