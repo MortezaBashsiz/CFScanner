@@ -220,6 +220,9 @@ Contributors names and contact info
 * 1.2.1
   * Fixed the bug for keyboard interrupt in windows
   * improved the keyboard interrupt handling in general
+* 1.2.2
+  * Improved error logging
+  * Errors are logged into a file in case of an unexpected error
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
 [version]: https://img.shields.io/badge/Version-1.2.1-blue

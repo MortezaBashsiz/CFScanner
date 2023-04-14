@@ -17,6 +17,7 @@ from speedtest.tools import mean_jitter
 from subnets import cidr_to_ip_list, get_num_ips_in_cidr, read_cidrs
 from utils.exceptions import *
 from utils.os import create_dir
+import logging
 
 console = Console()
 
@@ -36,6 +37,13 @@ RESULTDIR = f"{SCRIPTDIR}/result"
 START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
 INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
 
+log_dir = os.path.join(SCRIPTDIR, "log")
+os.makedirs(log_dir, exist_ok=True)
+logging.basicConfig(
+    filename=os.path.join(log_dir, f"{START_DT_STR}.log")
+)
+
+logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     console = Console()
@@ -50,7 +58,8 @@ if __name__ == "__main__":
             try:
                 create_dir(CONFIGDIR)
             except Exception as e:
-                console.log("[red]Could not created config directory[/red]")
+                console.log("[red]Could not create config directory[/red]")
+                logging.exception("Could not create config directory")
                 exit(1)
         console.log(f"[blue]Config directory created \"{CONFIGDIR}\"[/blue]")
         configFilePath = args.config_path
@@ -60,6 +69,8 @@ if __name__ == "__main__":
             create_dir(RESULTDIR)
         except Exception as e:
             console.log("[red]Could not create results directory[/red]")
+            logging.exception("Could not create results directory")
+            exit(1)
     console.log(f"[blue]Results directory created \"{RESULTDIR}\"[/blue]")
 
     # create empty result file
@@ -86,6 +97,8 @@ if __name__ == "__main__":
             console.log(
                 f"[red]Could not create empty result file:\n\"{INTERIM_RESULTS_PATH}\"[/red]"
             )
+            logging.exception("Could not create empty result file")
+            exit(1)
 
     threadsCount = args.threads
 
@@ -95,9 +108,11 @@ if __name__ == "__main__":
                 cidr_list = read_cidrs(args.subnets)
             except SubnetsReadError as e:
                 console.log(f"[red]Could not read subnets. {e}[/red]")
+                logging.exception("Could not read subnets")
                 exit(1)
             except Exception as e:
                 console.log(f"Unknown error in reading subnets: {e}")
+                logging.exception("Unknown error in reading subnets")
                 exit(1)
         console.log(
             f"[blue]Subnets successfully read from \"{args.subnets}\"[/blue]")
@@ -119,9 +134,11 @@ if __name__ == "__main__":
                 exit(1)
     try:
         test_config = TestConfig.from_args(args)
-    except TemplateReadError:
+    except TemplateReadError as e:
         console.log(
-            f"[red]Could not read template from file \"{args.template_path}\"[/red]")
+            f"[red]Could not read template from file \"{args.template_path}\"[/red]"
+        )
+        logger.exception(e)        
         exit(1)
     except BinaryNotFoundError:
         console.log(
@@ -206,6 +223,8 @@ if __name__ == "__main__":
                     progress.stop()
                     console.log(f"[red]{e}[/red]")
                     pool.terminate()
+                    logging.exception("Error in starting xray service.")
+                    break
                 except StopIteration as e:
                     for task in progress.tasks:
                         progress.stop_task(task.id)
@@ -225,3 +244,4 @@ if __name__ == "__main__":
                 except Exception as e:
                     progress.log("[red]Unknown error![/red]")
                     console.print_exception()
+                    logging.exception(e)
