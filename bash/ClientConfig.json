@@ -3,6 +3,6 @@
 	"host": "scherehtzhel01.eersch.net",
 	"port": "443",
 	"path": "api01",
-	"serverName": "815a2e4b-f639-56f5-b498-2c149402ee80.eersch.net",
+	"serverName": "9144a6da-1323-4cea-8513-9ec0b707110a.eersch.net",
 	"subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist"
 }
