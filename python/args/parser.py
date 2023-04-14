@@ -1,7 +1,8 @@
 import argparse
 
-from report.print import color_text
 from rich.console import Console
+
+from report.print import color_text
 
 console = Console()
 

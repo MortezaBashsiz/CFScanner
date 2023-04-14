@@ -10,6 +10,7 @@ python/*/__pycache__/
 python/.vscode/
 python/*/log/
 python/.xray-configs
+python/result/
 .tmp
 golang/CFScanner
 windows/*.rsuser
