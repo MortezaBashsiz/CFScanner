@@ -27,6 +27,8 @@ func (m *ScannerManage) String() string {
 		builder.WriteString(red)
 	case ErrorStatus:
 		builder.WriteString(red)
+	case InfoStatus:
+		builder.WriteString(yellow)
 	case OKStatus:
 		builder.WriteString(green)
 	}
@@ -50,10 +52,10 @@ func (m *ScannerManage) String() string {
 		builder.WriteString(reset)
 	}
 
-	if err := m.Error; err != nil {
+	if err := m.Cause; err != "" {
 		builder.WriteString(red)
 		builder.WriteString(" ")
-		builder.WriteString(m.Error.Error())
+		builder.WriteString(m.Cause)
 		builder.WriteString(reset)
 	}
 

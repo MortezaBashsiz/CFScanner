@@ -1,5 +1,6 @@
 package scanner
 
+import "C"
 import (
 	config "CFScanner/configuration"
 	"CFScanner/logger"
@@ -8,7 +9,6 @@ import (
 	"CFScanner/vpn"
 	"fmt"
 	"github.com/eiannone/keyboard"
-	"github.com/xtls/xray-core/common/errors"
 	"math"
 	"os"
 	"runtime"
@@ -46,7 +46,7 @@ var (
 )
 
 // const WorkerCount = 48
-func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
+func scanner(ip string, Config config.Configuration, Worker config.Worker) *Result {
 
 	result := &Result{
 		IP: ip,
@@ -60,7 +60,7 @@ func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 
 	if Worker.Vpn {
 		// create config for desired ip
-		xrayConfigPath := vpn.XRayConfig(ip, &C)
+		xrayConfigPath := vpn.XRayConfig(ip, &Config)
 		listen, port, _ := vpn.XRayReceiver(xrayConfigPath)
 
 		// bind proxy
@@ -81,6 +81,7 @@ func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 				IP:      "",
 				Status:  logger.ErrorStatus,
 				Message: "Could not start vpn service",
+				Cause:   err.Error(),
 			}
 			ld.Print()
 			os.Exit(1)
@@ -95,6 +96,7 @@ func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 					IP:      "",
 					Status:  logger.ErrorStatus,
 					Message: "Failed to stop xray-core instance",
+					Cause:   err.Error(),
 				}
 				ld.Print()
 			}
@@ -102,11 +104,11 @@ func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 		}()
 	}
 
-	for tryIdx := 0; tryIdx < C.Config.NTries; tryIdx++ {
+	for tryIdx := 0; tryIdx < Config.Config.NTries; tryIdx++ {
 		// Fronting test
 
-		if C.Config.DoFrontingTest {
-			fronting := speedtest.FrontingTest(ip, proxies, time.Duration(C.Config.FrontingTimeout))
+		if Config.Config.DoFrontingTest {
+			fronting := speedtest.FrontingTest(ip, proxies, time.Duration(Config.Config.FrontingTimeout))
 
 			if !fronting {
 				return nil
@@ -119,7 +121,7 @@ func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 		}
 
 		// upload speed test
-		if C.Config.DoUploadTest {
+		if Config.Config.DoUploadTest {
 			if m2, done2 := uploader(ip, Upload, proxies, result); done2 {
 				return m2
 			}
@@ -130,7 +132,7 @@ func scanner(ip string, C config.Configuration, Worker config.Worker) *Result {
 
 		ld := logger.ScannerManage{
 			IP:     ip,
-			Status: logger.OKStatus,
+			Status: logger.InfoStatus,
 			Message: fmt.Sprintf("Download: %7.4fmbps , Upload: %7.4fmbps , UP_Latency: %vms , DL_Latency: %vms",
 				downloadSpeed, uploadSpeed, upTimeLatency, dlTimeLatency),
 		}
@@ -150,29 +152,14 @@ func uploader(ip string, Upload *config.Upload, proxies map[string]string, resul
 		ld := logger.ScannerManage{
 			IP:      ip,
 			Status:  logger.FailStatus,
-			Message: logger.UploadErorr,
-			Error:   errors.New(err.Error()),
+			Message: logger.UploadError,
+			Cause:   err.Error(),
 		}
 		ld.Print()
 		return nil, true
 	}
-	if uploadLatency <= Upload.MaxUlLatency {
-		uploadSpeedKbps := uploadSpeed / 8 * 1000
 
-		if uploadSpeedKbps >= Upload.MinUlSpeed {
-			result.Upload.Speed = append(result.Upload.Speed, uploadSpeed)
-			result.Upload.Latency = append(result.Upload.Latency, int(math.Round(uploadLatency*1000)))
-		} else {
-			ld := logger.ScannerManage{
-				IP:     ip,
-				Status: logger.FailStatus,
-				Message: fmt.Sprintf("Upload too slow %f kBps < %f kBps",
-					uploadSpeedKbps, Upload.MinUlSpeed),
-			}
-			ld.Print()
-			return nil, true
-		}
-	} else {
+	if uploadLatency >= Upload.MaxUlLatency {
 		ld := logger.ScannerManage{
 			IP:      ip,
 			Status:  logger.FailStatus,
@@ -181,6 +168,23 @@ func uploader(ip string, Upload *config.Upload, proxies map[string]string, resul
 		ld.Print()
 		return nil, true
 	}
+
+	uploadSpeedKbps := uploadSpeed / 8 * 1000
+
+	if uploadSpeedKbps <= Upload.MinUlSpeed {
+		ld := logger.ScannerManage{
+			IP:     ip,
+			Status: logger.FailStatus,
+			Message: fmt.Sprintf("Upload too slow %f kBps < %f kBps",
+				uploadSpeedKbps, Upload.MinUlSpeed),
+		}
+		ld.Print()
+		return nil, true
+	}
+
+	result.Upload.Speed = append(result.Upload.Speed, uploadSpeed)
+	result.Upload.Latency = append(result.Upload.Latency, int(math.Round(uploadLatency*1000)))
+
 	return nil, false
 }
 
@@ -192,45 +196,18 @@ func downloader(ip string, Download *config.Download, proxies map[string]string,
 		time.Duration(Download.MaxDlLatency))
 
 	if err != nil {
-		if strings.Contains(strings.ToLower(err.Error()), "download/upload too slow") {
-			ld := logger.ScannerManage{
-				IP:      ip,
-				Status:  logger.FailStatus,
-				Message: logger.DownloadSpeedSlow,
-				Error:   errors.New(err.Error()),
-			}
-			ld.Print()
-		} else {
-			ld := logger.ScannerManage{
-				IP:      ip,
-				Status:  logger.FailStatus,
-				Message: logger.DownloadError,
-			}
-			ld.Print()
+		ld := logger.ScannerManage{
+			IP:      ip,
+			Status:  logger.FailStatus,
+			Message: logger.DownloadError,
+			Cause:   err.Error(),
 		}
+		ld.Print()
 		return nil, true
+
 	}
 
-	if downloadLatency <= Download.MaxDlLatency {
-		downloadSpeedKBps := downloadSpeed / 8 * 1000
-
-		if downloadSpeedKBps >= Download.MinDlSpeed {
-			result.Download.Speed = append(result.Download.Speed, downloadSpeed)
-			result.Download.Latency = append(result.Download.Latency, int(math.Round(downloadLatency*1000)))
-
-		} else {
-
-			ld := logger.ScannerManage{
-				IP:     ip,
-				Status: logger.FailStatus,
-				Message: fmt.Sprintf("Download too slow %.4f kBps < %.4f kBps",
-					downloadSpeedKBps, Download.MinDlSpeed),
-			}
-			ld.Print()
-
-			return nil, true
-		}
-	} else {
+	if downloadLatency >= Download.MaxDlLatency {
 		ld := logger.ScannerManage{
 			IP:     ip,
 			Status: logger.FailStatus,
@@ -241,11 +218,27 @@ func downloader(ip string, Download *config.Download, proxies map[string]string,
 
 		return nil, true
 	}
+	downloadSpeedKBps := downloadSpeed / 8 * 1000
+
+	if downloadSpeedKBps <= Download.MinDlSpeed {
+		ld := logger.ScannerManage{
+			IP:     ip,
+			Status: logger.FailStatus,
+			Message: fmt.Sprintf("Download too slow %.4f kBps < %.4f kBps",
+				downloadSpeedKBps, Download.MinDlSpeed),
+		}
+		ld.Print()
+		return nil, true
+
+	}
+	result.Download.Speed = append(result.Download.Speed, downloadSpeed)
+	result.Download.Latency = append(result.Download.Latency, int(math.Round(downloadLatency*1000)))
+
 	return result, false
 }
 
-func scan(C *config.Configuration, worker *config.Worker, ip string) {
-	res := scanner(ip, *C, *worker)
+func scan(Config *config.Configuration, worker *config.Worker, ip string) {
+	res := scanner(ip, *Config, *worker)
 
 	if res == nil {
 		return
@@ -267,7 +260,7 @@ func scan(C *config.Configuration, worker *config.Worker, ip string) {
 	}
 	upMeanJitter := -1.0
 
-	if C.Config.DoUploadTest {
+	if Config.Config.DoUploadTest {
 		upMeanJitter = utils.MeanJitter(uploadLatency)
 	}
 
@@ -276,13 +269,13 @@ func scan(C *config.Configuration, worker *config.Worker, ip string) {
 	meanUploadSpeed := -1.0
 
 	uploadSpeed := res.Upload.Speed
-	if C.Config.DoUploadTest {
+	if Config.Config.DoUploadTest {
 		meanUploadSpeed = utils.Mean(uploadSpeed)
 	}
 
 	meanDownLatency := utils.Mean(downLatency)
 	meanUploadLatency := -1.0
-	if C.Config.DoUploadTest {
+	if Config.Config.DoUploadTest {
 		meanUploadLatency = utils.Mean(uploadLatency)
 	}
 
@@ -295,7 +288,7 @@ func scan(C *config.Configuration, worker *config.Worker, ip string) {
 	results = append(results, []string{latencyDownloadString, ip})
 
 	var Writer Writer
-	switch C.Config.Writer {
+	switch Config.Config.Writer {
 	case "csv":
 		Writer = CSV{
 			res:                 res,
@@ -319,11 +312,12 @@ func scan(C *config.Configuration, worker *config.Worker, ip string) {
 			MeanUploadLatency:   meanUploadLatency,
 		}
 	default:
+		cause := fmt.Errorf("Invalid writer type: %s\n", Config.Config.Writer)
 		ld := logger.ScannerManage{
 			IP:      "",
-			Status:  "",
+			Status:  logger.ErrorStatus,
 			Message: nil,
-			Error:   fmt.Errorf("Invalid writer type: %s\n", C.Config.Writer),
+			Cause:   cause.Error(),
 		}
 		ld.Print()
 		os.Exit(1)

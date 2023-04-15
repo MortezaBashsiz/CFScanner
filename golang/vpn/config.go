@@ -5,6 +5,7 @@ import (
 	"CFScanner/utils"
 	"encoding/json"
 	"fmt"
+	"github.com/xtls/xray-core/common/uuid"
 	"log"
 	"os"
 	"strconv"
@@ -50,6 +51,13 @@ func createInbound() []Inbound {
 
 func createOutbound(C *configuration.Configuration, IP string) []Outbound {
 	vnextIP, _ := strconv.Atoi(C.Config.AddressPort)
+	streamUUID := uuid.New()
+
+	substrings := strings.SplitN(C.Config.WsHeaderHost, ".", 2)
+	hostname := substrings[1]
+
+	C.Config.Sni = fmt.Sprintf("%s.%s", streamUUID.String(), hostname)
+
 	config := Outbound{
 		Protocol: "vmess",
 		Settings: struct {

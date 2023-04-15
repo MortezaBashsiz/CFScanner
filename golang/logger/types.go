@@ -5,5 +5,5 @@ type ScannerManage struct {
 	IP      string
 	Status  LogStatus
 	Message interface{}
-	Error   error
+	Cause   string
 }
