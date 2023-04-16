@@ -12,9 +12,10 @@ url = 'https://asnlookup.com/asn/'
 agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0"
 ips = list()
 asns = ['AS13335', 'AS209242']
-correctIp = ['23', '31', '45', '66', '80', '89', '103', '104', '108', '141',
-             '147', '154', '159', '168', '170', '173', '185', '188', '191',
-             '192', '193', '194', '195', '199', '203', '205', '212']
+# correctIp = ['23', '31', '45', '66', '80', '89', '103', '104', '108', '141',
+#              '147', '154', '159', '168','162', '170', '172', '173', '185', '188', '191',
+#              '192', '193', '194', '195', '198', '199', '203', '205', '212', ]
+wrongIp = ['1', '8' ]
 
 
 def substring_after(s, delim):
@@ -62,7 +63,7 @@ def extract_ips(text):
 def filter_ips(ips):
     def filterFun(ip):
         tarter = ip.split(".")[0]
-        return correctIp.count(tarter)
+        return False if wrongIp.count(tarter) else True
 
     return filter(filterFun, ips)
 
@@ -87,6 +88,7 @@ ips.extend(thirdReq.text.splitlines())
 teh_tz = pytz.timezone('Iran')
 datetime_Th = datetime.now(teh_tz)
 
+#disable filter
 finalList = list(set(filter_ips(ips)))
 count = len(finalList)
 time = datetime_Th
@@ -104,9 +106,9 @@ repoUrl = "https://{token}@github.com/MortezaBashsiz/CFScanner".format(token=git
 
 print("start Git repository update ...")
 result = subprocess.getoutput("git clone " + repoUrl + " " + repoPath)
-result = subprocess.getoutput(f"git -C {repoPath} fetch origin dev:dev")
-result = subprocess.getoutput(f"git -C {repoPath} pull -f origin dev:dev")
-result = subprocess.getoutput(f"git -C {repoPath} checkout dev")
+result = subprocess.getoutput(f"git -C {repoPath} fetch origin ip-update:ip-update")
+result = subprocess.getoutput(f"git -C {repoPath} pull -f origin ip-update:ip-update")
+result = subprocess.getoutput(f"git -C {repoPath} checkout ip-update")
 
 if os.path.exists(outputPath):
     os.remove(outputPath)
@@ -118,7 +120,7 @@ f.close()
 description = "Updated at {time} by {count} items".format(time=time, count=count)
 result = subprocess.getoutput(f"git -C {repoPath} add .")
 result = subprocess.getoutput(f"git -C {repoPath} commit -m \"{description}\"")
-result = subprocess.getoutput(f"git -C {repoPath} push origin dev")
+result = subprocess.getoutput(f"git -C {repoPath} push origin ip-update")
 print("Git repository updated.")
 
 print("<====\ Ended at  " + str(datetime.now()) + " /====>")
