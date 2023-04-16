@@ -29,7 +29,6 @@ User ID : %v%v%v
 WS Header Host: %v%v%v
 WS Header Path : %v%v%v
 Address Port : %v%v%v
-SNI : %v%v%v
 Upload Test : %v%v%v
 Fronting Request Test : %v%v%v
 Minimum Download Speed : %v%v%v
@@ -51,7 +50,6 @@ Total Threads : %v%v%v
 		utils.Colors.OKBLUE, C.Config.WsHeaderHost, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.WsHeaderPath, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.AddressPort, utils.Colors.ENDC,
-		utils.Colors.OKBLUE, C.Config.Sni, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.DoUploadTest, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Config.DoFrontingTest, utils.Colors.ENDC,
 		utils.Colors.OKBLUE, C.Worker.Download.MinDlSpeed, utils.Colors.ENDC,
@@ -99,7 +97,7 @@ func (C Configuration) CreateTestConfig(configPath string) Configuration {
 	C.Config.UserId = jsonFileContent["id"].(string)
 	C.Config.WsHeaderHost = jsonFileContent["host"].(string)
 	C.Config.AddressPort = jsonFileContent["port"].(string)
-	C.Config.Sni = jsonFileContent["serverName"].(string)
+	//C.Config.Sni = jsonFileContent["serverName"].(string)
 	C.Config.WsHeaderPath = "/" + strings.TrimLeft(jsonFileContent["path"].(string), "/")
 
 	C.PrintInformation()

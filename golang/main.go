@@ -5,11 +5,12 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 )
 
 // Program Info
 var (
-	version  = "1.6"
+	version  = "v" + time.Now().Format("2006.01.02")
 	build    = "Custom"
 	codename = "CFScanner , CloudFlare Scanner."
 )
