@@ -65,6 +65,8 @@ namespace WinCFScan
                 isAppCongigValid = false;
             }
 
+
+
             scanEngine = new ScanEngine();
 
             loadLastResultsComboList();
@@ -286,6 +288,11 @@ namespace WinCFScan
                 .ContinueWith(done =>
                 {
                     scanFinished = true;
+
+                    if (!scanEngine.progressInfo.pauseRequested)
+                    {
+                        lastScanType = null;
+                    }
 
                     // don't update results in diagnose test
                     if (!isDiagnosing)

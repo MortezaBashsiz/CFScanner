@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -26,6 +27,8 @@ namespace WinCFScan.Classes
         public string frontingException = "";
         private bool isDiagnosing = false;
         public bool isV2rayExecutionSuccess = false;
+
+
 
         public CheckIPWorking(string ip, ScanSpeed targetSpeed, CustomConfigInfo scanConfig, int downloadTimeout, bool isDiagnosing = false)
         {
@@ -236,7 +239,7 @@ namespace WinCFScan.Classes
                         .Replace("PORTPORT", port)
                         .Replace("HOSTHOST", clientConfig.host)
                         .Replace("CFPORTCFPORT", clientConfig.port)
-                        .Replace("RANDOMHOST", clientConfig.serverName)
+                        .Replace("RANDOMHOST", getRandomSNI(clientConfig.host))
                         .Replace("IP.IP.IP.IP", this.ip)
                         .Replace("ENDPOINTENDPOINT", clientConfig.path);
                 }
@@ -258,6 +261,13 @@ namespace WinCFScan.Classes
                 return false;
             }
 
+        }
+
+        private string getRandomSNI(string host)
+        {
+            var urlParts = host.Split(".");
+            urlParts[0] = Guid.NewGuid().ToString();
+            return string.Join(".", urlParts); 
         }
 
         // sum of ip segments plus 3000
@@ -284,6 +294,7 @@ namespace WinCFScan.Classes
             //}
             startInfo.UseShellExecute = false;
             startInfo.Arguments = $"run -config=\"{v2rayConfigPath}\"";
+            //startInfo.Arguments = $"-c \"{v2rayConfigPath}\"";
             Tools.logStep(Environment.NewLine + "----- Running v2ray.exe -----", isDiagnosing);
             Tools.logStep($"Starting v2ray.exe with arg: {startInfo.Arguments}", isDiagnosing);
             bool wasSuccess = false;
