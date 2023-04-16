@@ -65,6 +65,8 @@ namespace WinCFScan
                 isAppCongigValid = false;
             }
 
+
+
             scanEngine = new ScanEngine();
 
             loadLastResultsComboList();
