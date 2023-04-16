@@ -289,6 +289,11 @@ namespace WinCFScan
                 {
                     scanFinished = true;
 
+                    if (!scanEngine.progressInfo.pauseRequested)
+                    {
+                        lastScanType = null;
+                    }
+
                     // don't update results in diagnose test
                     if (!isDiagnosing)
                         currentScanResults = scanEngine.progressInfo.scanResults.workingIPs;
