@@ -6,7 +6,7 @@ type Writer interface {
 }
 
 type CSV struct {
-	res                 *Result
+	res                 *ScanResult
 	IP                  string
 	DownloadMeanJitter  float64
 	UploadMeanJitter    float64
@@ -17,7 +17,7 @@ type CSV struct {
 }
 
 type JSON struct {
-	res                 *Result
+	res                 *ScanResult
 	IP                  string  `json:"ip"`
 	DownloadMeanJitter  float64 `json:"downloadMeanJitter"`
 	UploadMeanJitter    float64 `json:"uploadMeanJitter"`

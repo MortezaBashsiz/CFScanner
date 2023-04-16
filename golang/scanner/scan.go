@@ -1,6 +1,5 @@
 package scanner
 
-import "C"
 import (
 	config "CFScanner/configuration"
 	"CFScanner/logger"
@@ -8,7 +7,6 @@ import (
 	"CFScanner/utils"
 	"CFScanner/vpn"
 	"fmt"
-	"github.com/eiannone/keyboard"
 	"math"
 	"os"
 	"runtime"
@@ -16,6 +14,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/eiannone/keyboard"
 )
 
 var results [][]string
@@ -27,7 +27,7 @@ var (
 	uploadLatency   float64
 )
 
-type Result struct {
+type ScanResult struct {
 	IP       string
 	Download struct {
 		Speed   []float64
@@ -46,9 +46,9 @@ var (
 )
 
 // const WorkerCount = 48
-func scanner(ip string, Config config.Configuration, Worker config.Worker) *Result {
+func scanner(ip string, Config config.Configuration, Worker config.Worker) *ScanResult {
 
-	result := &Result{
+	result := &ScanResult{
 		IP: ip,
 	}
 
@@ -67,11 +67,7 @@ func scanner(ip string, Config config.Configuration, Worker config.Worker) *Resu
 		proxies = vpn.ProxyBind(listen, port)
 
 		// wait for port
-		waitPort := utils.WaitForPort(listen, port, time.Duration(5))
-
-		if waitPort != nil {
-			fmt.Errorf(waitPort.Error())
-		}
+		utils.WaitForPort(listen, port, time.Duration(5))
 
 		var err error
 		process = vpn.XRayInstance(xrayConfigPath)
@@ -142,7 +138,7 @@ func scanner(ip string, Config config.Configuration, Worker config.Worker) *Resu
 	return result
 }
 
-func uploader(ip string, Upload *config.Upload, proxies map[string]string, result *Result) (*Result, bool) {
+func uploader(ip string, Upload *config.Upload, proxies map[string]string, result *ScanResult) (*ScanResult, bool) {
 	var err error
 	nBytes := Upload.MinUlSpeed * 1000 * Upload.MaxUlTime
 	uploadSpeed, uploadLatency, err = speedtest.UploadSpeedTest(int(nBytes), proxies,
@@ -188,7 +184,7 @@ func uploader(ip string, Upload *config.Upload, proxies map[string]string, resul
 	return nil, false
 }
 
-func downloader(ip string, Download *config.Download, proxies map[string]string, result *Result) (*Result, bool) {
+func downloader(ip string, Download *config.Download, proxies map[string]string, result *ScanResult) (*ScanResult, bool) {
 	nBytes := Download.MinDlSpeed * 1000 * Download.MaxDlTime
 	var err error
 
@@ -312,7 +308,7 @@ func scan(Config *config.Configuration, worker *config.Worker, ip string) {
 			MeanUploadLatency:   meanUploadLatency,
 		}
 	default:
-		cause := fmt.Errorf("Invalid writer type: %s\n", Config.Config.Writer)
+		cause := fmt.Errorf("invalid writer type: %s", Config.Config.Writer)
 		ld := logger.ScannerManage{
 			IP:      "",
 			Status:  logger.ErrorStatus,
