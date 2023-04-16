@@ -266,6 +266,7 @@ namespace WinCFScan.Classes
         private string getRandomSNI(string host)
         {
             var urlParts = host.Split(".");
+            urlParts[0] = Guid.NewGuid().ToString();
             return string.Join(".", urlParts); 
         }
 
