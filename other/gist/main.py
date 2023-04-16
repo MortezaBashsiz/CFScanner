@@ -15,7 +15,7 @@ asns = ['AS13335', 'AS209242']
 # correctIp = ['23', '31', '45', '66', '80', '89', '103', '104', '108', '141',
 #              '147', '154', '159', '168','162', '170', '172', '173', '185', '188', '191',
 #              '192', '193', '194', '195', '198', '199', '203', '205', '212', ]
-wrongIp = ['1', '8' ]
+wrongIp = ['1', '8']
 
 
 def substring_after(s, delim):
@@ -33,7 +33,8 @@ def substring_between(s, before, after):
 def getPageContent(url):
     pathss = str(path) + os.sep
     main = pathss + "cfchallenger.py"
-    result = subprocess.getoutput(f'python {main} {url}'.format(main=main, url=url))
+    result = subprocess.getoutput(
+        f'python {main} {url}'.format(main=main, url=url))
     return result
 
 
@@ -61,10 +62,28 @@ def extract_ips(text):
 
 
 def filter_ips(ips):
+    def subnetFix(ips_old):
+        ips_new = ips_old.copy()
+
+        for i in range(0, len(ips_old)):
+            for j in range(i+1, len(ips_old)):
+                first_ip = ips_old[i].split("/")[0]
+                first_ip_subnet = ips_old[i].split("/")[1]
+                second_ip = ips_old[j].split("/")[0]
+                second_ip_subnet = ips_old[j].split("/")[1]
+
+                if first_ip == second_ip:
+                    if int(first_ip_subnet) < int(second_ip_subnet):
+                        ips_new.remove(ips_old[j])
+                    elif int(first_ip_subnet) > int(second_ip_subnet):
+                        ips_new.remove(ips_old[i])
+        return ips_new
+
     def filterFun(ip):
         tarter = ip.split(".")[0]
         return False if wrongIp.count(tarter) else True
 
+    ips = subnetFix(ips)
     return filter(filterFun, ips)
 
 
@@ -74,7 +93,8 @@ for asn in asns:
     url_asn = url + asn + "/"
     response = str(getPageContent(url_asn))
     successful = True if "IPv4 CIDRs" in response else False
-    print("{url} fetched with status {status}".format(url=url_asn, status="success" if successful else "failed"))
+    print("{url} fetched with status {status}".format(
+        url=url_asn, status="success" if successful else "failed"))
     time.sleep(5)
     ips.extend(extract_ips(response))
 
@@ -88,7 +108,8 @@ ips.extend(thirdReq.text.splitlines())
 teh_tz = pytz.timezone('Iran')
 datetime_Th = datetime.now(teh_tz)
 
-#disable filter
+# disable filter
+# Deduplication & Fix Subnet & Filter Wrong IP
 finalList = list(set(filter_ips(ips)))
 count = len(finalList)
 time = datetime_Th
@@ -101,13 +122,17 @@ if len(finalList) < 20:
 path = os.path.dirname(os.path.realpath(__file__)) + os.path.sep
 repoPath = path + "CFScanner" + os.path.sep
 outputPath = repoPath + "config" + os.path.sep + "cf.local.iplist"
-with open(path + "token.secret", "r") as file: githubToken = file.read()
-repoUrl = "https://{token}@github.com/MortezaBashsiz/CFScanner".format(token=githubToken)
+with open(path + "token.secret", "r") as file:
+    githubToken = file.read()
+repoUrl = "https://{token}@github.com/MortezaBashsiz/CFScanner".format(
+    token=githubToken)
 
 print("start Git repository update ...")
 result = subprocess.getoutput("git clone " + repoUrl + " " + repoPath)
-result = subprocess.getoutput(f"git -C {repoPath} fetch origin ip-update:ip-update")
-result = subprocess.getoutput(f"git -C {repoPath} pull -f origin ip-update:ip-update")
+result = subprocess.getoutput(
+    f"git -C {repoPath} fetch origin ip-update:ip-update")
+result = subprocess.getoutput(
+    f"git -C {repoPath} pull -f origin ip-update:ip-update")
 result = subprocess.getoutput(f"git -C {repoPath} checkout ip-update")
 
 if os.path.exists(outputPath):
@@ -117,7 +142,8 @@ f = open(outputPath, "a")
 f.write(output)
 f.close()
 
-description = "Updated at {time} by {count} items".format(time=time, count=count)
+description = "Updated at {time} by {count} items".format(
+    time=time, count=count)
 result = subprocess.getoutput(f"git -C {repoPath} add .")
 result = subprocess.getoutput(f"git -C {repoPath} commit -m \"{description}\"")
 result = subprocess.getoutput(f"git -C {repoPath} push origin ip-update")
