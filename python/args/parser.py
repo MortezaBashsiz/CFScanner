@@ -65,7 +65,12 @@ def parse_args():
         dest="subnets",
         required=False
     )
-    general_grp.add_argument(
+    ############################################################
+    # Random scan options
+    randomscan_grp = parser.add_argument_group(
+        _title("Random scan options")
+    )
+    randomscan_grp.add_argument(
         "--sample", "-r",
         help="Size of the random sample to take from each subnet. The sample size can either be "
              "a float between 0 and 1 or an integer. If it is a float, it will be interpreted "
@@ -76,6 +81,14 @@ def parse_args():
         metavar="",
         dest="sample_size",
         required=False
+    )   
+    randomscan_grp.add_argument(
+        "--shuffle-subnets",
+        help="If passed, the subnets will be shuffled before scanning.",
+        action="store_true",
+        dest="shuffle_subnets",
+        required=False,
+        default=False        
     )
     ############################################################
     # Xray config options

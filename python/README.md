@@ -135,11 +135,14 @@ To see the help message, use the `--help` or `-h` option.
 * `--subnets`, `-s`: The path to the custom subnets file. Each line should be either a single ip (v4 or v6) or a
   subnet in cidr notation (v4 or v6). If not provided, the program will
   read the list of cidrs from [https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/cf.local.iplist](https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/cf.local.iplist).
+  
+#### Random Scan Options
 * `--sample`, `-r`: Size of the random sample to take from each subnet. The sample size can either
   be a float between 0 and 1 ($0 < s < 1$) or an integer ($ s \ge 1$). If it is a float, it will be
   interpreted as a percentage of the subnet size. If it is an integer, it
   will be interpreted as the number of ips to take from each subnet. If
   not provided, the program will take all ips from each subnet
+* `--shuffle-subnets`: If passed, the subnets will be shuffled before scanning.
 
 #### Xray Config Options
 
@@ -223,6 +226,8 @@ Contributors names and contact info
 * 1.2.2
   * Improved error logging
   * Errors are logged into a file in case of an unexpected error
+* 1.3.0
+  * Added subnets shuffling option
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.2.2-blue
+[version]: https://img.shields.io/badge/Version-1.3.0-blue
