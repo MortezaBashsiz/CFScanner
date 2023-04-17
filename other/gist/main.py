@@ -6,6 +6,8 @@ from pathlib import Path
 import subprocess
 import os
 import time
+from ipaddress import IPv4Address, IPv4Network
+from itertools import combinations
 
 path = Path(__file__).resolve().parent
 url = 'https://asnlookup.com/asn/'
@@ -15,7 +17,7 @@ asns = ['AS13335', 'AS209242']
 # correctIp = ['23', '31', '45', '66', '80', '89', '103', '104', '108', '141',
 #              '147', '154', '159', '168','162', '170', '172', '173', '185', '188', '191',
 #              '192', '193', '194', '195', '198', '199', '203', '205', '212', ]
-wrongIp = ['1', '8' ]
+wrongIp = ['1', '8']
 
 
 def substring_after(s, delim):
@@ -70,26 +72,63 @@ def filter_ips(ips):
 
 print("<====/ started at  " + str(datetime.now()) + " \====>")
 
-for asn in asns:
-    url_asn = url + asn + "/"
-    response = str(getPageContent(url_asn))
-    successful = True if "IPv4 CIDRs" in response else False
-    print("{url} fetched with status {status}".format(url=url_asn, status="success" if successful else "failed"))
-    time.sleep(5)
-    ips.extend(extract_ips(response))
+# for local test i prefer to use local file instead of fetching from internet
+# so if there be a file named cf.local.iplist in the same directory of this script
+# it will be used instead of fetching from internet
+localExist = os.path.exists(str(path) + os.path.sep + "cf.local.iplist")
+if (localExist):
+    with open(str(path) + os.path.sep + "cf.local.iplist", "r") as file:
+        ips = file.read().splitlines()
+else:
+    for asn in asns:
+        url_asn = url + asn + "/"
+        response = str(getPageContent(url_asn))
+        successful = True if "IPv4 CIDRs" in response else False
+        print("{url} fetched with status {status}".format(url=url_asn, status="success" if successful else "failed"))
+        time.sleep(5)
+        ips.extend(extract_ips(response))
 
-# get another addresses
-additionUrl = "https://www.cloudflare.com/ips-v4"
-thirdReq = requests.get(additionUrl)
-print("{url} fetched with status {status}".format(url=additionUrl,
-                                                  status="success" if thirdReq.status_code == 200 else "failed"))
-ips.extend(thirdReq.text.splitlines())
+    # get another addresses
+    additionUrl = "https://www.cloudflare.com/ips-v4"
+    thirdReq = requests.get(additionUrl)
+    print("{url} fetched with status {status}".format(url=additionUrl,
+                                                      status="success" if thirdReq.status_code == 200 else "failed"))
+    ips.extend(thirdReq.text.splitlines())
 
 teh_tz = pytz.timezone('Iran')
 datetime_Th = datetime.now(teh_tz)
 
-#disable filter
+# disable filter
 finalList = list(set(filter_ips(ips)))
+
+
+def maximum(a, b):
+    max = a if IPv4Network(a) > IPv4Network(b) else b
+    # print("overlap found: " + a + " <-> " + b + " , " + max + " is selected")
+    return max
+
+
+def substring_after(s, delim):
+    return s.partition(delim)[2]
+
+
+def findOverlap(input):
+    # read file line by line
+    # with open(str(path) + os.path.sep + "result", "r") as file:
+    #     result = file.read().splitlines()
+    jointList = " ".join(input)
+    result = subprocess.getoutput(f"ipconflict {jointList}")
+    result = substring_after(result, "conflict found: ")
+    result = result.splitlines()
+    result = [line for line in result if line.strip()]
+    result = list(map(lambda x: x.replace("conflict found: ", ""), result))
+    result = list(map(lambda x: (x.split(" <-> ")[0], x.split(" <-> ")[1]), result))
+    result = list(map(lambda x: maximum(x[0], x[1]), result))
+    return result
+
+
+overlappedRanges = findOverlap(finalList)
+finalList = list(set(finalList) - set(overlappedRanges))
 count = len(finalList)
 time = datetime_Th
 output = '\n'.join(finalList)
