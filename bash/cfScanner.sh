@@ -532,12 +532,21 @@ function fncMainCFFindSubnet {
 	fi
 	
 	parallelVersion=$(parallel --version | head -n1 | grep -Ewo '[0-9]{8}')
+	defaultSubnetsFileUrl="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist"
 
-	echo "" > "$scriptDir/subnets.list"
 	if [[ "$subnetsFile" == "NULL" ]]	
 	then
-		echo "Reading subnets from file $scriptDir/../config/cf.local.iplist"
-		cfSubnetList=$(cat "$scriptDir/../config/cf.local.iplist")
+		defaultSubnetsFileUrlResult=$(curl -I -L -s "$defaultSubnetsFileUrl" | grep "^HTTP" | grep 200 | awk '{ print $2 }')
+		if [[ "$defaultSubnetsFileUrlResult" == "200" ]]
+		then
+			defaultSubnetsFile=$(curl -s "$defaultSubnetsFileUrl")
+			echo "Reading subnets from $defaultSubnetsFileUrl"
+			cfSubnetList="$defaultSubnetsFile"
+		else
+			echo "URL $defaultSubnetsFileUrl is not available. This URL contains the latest subnet file"
+			echo "Reading subnets from file $scriptDir/../config/cf.local.iplist"
+			cfSubnetList=$(cat "$scriptDir/../config/cf.local.iplist")
+		fi
 	else
 		echo "Reading subnets from file $subnetsFile"
 		cfSubnetList=$(cat "$subnetsFile")
@@ -671,7 +680,8 @@ function fncUsage {
 			[ -r <int> ] randomness
 			[ -d <int> ] download threshold
 			[ -u <int> ] upload threshold
-			[ -f <custome-ip-file> (if you chose IP mode)]\n"
+			[ -f <custome-ip-file> (if you chose IP mode)]
+			[ -h ] help\n"
 		exit 2
 	elif [[ "$osVersion" == "Linux" ]]
 	then
@@ -685,7 +695,8 @@ function fncUsage {
 			[ -r|--random <int> ]
 			[ -d|--down-threshold <int> ]
 			[ -u|--up-threshold <int> ]
-			[ -f|--file <custome-ip-file> (if you chose IP mode)]\n"
+			[ -f|--file <custome-ip-file> (if you chose IP mode)]
+			[ -h|--help ]\n"
 		 exit 2
 	fi
 }
