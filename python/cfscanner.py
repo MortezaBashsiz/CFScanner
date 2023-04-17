@@ -24,7 +24,7 @@ console = Console()
 
 def _prescan_sigint_handler(sig, frame):
     console.log(
-        "[yellow]KeyboardInterrupt detected (pre-scan phase)[/yellow]")
+        f"[yellow]KeyboardInterrupt detected (pre-scan phase) - {START_DT_STR}[/yellow]")
     exit(1)
     
 def _init_pool():
@@ -47,6 +47,8 @@ logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     console = Console()
+    console.log(f"[green]Scan started - {START_DT_STR}[/green]")
+    
     original_sigint_handler = signal.signal(
         signal.SIGINT, _prescan_sigint_handler
     )
@@ -59,7 +61,7 @@ if __name__ == "__main__":
                 create_dir(CONFIGDIR)
             except Exception as e:
                 console.log("[red]Could not create config directory[/red]")
-                logging.exception("Could not create config directory")
+                logger.exception("Could not create config directory")
                 exit(1)
         console.log(f"[blue]Config directory created \"{CONFIGDIR}\"[/blue]")
         configFilePath = args.config_path
@@ -69,7 +71,7 @@ if __name__ == "__main__":
             create_dir(RESULTDIR)
         except Exception as e:
             console.log("[red]Could not create results directory[/red]")
-            logging.exception("Could not create results directory")
+            logger.exception("Could not create results directory")
             exit(1)
     console.log(f"[blue]Results directory created \"{RESULTDIR}\"[/blue]")
 
@@ -97,7 +99,7 @@ if __name__ == "__main__":
             console.log(
                 f"[red]Could not create empty result file:\n\"{INTERIM_RESULTS_PATH}\"[/red]"
             )
-            logging.exception("Could not create empty result file")
+            logger.exception("Could not create empty result file")
             exit(1)
 
     threadsCount = args.threads
@@ -107,12 +109,12 @@ if __name__ == "__main__":
             try:
                 cidr_list = read_cidrs(args.subnets)
             except SubnetsReadError as e:
-                console.log(f"[red]Could not read subnets. {e}[/red]")
-                logging.exception("Could not read subnets")
+                console.log(f"[red]Could not read subnets.[/red]")
+                logger.exception(f"Could not read subnets")
                 exit(1)
             except Exception as e:
                 console.log(f"Unknown error in reading subnets: {e}")
-                logging.exception("Unknown error in reading subnets")
+                logger.exception(f"Unknown error in reading subnets: {e}")
                 exit(1)
         console.log(
             f"[blue]Subnets successfully read from \"{args.subnets}\"[/blue]")
@@ -128,9 +130,11 @@ if __name__ == "__main__":
                 )
             except SubnetsReadError as e:
                 console.log(f"[red]Could not read subnets. {e}[/red]")
+                logger.exception(e)
                 exit(1)
             except Exception as e:
                 console.log(f"Unknown error in reading subnets: {e}")
+                logger.exception(e)
                 exit(1)
     try:
         test_config = TestConfig.from_args(args)
@@ -143,9 +147,11 @@ if __name__ == "__main__":
     except BinaryNotFoundError:
         console.log(
             f"[red]Could not find xray/v2ray binary from path \"{args.binpath}\"[/red]")
+        logger.exception(e)
         exit(1)
     except Exception as e:
         console.print_exception()
+        logger.exception(e)
         exit(1)
 
     n_total_ips = sum(get_num_ips_in_cidr(
@@ -169,7 +175,7 @@ if __name__ == "__main__":
 
     with Progress() as progress:
         all_ips_task = progress.add_task(
-            f"all subnets - {n_total_ips} ips", total=n_total_ips)
+            f"all subnets - start: [green]{START_DT_STR}[/green] - {n_total_ips} ips", total=n_total_ips)
         with multiprocessing.Pool(processes=threadsCount, initializer=_init_pool) as pool:
             signal.signal(signal.SIGINT, original_sigint_handler)
             iterator = pool.imap(
@@ -223,14 +229,14 @@ if __name__ == "__main__":
                     progress.stop()
                     console.log(f"[red]{e}[/red]")
                     pool.terminate()
-                    logging.exception("Error in starting xray service.")
+                    logger.exception("Error in starting xray service.")
                     break
                 except StopIteration as e:
                     for task in progress.tasks:
                         progress.stop_task(task.id)
                         progress.remove_task(task.id)
                     progress.stop()
-                    progress.log("Finished scanning ips.")
+                    progress.log(f"Finished scanning ips. Start: [green]{START_DT_STR}[/green]")
                     break
                 except KeyboardInterrupt as e:
                     for task_id in progress.task_ids:
@@ -238,10 +244,10 @@ if __name__ == "__main__":
                         progress.remove_task(task_id)
                     progress.stop()
                     progress.log(
-                        "[yellow]KeyboardInterrupt detected (scan phase)[/yellow]")
+                        f"[yellow]KeyboardInterrupt detected (scan phase) - start: {START_DT_STR}[/yellow]")
                     pool.terminate()
                     break
                 except Exception as e:
                     progress.log("[red]Unknown error![/red]")
                     console.print_exception()
-                    logging.exception(e)
+                    logger.exception(e)

@@ -103,6 +103,10 @@ def read_cidrs_from_url(
                 f"Could not read cidrs from url - status code: {r.status_code}", url)
         cidr_regex = r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}\/[\d]+"
         cidrs = re.findall(cidr_regex, r.text)
+        if len(cidrs) == 0:
+            raise SubnetsReadError(
+                f"Could not find any cidr in url {url}"
+            )
     except Exception as e:
         raise SubnetsReadError(f"Could not read cidrs from url \"{url}\"")
 
