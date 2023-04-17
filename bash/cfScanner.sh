@@ -680,7 +680,8 @@ function fncUsage {
 			[ -r <int> ] randomness
 			[ -d <int> ] download threshold
 			[ -u <int> ] upload threshold
-			[ -f <custome-ip-file> (if you chose IP mode)]\n"
+			[ -f <custome-ip-file> (if you chose IP mode)]
+			[ -h ] help\n"
 		exit 2
 	elif [[ "$osVersion" == "Linux" ]]
 	then
@@ -694,7 +695,8 @@ function fncUsage {
 			[ -r|--random <int> ]
 			[ -d|--down-threshold <int> ]
 			[ -u|--up-threshold <int> ]
-			[ -f|--file <custome-ip-file> (if you chose IP mode)]\n"
+			[ -f|--file <custome-ip-file> (if you chose IP mode)]
+			[ -h|--help ]\n"
 		 exit 2
 	fi
 }
