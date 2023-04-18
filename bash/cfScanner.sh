@@ -211,6 +211,7 @@ function fncCheckIPList {
 					domainFronting=$($timeoutCommand 1 curl -k -s -w "%{http_code}\n" --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=1000" -o /dev/null)
 						if [[ "$domainFronting" == "200" ]]
 						then
+							mainDomain=$(echo "$configHost" | awk -F '.' '{ print $2"."$3}')
 							if [[ "$osVersion" == "Linux" ]]
 								then
 									randomUUID=$(cat /proc/sys/kernel/random/uuid)
