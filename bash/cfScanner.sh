@@ -209,10 +209,19 @@ function fncCheckIPList {
 				if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 				then
 					domainFronting=$($timeoutCommand 1 curl -k -s -w "%{http_code}\n" --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=1000" -o /dev/null)
-					if [[ "$domainFronting" == "200" ]]
-					then
-						mainDomain=$(echo "$configHost" | awk -F '.' '{ print $2"."$3}')
-						randomUUID=$(cat /proc/sys/kernel/random/uuid)
+						if [[ "$domainFronting" == "200" ]]
+						then
+							if [[ "$osVersion" == "Linux" ]]
+								then
+									randomUUID=$(cat /proc/sys/kernel/random/uuid)
+							elif [[ "$osVersion" == "Mac"  ]]
+								then
+									randomUUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+								else
+									echo "OS not supported only Linux or Mac"
+									exit 1
+						fi
+						
 						configServerName="$randomUUID.$mainDomain"
 						ipConfigFile="$tempConfigDir/config.json.$ip"
 						cp "$scriptDir"/config.json.temp "$ipConfigFile"
