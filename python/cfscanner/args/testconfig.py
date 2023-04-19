@@ -2,12 +2,12 @@ import argparse
 import json
 import os
 
-from utils.exceptions import *
-from utils.exceptions import BinaryNotFoundError, TemplateReadError
-from utils.os import detect_system
-from utils.requests import download_file
-from xray import templates
-from xray.binary import download_binary
+from ..utils.exceptions import *
+from ..utils.exceptions import BinaryNotFoundError, TemplateReadError
+from ..utils.os import detect_system
+from ..utils.requests import download_file
+from ..xray import templates
+from ..xray.binary import download_binary
 
 PATH = os.path.dirname(os.path.abspath(__file__))
 PARENT_PATH = os.path.dirname(PATH)

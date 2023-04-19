@@ -1,7 +1,7 @@
 from statistics import mean
 from subprocess import Popen
 
-from speedtest.tools import mean_jitter
+from ..speedtest.tools import mean_jitter
 
 from . import Colors
 

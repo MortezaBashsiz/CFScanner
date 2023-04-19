@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 import requests
 from rich.console import Console
-from utils.exceptions import *
+from ..utils.exceptions import *
 
 console = Console()
 

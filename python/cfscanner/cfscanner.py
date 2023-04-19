@@ -13,16 +13,13 @@ from rich import print as rprint
 from rich.console import Console
 from rich.progress import Progress
 
-from args.parser import parse_args
-from args.testconfig import TestConfig
-from speedtest.conduct import test_ip
-from speedtest.tools import mean_jitter
-from subnets import cidr_to_ip_list, get_num_ips_in_cidr, read_cidrs
-from utils.exceptions import *
-from utils.os import create_dir
-
-console = Console()
-
+from .args.parser import parse_args
+from .args.testconfig import TestConfig
+from .speedtest.conduct import test_ip
+from .speedtest.tools import mean_jitter
+from .subnets import cidr_to_ip_list, get_num_ips_in_cidr, read_cidrs
+from .utils.exceptions import *
+from .utils.os import create_dir
 
 def _prescan_sigint_handler(sig, frame):
     console.log(
@@ -32,22 +29,23 @@ def _prescan_sigint_handler(sig, frame):
 def _init_pool():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
+def main():
+    console = Console()
 
-SCRIPTDIR = os.path.dirname(os.path.realpath(__file__))
-CONFIGDIR = f"{SCRIPTDIR}/.xray-configs"
-RESULTDIR = f"{SCRIPTDIR}/result"
-START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
-INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
+    SCRIPTDIR = os.getcwd()
+    CONFIGDIR = f"{SCRIPTDIR}/.xray-configs"
+    RESULTDIR = f"{SCRIPTDIR}/result"
+    START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
+    INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
 
-log_dir = os.path.join(SCRIPTDIR, "log")
-os.makedirs(log_dir, exist_ok=True)
-logging.basicConfig(
-    filename=os.path.join(log_dir, f"{START_DT_STR}.log")
-)
+    log_dir = os.path.join(SCRIPTDIR, "log")
+    os.makedirs(log_dir, exist_ok=True)
+    logging.basicConfig(
+        filename=os.path.join(log_dir, f"{START_DT_STR}.log")
+    )
 
-logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__name__)
 
-if __name__ == "__main__":
     console = Console()
     console.log(f"[green]Scan started - {START_DT_STR}[/green]")
     
@@ -261,3 +259,4 @@ if __name__ == "__main__":
                     progress.log("[red1]Unknown error![/red1]")
                     console.print_exception()
                     logger.exception(e)
+                        

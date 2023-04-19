@@ -2,7 +2,7 @@ import json
 import subprocess
 from typing import Tuple
 
-from utils.socket import wait_for_port
+from ..utils.socket import wait_for_port
 
 
 def start_proxy_service(
