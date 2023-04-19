@@ -62,20 +62,20 @@ if __name__ == "__main__":
             try:
                 create_dir(CONFIGDIR)
             except Exception as e:
-                console.log("[red]Could not create config directory[/red]")
+                console.log("[red1]Could not create config directory[/red1]")
                 logger.exception("Could not create config directory")
                 exit(1)
-        console.log(f"[blue]Config directory created \"{CONFIGDIR}\"[/blue]")
+        console.log(f"[bright_blue]Config directory created \"{CONFIGDIR}\"[/bright_blue]")
         configFilePath = args.config_path
 
     with console.status(f"[green]Creating results directory \"{RESULTDIR}\"[/green]"):
         try:
             create_dir(RESULTDIR)
         except Exception as e:
-            console.log("[red]Could not create results directory[/red]")
+            console.log("[red1]Could not create results directory[/red1]")
             logger.exception("Could not create results directory")
             exit(1)
-    console.log(f"[blue]Results directory created \"{RESULTDIR}\"[/blue]")
+    console.log(f"[bright_blue]Results directory created \"{RESULTDIR}\"[/bright_blue]")
 
     # create empty result file
     with console.status(f"[green]Creating empty result file {INTERIM_RESULTS_PATH}[/green]"):
@@ -99,7 +99,7 @@ if __name__ == "__main__":
                 empty_file.write(",".join(titles) + "\n")
         except Exception as e:
             console.log(
-                f"[red]Could not create empty result file:\n\"{INTERIM_RESULTS_PATH}\"[/red]"
+                f"[red1]Could not create empty result file:\n\"{INTERIM_RESULTS_PATH}\"[/red1]"
             )
             logger.exception("Could not create empty result file")
             exit(1)
@@ -111,7 +111,7 @@ if __name__ == "__main__":
             try:
                 cidr_list = read_cidrs(args.subnets)
             except SubnetsReadError as e:
-                console.log(f"[red]Could not read subnets.[/red]")
+                console.log(f"[red1]Could not read subnets.[/red1]")
                 logger.exception(f"Could not read subnets")
                 exit(1)
             except Exception as e:
@@ -119,11 +119,11 @@ if __name__ == "__main__":
                 logger.exception(f"Unknown error in reading subnets: {e}")
                 exit(1)
         console.log(
-            f"[blue]Subnets successfully read from \"{args.subnets}\"[/blue]")
+            f"[bright_blue]Subnets successfully read from \"{args.subnets}\"[/bright_blue]")
     else:
         subnets_default_address = "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist"
         console.log(
-            f"[blue]Subnets not provided. Default address will be used:\n\"{subnets_default_address}\"[/blue]"
+            f"[bright_blue]Subnets not provided. Default address will be used:\n\"{subnets_default_address}\"[/bright_blue]"
         )
         with console.status(f"[green]Retrieving subnets from \"{subnets_default_address}\"[/green]"):
             try:
@@ -131,7 +131,7 @@ if __name__ == "__main__":
                     "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist"
                 )
             except SubnetsReadError as e:
-                console.log(f"[red]Could not read subnets. {e}[/red]")
+                console.log(f"[red1]Could not read subnets. {e}[/red1]")
                 logger.exception(e)
                 exit(1)
             except Exception as e:
@@ -150,13 +150,13 @@ if __name__ == "__main__":
         test_config = TestConfig.from_args(args)
     except TemplateReadError as e:
         console.log(
-            f"[red]Could not read template from file \"{args.template_path}\"[/red]"
+            f"[red1]Could not read template from file \"{args.template_path}\"[/red1]"
         )
         logger.exception(e)        
         exit(1)
     except BinaryNotFoundError:
         console.log(
-            f"[red]Could not find xray/v2ray binary from path \"{args.binpath}\"[/red]")
+            f"[red1]Could not find xray/v2ray binary from path \"{args.binpath}\"[/red1]")
         logger.exception(e)
         exit(1)
     except Exception as e:
@@ -168,7 +168,7 @@ if __name__ == "__main__":
         cidr,
         sample_size=test_config.sample_size
     ) for cidr in cidr_list)
-    console.log(f"[blue]Starting to scan {n_total_ips} ips...[/blue]")
+    console.log(f"[bright_blue]Starting to scan {n_total_ips} ips...[/bright_blue]")
 
     cidr_ip_lists = [
         cidr_to_ip_list(
@@ -237,7 +237,7 @@ if __name__ == "__main__":
                         progress.remove_task(cidr_prog_tasks[res.cidr])
                 except StartProxyServiceError as e:
                     progress.stop()
-                    console.log(f"[red]{e}[/red]")
+                    console.log(f"[red1]{e}[/red1]")
                     pool.terminate()
                     logger.exception("Error in starting xray service.")
                     break
@@ -258,6 +258,6 @@ if __name__ == "__main__":
                     pool.terminate()
                     break
                 except Exception as e:
-                    progress.log("[red]Unknown error![/red]")
+                    progress.log("[red1]Unknown error![/red1]")
                     console.print_exception()
                     logger.exception(e)

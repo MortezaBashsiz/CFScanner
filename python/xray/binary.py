@@ -73,7 +73,7 @@ def download_binary(
                 raise BinaryDownloadError(
                     f"Unknown error - detected system: {str(system_info)}")
     else:
-        console.log(f"[blue]Binary file already exists {bin_path}[/blue]")
+        console.log(f"[bright_blue]Binary file already exists {bin_path}[/bright_blue]")
         return bin_path
 
 
