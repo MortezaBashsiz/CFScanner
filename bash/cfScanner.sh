@@ -228,7 +228,7 @@ function fncCheckIPList {
 							elif [[ "$osVersion" == "Mac"  ]]
 								then
 									randomUUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
-								else
+							else
 									echo "OS not supported only Linux or Mac"
 									exit 1
 						fi
