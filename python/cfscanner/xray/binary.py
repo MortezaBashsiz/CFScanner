@@ -83,7 +83,7 @@ def get_latest_release() -> dict:
     Returns:
         dict: release info including the download url
     """
-    url = f"https://api.github.com/repos/XTLS/Xray-core/releases/latest"
+    url = "https://api.github.com/repos/XTLS/Xray-core/releases/latest"
     try:
         r = requests.get(url)
         release_info = r.json()
