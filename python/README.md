@@ -230,12 +230,8 @@ Contributors names and contact info
   * Added subnets shuffling option
 * 1.3.1
   * Improved colors in logging
-* 1.3.2 
-  * Added __main__ to run on windows using ``python -m cfscanner``
-* 1.3.3
-  * fixed an issue with packaging
-* 1.3.4
-  * change the structure to improve module names in the logs
+* 1.3.8
+  * Several rounds with pypi
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.3.0-blue
+[version]: https://img.shields.io/badge/Version-1.3.8-blue
