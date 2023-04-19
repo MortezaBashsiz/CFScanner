@@ -19,7 +19,7 @@ def no_and_kill(
         process (Popen): the process (xray) to be killed
     """
     process.kill()
-    return f"[bold red]NO[/bold red] [orange]{ip:15s}[/orange] [yellow]{message}[/yellow]"
+    return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3] [yellow1]{message}[/yellow1]"
 
 
 def ok_message(
@@ -36,15 +36,15 @@ def ok_message(
     mean_up_speed = mean(scan_result["upload"]["speed"])
     mean_down_latency = mean(scan_result["download"]["latency"])
     mean_up_latency = mean(scan_result["upload"]["latency"])
-    return f"[green]"\
-        f"OK [green][blue_violet]{scan_result['ip']:15s}[/blue_violet][blue] "\
+    return f"[bold green1]"\
+        f"OK [/bold green1][cyan1]{scan_result['ip']:15s}[/cyan1][bright_blue] "\
         f"avg_down_speed: {mean_down_speed:7.4f}mbps "\
         f"avg_up_speed: {mean_up_speed:7.4f}mbps "\
         f"avg_down_latency: {mean_down_latency:7.2f}ms "\
         f"avg_up_latency: {mean_up_latency:7.2f}ms "\
         f"avg_down_jitter: {down_mean_jitter:7.2f}ms "\
         f"avg_up_jitter: {up_mean_jitter:4.2f}ms"\
-        f"[/blue]"
+        f"[/bright_blue]"
 
 
 def color_text(text: str, rgb: tuple, bold: bool = False):

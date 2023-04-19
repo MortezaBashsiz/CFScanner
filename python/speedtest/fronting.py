@@ -28,16 +28,16 @@ def fronting_test(
             headers={"Host": "speed.cloudflare.com"}
         )
         if r.status_code != 200:
-            return f"[red]NO[/red] [dark_orange3]{ip:15s}[/dark_orange3][yellow] fronting error {r.status_code} [/yellow]"
+            return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting error {r.status_code} [/yellow1]"
         else:
             success = True
     except requests.exceptions.ConnectTimeout as e:
-        return f"[red]NO[/red] [dark_orange3]{ip:15s}[/dark_orange3][yellow] fronting connect timeout[/yellow]"
+        return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting connect timeout[/yellow1]"
     except requests.exceptions.ReadTimeout as e:
-        return f"[red]NO[/red] [dark_orange3]{ip:15s}[/dark_orange3][yellow] fronting read timeout[/yellow]"
+        return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting read timeout[/yellow1]"
     except requests.exceptions.ConnectionError as e:
-        return f"[red]NO[/red] [dark_orange3]{ip:15s}[/dark_orange3][yellow] fronting connection error[/yellow]"
+        return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting connection error[/yellow1]"
     except Exception as e:
-        return f"[red]NO[/red] [dark_orange3]{ip:15s}[/dark_orange3][yellow] fronting Unknown error[/yellow]"
+        return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting Unknown error[/yellow1]"
 
     return "OK"
