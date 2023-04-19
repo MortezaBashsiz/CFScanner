@@ -58,7 +58,7 @@ class TestConfig:
                 raise TemplateReadError(
                     "permission denied while reading template file")
             except Exception as e:
-                raise TemplateReadError(f"error while reading template file: {str(e)}")
+                raise TemplateReadError(f"error while reading template file: {e}")
 
         # speed related config
         test_config.startprocess_timeout = args.startprocess_timeout
