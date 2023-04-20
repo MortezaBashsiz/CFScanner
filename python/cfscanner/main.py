@@ -118,8 +118,8 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
             try:
                 cidr_list = read_cidrs(args.subnets)
             except SubnetsReadError as e:
-                console.log(f"[red1]Could not read subnets.[/red1]")
-                logger.exception(f"Could not read subnets")
+                console.log("[red1]Could not read subnets.[/red1]")
+                logger.exception("Could not read subnets")
                 exit(1)
             except Exception as e:
                 console.log(f"Unknown error in reading subnets: {e}")

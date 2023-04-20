@@ -65,13 +65,13 @@ def download_binary(
                 return bin_path
             except FileDownloadError as e:
                 raise BinaryDownloadError(
-                    f"Failed to download the release zip file from xtls xray-core github repo {str(system_info)}")
+                    f"Failed to download the release zip file from xtls xray-core github repo {system_info}")
             except KeyError as e:
                 raise BinaryDownloadError(
                     f"Failed to get binary from zip file {zip_url}")
             except Exception as e:
                 raise BinaryDownloadError(
-                    f"Unknown error - detected system: {str(system_info)}")
+                    f"Unknown error - detected system: {system_info}")
     else:
         console.log(f"[bright_blue]Binary file already exists {bin_path}[/bright_blue]")
         return bin_path
@@ -83,7 +83,7 @@ def get_latest_release() -> dict:
     Returns:
         dict: release info including the download url
     """
-    url = f"https://api.github.com/repos/XTLS/Xray-core/releases/latest"
+    url = "https://api.github.com/repos/XTLS/Xray-core/releases/latest"
     try:
         r = requests.get(url)
         release_info = r.json()
