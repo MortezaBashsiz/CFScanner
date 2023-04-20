@@ -104,7 +104,9 @@ fncSubnetToIP() {
 			mapfile -t ipList < <(shuf -e "${ipList[@]:0:$randomNumber}")
 		elif [[ "$osVersion" == "Mac"  ]]
 		then
+			# shellcheck disable=SC2207
 			ipList=($(printf '%s\n' "${ipList[@]}" | shuf))
+			# shellcheck disable=SC2207
 			ipList=($(printf '%s\n' "${ipList[@]:0:$randomNumber}" | shuf))
 		else
 			echo "OS not supported only Linux or Mac"
