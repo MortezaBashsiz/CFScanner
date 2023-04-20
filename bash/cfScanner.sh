@@ -7,14 +7,12 @@
 #
 #   DESCRIPTION: Scan all 1.5 Mil CloudFlare IP addresses
 #
-#       OPTIONS: ---
-#  REQUIREMENTS: ThreadCount (integer Number which defines the parallel processes count)
-#          BUGS: ---
-#         NOTES: ---
+#       OPTIONS: -h, --help
+#  REQUIREMENTS: getopt, jq, git, tput, bc, curl, parallel (version > 20220515), shuf
 #        AUTHOR: Morteza Bashsiz (mb), morteza.bashsiz@gmail.com
 #  ORGANIZATION: Linux
 #       CREATED: 01/24/2023 07:36:57 PM
-#      REVISION: nomadzzz, armgham, beh-rouz, amini8, mahdibahramih, armineslami, miytiy 
+#      REVISION: nomadzzz, armgham, beh-rouz, amini8, mahdibahramih, armineslami, miytiy, F4RAN 
 #===============================================================================
 
 export TOP_PID=$$
