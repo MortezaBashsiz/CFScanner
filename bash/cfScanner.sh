@@ -7,14 +7,12 @@
 #
 #   DESCRIPTION: Scan all 1.5 Mil CloudFlare IP addresses
 #
-#       OPTIONS: ---
-#  REQUIREMENTS: ThreadCount (integer Number which defines the parallel processes count)
-#          BUGS: ---
-#         NOTES: ---
+#       OPTIONS: -h, --help
+#  REQUIREMENTS: getopt, jq, git, tput, bc, curl, parallel (version > 20220515), shuf
 #        AUTHOR: Morteza Bashsiz (mb), morteza.bashsiz@gmail.com
 #  ORGANIZATION: Linux
 #       CREATED: 01/24/2023 07:36:57 PM
-#      REVISION: nomadzzz, armgham, beh-rouz, amini8, mahdibahramih, armineslami, miytiy 
+#      REVISION: nomadzzz, armgham, beh-rouz, amini8, mahdibahramih, armineslami, miytiy, F4RAN 
 #===============================================================================
 
 export TOP_PID=$$
@@ -100,8 +98,20 @@ fncSubnetToIP() {
   	  done
   	done
 		# Choose random IP addresses from generated IP list
-		mapfile -t ipList < <(shuf -e "${ipList[@]}")
-		mapfile -t ipList < <(shuf -e "${ipList[@]:0:$randomNumber}")
+		if [[ "$osVersion" == "Linux" ]]
+		then
+			mapfile -t ipList < <(shuf -e "${ipList[@]}")
+			mapfile -t ipList < <(shuf -e "${ipList[@]:0:$randomNumber}")
+		elif [[ "$osVersion" == "Mac"  ]]
+		then
+			# shellcheck disable=SC2207
+			ipList=($(printf '%s\n' "${ipList[@]}" | shuf))
+			# shellcheck disable=SC2207
+			ipList=($(printf '%s\n' "${ipList[@]:0:$randomNumber}" | shuf))
+		else
+			echo "OS not supported only Linux or Mac"
+			exit 1
+		fi
   	for i in "${ipList[@]}"; do 
   	  echo "$i"
   	done
@@ -212,7 +222,16 @@ function fncCheckIPList {
 					if [[ "$domainFronting" == "200" ]]
 					then
 						mainDomain=$(echo "$configHost" | awk -F '.' '{ print $2"."$3}')
-						randomUUID=$(cat /proc/sys/kernel/random/uuid)
+						if [[ "$osVersion" == "Linux" ]]
+								then
+									randomUUID=$(cat /proc/sys/kernel/random/uuid)
+							elif [[ "$osVersion" == "Mac"  ]]
+								then
+									randomUUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+							else
+									echo "OS not supported only Linux or Mac"
+									exit 1
+						fi
 						configServerName="$randomUUID.$mainDomain"
 						ipConfigFile="$tempConfigDir/config.json.$ip"
 						cp "$scriptDir"/config.json.temp "$ipConfigFile"
