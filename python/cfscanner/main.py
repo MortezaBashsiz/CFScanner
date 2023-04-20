@@ -23,15 +23,6 @@ from .utils.os import create_dir
 
 console = Console()
 
-logo = """                                                                                                                                        
-____ ____ ____ ____ ____ _  _ _  _ ____ ____ 
-|    |___ [__  |    |__| |\ | |\ | |___ |__/ 
-|___ |    ___] |___ |  | | \| | \| |___ |  \ 
-"""
-
-console.print(f"[bold green1]{logo}[/bold green1]")
-console.print(f"[bold green1]v{pkg_resources.get_distribution('cfscanner').version}[bold green1]\n\n")
-
 SCRIPTDIR = os.getcwd()
 CONFIGDIR = f"{SCRIPTDIR}/.xray-configs"
 RESULTDIR = f"{SCRIPTDIR}/result"
@@ -47,13 +38,23 @@ def _init_pool():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 def main():
+    logger = logging.getLogger(__name__)
+    console = Console()
+    
+    logo = """                                                                                                                                        
+____ ____ ____ ____ ____ _  _ _  _ ____ ____ 
+|    |___ [__  |    |__| |\ | |\ | |___ |__/ 
+|___ |    ___] |___ |  | | \| | \| |___ |  \ 
+"""
+    console.print(f"[bold green1]{logo}[/bold green1]")
+    console.print(f"[bold green1]v{pkg_resources.get_distribution('cfscanner').version}[bold green1]\n\n")
+   
     log_dir = os.path.join(SCRIPTDIR, "log")
     os.makedirs(log_dir, exist_ok=True)
     logging.basicConfig(
         filename=os.path.join(log_dir, f"{START_DT_STR}.log")
     )
-    logger = logging.getLogger(__name__)
-    console = Console()
+
     
     console.log(f"[green]Scan started - {START_DT_STR}[/green]")
     

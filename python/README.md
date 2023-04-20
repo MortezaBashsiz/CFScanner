@@ -219,6 +219,8 @@ Contributors names and contact info
   * Several rounds with pypi
 * 1.3.10
   * Improved the progress bar
+* 1.3.11
+  * fixed multiple printing bug
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.3.10-blue
+[version]: https://img.shields.io/badge/Version-1.3.11-blue
