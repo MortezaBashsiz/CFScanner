@@ -1,3 +1,0 @@
-requests>=2.28.2
-pysocks>=1.7.1
-rich>=13.3.3

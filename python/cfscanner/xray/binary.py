@@ -4,9 +4,9 @@ import zipfile
 import requests
 from rich.console import Console
 
-from utils.decorators import timeout_fun
-from utils.exceptions import *
-from utils.requests import download_file
+from ..utils.decorators import timeout_fun
+from ..utils.exceptions import *
+from ..utils.requests import download_file
 
 from . import LATEST_SUPPORTED_VERSION, SUPPORTED
 

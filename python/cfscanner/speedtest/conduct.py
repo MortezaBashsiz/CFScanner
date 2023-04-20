@@ -1,11 +1,11 @@
 import requests
 
-from args.testconfig import TestConfig
-from report.print import no_and_kill, ok_message
-from utils.decorators import timeout_fun
-from utils.exceptions import *
-from xray.config import create_proxy_config
-from xray.service import start_proxy_service
+from ..args.testconfig import TestConfig
+from ..report.print import no_and_kill, ok_message
+from ..utils.decorators import timeout_fun
+from ..utils.exceptions import *
+from ..xray.config import create_proxy_config
+from ..xray.service import start_proxy_service
 
 from .download import download_speed_test
 from .fronting import fronting_test

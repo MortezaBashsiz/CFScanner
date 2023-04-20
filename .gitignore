@@ -11,6 +11,8 @@ python/.vscode/
 python/*/log/
 python/.xray-configs
 python/result/
+python/*/*/__pycache__/
+python/dist/
 .tmp
 golang/CFScanner
 windows/*.rsuser

@@ -1,10 +1,70 @@
 from statistics import mean
 from subprocess import Popen
+from typing import Iterable, Optional, Union
 
-from speedtest.tools import mean_jitter
+from rich.console import Console
+from rich.progress import GetTimeCallable, Progress, ProgressColumn, Task
+from rich.table import Column, Table
 
-from . import Colors
+from ..speedtest.tools import mean_jitter
 
+
+class TitledProgress(Progress):
+    def __init__(
+        self, 
+        *columns: Union[str, ProgressColumn],
+        title = None,
+        console: Optional[Console] = None,
+        auto_refresh: bool = True, 
+        refresh_per_second: float = 10, 
+        speed_estimate_period: float = 30, 
+        transient: bool = False, 
+        redirect_stdout: bool = True, 
+        redirect_stderr: bool = True,
+        get_time: Optional[GetTimeCallable] = None, 
+        disable: bool = False, 
+        expand: bool = False
+    ) -> None:
+        self.title = title
+        super().__init__(
+            *columns, 
+            console=console, 
+            auto_refresh=auto_refresh, 
+            refresh_per_second=refresh_per_second,
+            speed_estimate_period=speed_estimate_period,
+            transient=transient, redirect_stdout=redirect_stdout, 
+            redirect_stderr=redirect_stderr, 
+            get_time=get_time,
+            disable=disable,
+            expand=expand
+        )
+        
+    def make_tasks_table(self, tasks: Iterable[Task]) -> Table:
+        table_columns = (
+            (
+                Column(no_wrap=True)
+                if isinstance(_column, str)
+                else _column.get_table_column().copy()
+            )
+            for _column in self.columns
+        )
+        table = Table.grid(*table_columns, padding=(0, 1), expand=self.expand)
+
+        if self.title is not None: 
+            table.add_row(self.title)
+        for task in tasks:
+            if task.visible:
+                table.add_row(
+                    *(
+                        (
+                            column.format(task=task)
+                            if isinstance(column, str)
+                            else column(task)
+                        )
+                        for column in self.columns
+                    )
+                )
+        return table
 
 def no_and_kill(
     ip: str,

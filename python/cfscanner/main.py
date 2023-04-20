@@ -9,20 +9,25 @@ import statistics
 from datetime import datetime
 from functools import partial
 
-from rich import print as rprint
+import pkg_resources
 from rich.console import Console
-from rich.progress import Progress
 
-from args.parser import parse_args
-from args.testconfig import TestConfig
-from speedtest.conduct import test_ip
-from speedtest.tools import mean_jitter
-from subnets import cidr_to_ip_list, get_num_ips_in_cidr, read_cidrs
-from utils.exceptions import *
-from utils.os import create_dir
+from .args.parser import parse_args
+from .args.testconfig import TestConfig
+from .report.print import TitledProgress
+from .speedtest.conduct import test_ip
+from .speedtest.tools import mean_jitter
+from .subnets import cidr_to_ip_list, get_num_ips_in_cidr, read_cidrs
+from .utils.exceptions import *
+from .utils.os import create_dir
 
 console = Console()
 
+SCRIPTDIR = os.getcwd()
+CONFIGDIR = f"{SCRIPTDIR}/.xray-configs"
+RESULTDIR = f"{SCRIPTDIR}/result"
+START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
+INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
 
 def _prescan_sigint_handler(sig, frame):
     console.log(
@@ -32,23 +37,25 @@ def _prescan_sigint_handler(sig, frame):
 def _init_pool():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-
-SCRIPTDIR = os.path.dirname(os.path.realpath(__file__))
-CONFIGDIR = f"{SCRIPTDIR}/.xray-configs"
-RESULTDIR = f"{SCRIPTDIR}/result"
-START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
-INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
-
-log_dir = os.path.join(SCRIPTDIR, "log")
-os.makedirs(log_dir, exist_ok=True)
-logging.basicConfig(
-    filename=os.path.join(log_dir, f"{START_DT_STR}.log")
-)
-
-logger = logging.getLogger(__name__)
-
-if __name__ == "__main__":
+def main():
+    logger = logging.getLogger(__name__)
     console = Console()
+    
+    logo = """                                                                                                                                        
+____ ____ ____ ____ ____ _  _ _  _ ____ ____ 
+|    |___ [__  |    |__| |\ | |\ | |___ |__/ 
+|___ |    ___] |___ |  | | \| | \| |___ |  \ 
+"""
+    console.print(f"[bold green1]{logo}[/bold green1]")
+    console.print(f"[bold green1]v{pkg_resources.get_distribution('cfscanner').version}[bold green1]\n\n")
+   
+    log_dir = os.path.join(SCRIPTDIR, "log")
+    os.makedirs(log_dir, exist_ok=True)
+    logging.basicConfig(
+        filename=os.path.join(log_dir, f"{START_DT_STR}.log")
+    )
+
+    
     console.log(f"[green]Scan started - {START_DT_STR}[/green]")
     
     original_sigint_handler = signal.signal(
@@ -183,9 +190,12 @@ if __name__ == "__main__":
 
     cidr_prog_tasks = dict()
 
-    with Progress() as progress:
+    with TitledProgress(
+        title=f"start: [green]{START_DT_STR}[/green]"
+    ) as progress:
+        console = progress.console
         all_ips_task = progress.add_task(
-            f"all subnets - start: [green]{START_DT_STR}[/green] - {n_total_ips} ips", total=n_total_ips)
+            f"all subnets - {n_total_ips} ips", total=n_total_ips)
         with multiprocessing.Pool(processes=threadsCount, initializer=_init_pool) as pool:
             signal.signal(signal.SIGINT, original_sigint_handler)
             iterator = pool.imap(
@@ -198,7 +208,7 @@ if __name__ == "__main__":
                         n_ips_cidr = get_num_ips_in_cidr(
                             res.cidr, sample_size=test_config.sample_size)
                         cidr_prog_tasks[res.cidr] = progress.add_task(
-                            f"{res.cidr} - {n_ips_cidr} ips", total=n_ips_cidr)
+                            f"{res.cidr:17s} - {n_ips_cidr} ips", total=n_ips_cidr)
                     progress.update(cidr_prog_tasks[res.cidr], advance=1)
 
                     if res.is_ok:
@@ -215,7 +225,7 @@ if __name__ == "__main__":
                         mean_up_latency = statistics.mean(
                             res.result["upload"]["latency"]) if test_config.do_upload_test else -1
 
-                        rprint(res.message)
+                        console.print(res.message)
 
                         with open(INTERIM_RESULTS_PATH, "a") as outfile:
                             res_parts = [
@@ -230,7 +240,7 @@ if __name__ == "__main__":
 
                             outfile.write(",".join(map(str, res_parts)) + "\n")
                     else:
-                        rprint(res.message)
+                        console.print(res.message)
 
                     cidr_scanned_ips[res.cidr] += 1
                     if cidr_scanned_ips[res.cidr] == get_num_ips_in_cidr(res.cidr, sample_size=test_config.sample_size):
@@ -261,3 +271,4 @@ if __name__ == "__main__":
                     progress.log("[red1]Unknown error![/red1]")
                     console.print_exception()
                     logger.exception(e)
+                        

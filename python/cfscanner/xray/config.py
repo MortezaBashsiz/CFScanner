@@ -1,7 +1,7 @@
 import os
 
-from args.testconfig import TestConfig
-from utils.socket import get_free_port
+from ..args.testconfig import TestConfig
+from ..utils.socket import get_free_port
 import uuid
 
 
