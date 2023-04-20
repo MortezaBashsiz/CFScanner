@@ -21,6 +21,14 @@ from .subnets import cidr_to_ip_list, get_num_ips_in_cidr, read_cidrs
 from .utils.exceptions import *
 from .utils.os import create_dir
 
+console = Console()
+
+SCRIPTDIR = os.getcwd()
+CONFIGDIR = f"{SCRIPTDIR}/.xray-configs"
+RESULTDIR = f"{SCRIPTDIR}/result"
+START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
+INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
+
 def _prescan_sigint_handler(sig, frame):
     console.log(
         f"[yellow]KeyboardInterrupt detected (pre-scan phase) - {START_DT_STR}[/yellow]")
@@ -30,14 +38,6 @@ def _init_pool():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 def main():
-    console = Console()
-
-    SCRIPTDIR = os.getcwd()
-    CONFIGDIR = f"{SCRIPTDIR}/.xray-configs"
-    RESULTDIR = f"{SCRIPTDIR}/result"
-    START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
-    INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
-
     log_dir = os.path.join(SCRIPTDIR, "log")
     os.makedirs(log_dir, exist_ok=True)
     logging.basicConfig(

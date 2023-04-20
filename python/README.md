@@ -230,7 +230,7 @@ Contributors names and contact info
   * Added subnets shuffling option
 * 1.3.1
   * Improved colors in logging
-* 1.3.8
+* 1.3.9
   * Several rounds with pypi
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
