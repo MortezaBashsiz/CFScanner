@@ -20,30 +20,10 @@ CFSCanner runs on different operating systems including and not limited to:
   - pysocks
   - rich
 
-# Installing
-
-## Install git and pip
+# Installing (and upgrading)
 
 ```bash
-sudo apt update && sudo apt install python3-pip git -y
-```
-
-## Clone the project
-
-```bash
-git clone https://github.com/MortezaBashsiz/CFScanner.git
-```
-
-## Change directory
-
-```bash
-cd CFScanner/python/
-```
-
-## Install required python packages
-
-```bash
-pip install -r ./requirements.txt
+pip install cfscanner --upgrade
 ```
 
 ## Creating a custom config file (optional)
@@ -71,17 +51,22 @@ In the following, you can find examples of running the script with and without c
 * To run with sudoer default config and only one thread on the default subnets list:
 
   ```bash
-  python3 cfscanner.py 
+  cfscanner.py 
   ```
+  alternatively, you could use the following command:
+  ```bash
+  python3 -m cfscanner
+  ```
+
 * To run with sudoer default config and 8 threads:
 
   ```bash
-  python3 cfscanner.py -t 8
+  cfscanner -t 8
   ```
 * To run on a list of subnets:
 
   ```bash
-  python3 cfscanner.py -t 8 -c ./myconfig.json -s ./mysubnets.selection
+  cfscanner -t 8 -c ./myconfig.json -s ./mysubnets.selection
   ```
 
   Each line of the file can be either a subnet (in CIDR notation) or a single IP (v4 or v6):
@@ -100,22 +85,22 @@ In the following, you can find examples of running the script with and without c
 * To run with a minimum acceptable download speed of 100 kilobytes per second
 
   ```bash
-  python3 cfscanner.py -t 8 -c ./myconfig.json -s ./mysubnets.selection -DS 100
+  cfscanner -t 8 -c ./myconfig.json -s ./mysubnets.selection -DS 100
   ```
 * To run with a minimum acceptable download and upload speed (in KBps)
 
   ```bash
-  python3 cfscanner.py -t 8 -c ./myconfig.json -s ./mysubnets.selection -DS 100 -US 25
+  cfscanner -t 8 -c ./myconfig.json -s ./mysubnets.selection -DS 100 -US 25
   ```
 * To run and try each IP multiple (in this case 3) times. An IP is marked ok if it passes all the tests.
 
   ```bash
-  python3 cfscanner.py --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100 --upload-speed 25 --tries 3
+  cfscanner --threads 8 --config ./myconfig.json --subnets ./mysubnets.selection --download-speed 100 --upload-speed 25 --tries 3
   ```
 * To run on a random sample of size 20 of the subnets and minimum acceptable download and upload speed of 10 KBps with the default config
 
   ```bash
-  python3 cfscanner.py -t 8 -DS 10 -US 10 -r 20
+  cfscanner -t 8 -DS 10 -US 10 -r 20
   ```
 
 ---
@@ -232,6 +217,8 @@ Contributors names and contact info
   * Improved colors in logging
 * 1.3.9
   * Several rounds with pypi
+* 1.3.10
+  * Improved the progress bar
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.3.8-blue
+[version]: https://img.shields.io/badge/Version-1.3.10-blue

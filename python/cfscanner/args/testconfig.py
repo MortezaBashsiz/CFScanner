@@ -9,9 +9,7 @@ from ..utils.requests import download_file
 from ..xray import templates
 from ..xray.binary import download_binary
 
-PATH = os.path.dirname(os.path.abspath(__file__))
-PARENT_PATH = os.path.dirname(PATH)
-
+SCRIPTDIR = os.getcwd()
 
 class TestConfig:
     @classmethod
@@ -27,13 +25,13 @@ class TestConfig:
         # load config if need be
         if not args.no_vpn and args.template_path is None:
             if args.config_path is None:
-                os.makedirs(os.path.join(PATH, ".tmp"), exist_ok=True)
+                os.makedirs(os.path.join(SCRIPTDIR, ".tmp"), exist_ok=True)
                 download_file(
                     url="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/ClientConfig.json",
-                    save_path=os.path.join(PATH, ".tmp", "sudoer_config.json")
+                    save_path=os.path.join(SCRIPTDIR, ".tmp", "sudoer_config.json")
                 )
                 args.config_path = os.path.join(
-                    PATH, ".tmp", "sudoer_config.json")
+                    SCRIPTDIR, ".tmp", "sudoer_config.json")
             with open(args.config_path, "r") as infile:
                 file_content = json.load(infile)
                 test_config.user_id = file_content["id"]
@@ -92,7 +90,7 @@ class TestConfig:
             try:
                 test_config.binpath = download_binary(
                     system_info=system_info,
-                    bin_dir=PARENT_PATH
+                    bin_dir=SCRIPTDIR
                 )
             except Exception as e:
                 raise BinaryDownloadError(str(e))
