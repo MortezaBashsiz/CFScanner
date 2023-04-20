@@ -221,8 +221,8 @@ Contributors names and contact info
   * Improved the progress bar
 * 1.3.11
   * fixed multiple printing bug
-* 1.3.13
+* 1.3.12
   * added setuptools to the dependencies
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.3.13-blue
+[version]: https://img.shields.io/badge/Version-1.3.12-blue
