@@ -223,6 +223,9 @@ Contributors names and contact info
   * fixed multiple printing bug
 * 1.3.12
   * added setuptools to the dependencies
+* 1.3.13
+  * added removal of duplicate subnets (issue [#490])
+  * reduced the file size used for fronting test
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.3.12-blue
+[version]: https://img.shields.io/badge/Version-1.3.13-blue

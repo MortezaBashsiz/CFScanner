@@ -146,12 +146,25 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
                 logger.exception(e)
                 exit(1)
     
-    if args.shuffle_subnets:    
+    n_cidrs_before = len(cidr_list)
+    with console.status("[green]Removing duplicates from subnets[/green]"):
         try:
-            random.shuffle(cidr_list)
-        except Exception as e:
-            console.log("[yellow]Could not shuffle subnets. Using original order[/yellow]")
-            logger.exception(e)            
+            cidr_list = list(dict.fromkeys(cidr_list))
+            if len(cidr_list) < n_cidrs_before:
+                console.log(
+                    f"[yellow]Removed {n_cidrs_before - len(cidr_list)} duplicates from subnets[/yellow]"
+                )
+        except:
+            console.log("[yellow]Could not remove duplicates from subnets. Using original list[/yellow]")
+            logger.exception(e)
+    
+    if args.shuffle_subnets:    
+        with console.status(f"[green]Shuffling subnets[/green]"):
+            try:
+                random.shuffle(cidr_list)
+            except Exception as e:
+                console.log("[yellow]Could not shuffle subnets. Using original order[/yellow]")
+                logger.exception(e)            
     
     try:
         test_config = TestConfig.from_args(args)

@@ -23,14 +23,14 @@ def fronting_test(
     try:
         compatible_ip = f"[{ip}]" if ":" in ip else ip
         r = s.get(
-            f"https://{compatible_ip}",
+            f"https://{compatible_ip}/__down?bytes=10",
             timeout=timeout,
             headers={"Host": "speed.cloudflare.com"}
         )
         if r.status_code != 200:
             return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting error {r.status_code} [/yellow1]"
-        else:
-            success = True
+        elif r.content != b"0" * 10:
+            return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting error - unexpected response [/yellow1]"
     except requests.exceptions.ConnectTimeout as e:
         return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting connect timeout[/yellow1]"
     except requests.exceptions.ReadTimeout as e:
