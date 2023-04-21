@@ -218,8 +218,8 @@ function fncCheckIPList {
 				fi
 				if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 				then
-					domainFronting=$($timeoutCommand 1 curl -k -s -w "%{http_code}\n" --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=1000" -o /dev/null)
-					if [[ "$domainFronting" == "200" ]]
+					domainFronting=$($timeoutCommand 1 curl -k -s --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=10")
+					if [[ "$domainFronting" == "0000000000" ]]
 					then
 						mainDomain=$(echo "$configHost" | awk -F '.' '{ print $2"."$3}')
 						if [[ "$osVersion" == "Linux" ]]
@@ -373,8 +373,8 @@ function fncCheckIPList {
 				fi
 				if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 				then
-					domainFronting=$($timeoutCommand 1 curl -k -s -w "%{http_code}\n" --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=1000" -o /dev/null)
-					if [[ "$domainFronting" == "200" ]]
+					domainFronting=$($timeoutCommand 1 curl -k -s --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=10")
+					if [[ "$domainFronting" == "0000000000" ]]
 					then
 						downTotalTime=0
 						upTotalTime=0
