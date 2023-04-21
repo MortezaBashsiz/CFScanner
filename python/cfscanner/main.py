@@ -146,9 +146,14 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
                 logger.exception(e)
                 exit(1)
     
+    n_cidrs_before = len(cidr_list)
     with console.status("[green]Removing duplicates from subnets[/green]"):
         try:
             cidr_list = list(dict.fromkeys(cidr_list))
+            if len(cidr_list) < n_cidrs_before:
+                console.log(
+                    f"[yellow]Removed {n_cidrs_before - len(cidr_list)} duplicates from subnets[/yellow]"
+                )
         except:
             console.log("[yellow]Could not remove duplicates from subnets. Using original list[/yellow]")
             logger.exception(e)
