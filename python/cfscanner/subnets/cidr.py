@@ -101,7 +101,7 @@ def read_cidrs_from_url(
         if r.status_code != 200:
             raise SubnetsReadError(
                 f"Could not read cidrs from url - status code: {r.status_code}", url)
-        cidr_regex = r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}\/[\d]+"
+        cidr_regex = r"(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?:\/[\d]+)?"
         cidrs = re.findall(cidr_regex, r.text)
         if len(cidrs) == 0:
             raise SubnetsReadError(
