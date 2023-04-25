@@ -27,7 +27,7 @@ class TestConfig:
             if args.config_path is None:
                 os.makedirs(os.path.join(SCRIPTDIR, ".tmp"), exist_ok=True)
                 download_file(
-                    url="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/bash/ClientConfig.json",
+                    url="https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/ClientConfig.json",
                     save_path=os.path.join(SCRIPTDIR, ".tmp", "sudoer_config.json")
                 )
                 args.config_path = os.path.join(
