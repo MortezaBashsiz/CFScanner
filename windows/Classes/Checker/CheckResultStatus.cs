@@ -32,6 +32,16 @@ namespace WinCFScan.Classes.Checker
             }
         }
 
+        public bool isDownSuccess()
+        {
+            return isDownloadSuccess;
+        }
+
+        public bool isUpSuccess()
+        {
+            return isUploadSuccess;
+        }
+
         public void setDownloadSuccess()
         {
             this.isDownloadSuccess = true;

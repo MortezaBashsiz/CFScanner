@@ -78,7 +78,8 @@ namespace WinCFScan.Classes.Checker
             Tools.logStep(
                 string.Format(Environment.NewLine + "Fronting  Result:    {0}", frontingSuccess ? "SUCCESS" : "FAILED") + Environment.NewLine +
                 string.Format("v2ray.exe Execution: {0}", isV2rayExecutionSuccess ? "SUCCESS" : "FAILED") + Environment.NewLine +
-                string.Format("Download  Result:    {0}", v2rayDLSuccess ? "SUCCESS" : "FAILED"), isDiagnosing
+                string.Format("Download  Result:    {0}", checkResultStatus.isDownSuccess() ? "SUCCESS" : "FAILED") + Environment.NewLine +
+                string.Format("Upload    Result:    {0}", checkResultStatus.isUpSuccess() ? "SUCCESS" : "FAILED"), isDiagnosing
                 );
 
             Tools.logStep("\n------------ End IP Check ------------\n", isDiagnosing);
@@ -167,7 +168,7 @@ namespace WinCFScan.Classes.Checker
         private bool checkV2raySpeed()
         {
             // check download
-            if (checkType is CheckType.DOWNLOAD or CheckType.BOTH)
+            if (checkType is CheckType.DOWNLOAD or CheckType.BOTH || isDiagnosing)
             {
                 string dlUrl = "https://" + ConfigManager.Instance.getAppConfig().downloadDomain + dlTargetSpeed.getTargetFileSize(checkTimeout);
                 var cs = new CheckSettings(ip, port, checkTimeout, dlUrl, isDiagnosing, checkType, dlTargetSpeed);
@@ -185,7 +186,7 @@ namespace WinCFScan.Classes.Checker
             }
 
             // check upload
-            if (checkType is CheckType.UPLOAD or CheckType.BOTH){
+            if (checkType is CheckType.UPLOAD or CheckType.BOTH || isDiagnosing){
                 string upUrl = "https://" + ConfigManager.Instance.getAppConfig().uploadDomain;
                 var cs = new CheckSettings(ip, port, checkTimeout, upUrl, isDiagnosing, checkType, upTargetSpeed);
                 var upChecker = new UploadChecker(cs);
