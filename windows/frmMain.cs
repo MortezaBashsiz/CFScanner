@@ -921,11 +921,7 @@ namespace WinCFScan
 
         private void listResults_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            var IPAddress = getSelectedIPAddress();
-            if (IPAddress != null)
-            {
-                testSingleIPAddress(IPAddress);
-            }
+            testSelectedIP();
         }
 
         private void updateCFIPListStatusText()
@@ -1068,7 +1064,7 @@ namespace WinCFScan
             string ipAddr;
             if (getIPFromUser(out ipAddr, "Test Single IP Address"))
             {
-                testAvgSingleIP(ipAddr, 1, getDownloadTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
+                testAvgSingleIP(ipAddr, 1, getDownloadTargetSpeed(), getUploadTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout(), getSelectedCheckType());
             }
         }
 
@@ -1455,31 +1451,33 @@ namespace WinCFScan
         }
 
 
-        private void testAvgSingleIP(string IPAddress, int rounds, ScanSpeed targetSpeed, CustomConfigInfo v2rayConfig, int downloadTimeout)
+        private void testAvgSingleIP(string IPAddress, int rounds, ScanSpeed dlSpeed, ScanSpeed upSpeed, CustomConfigInfo v2rayConfig, int downloadTimeout, CheckType checkType = CheckType.DOWNLOAD)
         {
 
-            addTextLog($"Testing {IPAddress} for {rounds} rounds...");
+            addTextLog($"Testing {IPAddress} for {rounds} rounds, Scan Type: {checkType}...");
 
             int totalSuccessCount = 0, totalFailedCount = 0;
-            long bestDLDuration = 99999, bestFrontingDuration = 99999, totalDLDuration = 0, totalFrontingDuration = 0;
-            long averageDLDuration = 0, averageFrontingDuration = 0;
+            long bestDLDuration = 99999, bestUPDuration = 9999, bestFrontingDuration = 99999, totalDLDuration = 0, totalUPDuration = 0, totalFrontingDuration = 0;
+            long averageDLDuration = 0, averageUPDuration = 0, averageFrontingDuration = 0;
 
             for (int i = 1; i <= rounds; i++)
             {
                 // test
-                // todo: set upload speed
-                var checker = new CheckIPWorking(IPAddress, targetSpeed, targetSpeed, v2rayConfig, getSelectedCheckType(), downloadTimeout);
+                var checker = new CheckIPWorking(IPAddress, dlSpeed, upSpeed, v2rayConfig, checkType, downloadTimeout);
                 var success = checker.check();
 
                 long DLDuration = checker.downloadDuration;
+                long UPDuration = checker.uploadDuration;
                 long FrontingDuration = checker.frontingDuration;
 
                 if (success)
                 {
                     totalSuccessCount++;
                     bestDLDuration = Math.Min(DLDuration, bestDLDuration);
+                    bestUPDuration = Math.Min(UPDuration, bestUPDuration);
                     bestFrontingDuration = Math.Min(FrontingDuration, bestFrontingDuration);
                     totalDLDuration += DLDuration;
+                    totalUPDuration += UPDuration;
                     totalFrontingDuration += FrontingDuration;
                 }
                 else
@@ -1494,10 +1492,12 @@ namespace WinCFScan
             if (totalSuccessCount > 0)
             {
                 averageDLDuration = totalDLDuration / totalSuccessCount;
+                averageUPDuration = totalUPDuration / totalSuccessCount;
                 averageFrontingDuration = totalFrontingDuration / totalSuccessCount;
 
                 string results = $"{IPAddress} => {totalSuccessCount}/{rounds} was successful." + Environment.NewLine +
-                    $"\tDownload: Best {bestDLDuration:n0} ms, Average: {averageDLDuration:n0} ms" + Environment.NewLine +
+                    (bestDLDuration > 0 ? $"\tDownload: Best {bestDLDuration:n0} ms, Average: {averageDLDuration:n0} ms" + Environment.NewLine : "") +
+                    (bestUPDuration> 0 ? $"\tUpload  : Best {bestUPDuration:n0} ms, Average: {averageUPDuration:n0} ms" + Environment.NewLine : "") +
                     $"\tFronting: Best {bestFrontingDuration:n0} ms, Average: {averageFrontingDuration:n0} ms" + Environment.NewLine;
 
                 addTextLog(results);
@@ -1507,23 +1507,6 @@ namespace WinCFScan
                 addTextLog($"{IPAddress} is NOT working.");
             }
 
-        }
-
-        private void testSingleIPAddress(string IPAddress)
-        {
-            addTextLog($"Testing {IPAddress} ...");
-
-            var checker = new CheckIPWorking(IPAddress, getDownloadTargetSpeed(), getUploadTargetSpeed(), getSelectedV2rayConfig(), getSelectedCheckType(), getDownloadTimeout());
-            var success = checker.check();
-
-            if (success)
-            {
-                addTextLog($"{IPAddress} is working. Delay: {checker.downloadDuration:n0} ms.");
-            }
-            else
-            {
-                addTextLog($"{IPAddress} is NOT working.");
-            }
         }
 
         private void testSelectedIPAddresses(int rounds = 1)
@@ -1542,14 +1525,16 @@ namespace WinCFScan
                                  .ToArray<string>(); ;
 
 
-            var speed = getDownloadTargetSpeed();
+            var dlSpeed = getDownloadTargetSpeed();
+            var upSpeed = getUploadTargetSpeed();
+            var checkType = getSelectedCheckType();
             var conf = getSelectedV2rayConfig();
             var timeout = getDownloadTimeout();
 
             addTextLog($"Start testing {selectedIPs.Length} IPs for {rounds} rounds..." + Environment.NewLine +
-                $"\tTest spec: download size: {speed.getTargetFileSizeInt(timeout) / 1000} KB in {timeout} seconds." + Environment.NewLine);
+                $"\tTest spec: download size: {dlSpeed.getTargetFileSizeInt(timeout) / 1000} KB in {timeout} seconds." + Environment.NewLine);
 
-            if (speed.isSpeedZero())
+            if (dlSpeed.isSpeedZero())
             {
                 addTextLog("** Warning: Testing in NO VPN mode. Choose a target download speed from above settings so we can test base on that target speed.");
             }
@@ -1562,7 +1547,7 @@ namespace WinCFScan
                 for (int i = 0; i < selectedIPs.Length; i++)
                 {
                     var ip = selectedIPs[i];
-                    testAvgSingleIP(ip, rounds, speed, conf, timeout);
+                    testAvgSingleIP(ip, rounds, dlSpeed, upSpeed, conf, timeout, checkType);
 
                     // stop requested
                     if (stopAvgTetingIsRequested)
@@ -1603,11 +1588,16 @@ namespace WinCFScan
 
         private void testThisIPAddressToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            testSelectedIP();
+        }
+
+        private void testSelectedIP()
+        {
             var ip = getSelectedIPAddress();
 
             if (ip != null)
             {
-                testAvgSingleIP(ip, 1, getDownloadTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
+                testAvgSingleIP(ip, 1, getDownloadTargetSpeed(), getUploadTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout(), getSelectedCheckType());
             }
         }
 
