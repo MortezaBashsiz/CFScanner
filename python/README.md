@@ -119,7 +119,7 @@ To see the help message, use the `--help` or `-h` option.
 * `--tries`, `-n`: Number of times to try each IP. An IP is marked as OK if all tries are successful. Default value is 1.
 * `--subnets`, `-s`: The path to the custom subnets file. Each line should be either a single ip (v4 or v6) or a
   subnet in cidr notation (v4 or v6). If not provided, the program will
-  read the list of cidrs from [https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/cf.local.iplist](https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/cf.local.iplist).
+  read the list of cidrs from [https://github.com/MortezaBashsiz/CFScanner/blob/main/config/cf.local.iplist](https://github.com/MortezaBashsiz/CFScanner/blob/main/config/cf.local.iplist).
   
 #### Random Scan Options
 * `--sample`, `-r`: Size of the random sample to take from each subnet. The sample size can either
@@ -131,7 +131,7 @@ To see the help message, use the `--help` or `-h` option.
 
 #### Xray Config Options
 
-* `--config`, `-c`: The path to the config file. For config file example, see [sudoer default config](https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/ClientConfig.json). If not provided, the program will read the [default sudoer config](https://github.com/MortezaBashsiz/CFScanner/blob/main/bash/ClientConfig.json) file.
+* `--config`, `-c`: The path to the config file. For config file example, see [sudoer default config](https://github.com/MortezaBashsiz/CFScanner/blob/main/config/ClientConfig.json). If not provided, the program will read the [default sudoer config](https://github.com/MortezaBashsiz/CFScanner/blob/main/config/ClientConfig.json) file.
 * `--template`: Path to the proxy (v2ray/xray) client file template. By default vmess_ws_tls is used.
 * `--binpath`, `-b`: Path to the v2ray/xray binary file. If not provided, will use the latest compatible version of xray.
 * `--novpn`: If passed, xray/v2ray service will not be started and the program will not use vpn.
