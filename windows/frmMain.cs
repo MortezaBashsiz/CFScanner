@@ -380,6 +380,7 @@ namespace WinCFScan
                 comboUpTargetSpeed.Enabled = false;
                 comboDLTargetSpeed.Enabled = false;
                 comboConfigs.Enabled = false;
+                comboCheckType.Enabled = false;
                 timerProgress.Enabled = true;
                 //btnSkipCurRange.Enabled = true;
                 comboResults.Enabled = false;
@@ -403,6 +404,7 @@ namespace WinCFScan
                 comboDLTargetSpeed.Enabled = true;
                 comboUpTargetSpeed.Enabled = true;
                 comboConfigs.Enabled = true;
+                comboCheckType.Enabled = true;
 
                 if (!isScanPaused())
                 {
@@ -474,7 +476,7 @@ namespace WinCFScan
                 pInf.frontingExceptions.setControlColorStyles(btnFrontingErrors);
                 pInf.downloadUploadExceptions.setControlColorStyles(btnDownloadErrors);
                 btnFrontingErrors.Text = $"Fronting Errors : {pInf.frontingExceptions.getErrorRate():f1}%";
-                btnDownloadErrors.Text = $"Download Errors : {pInf.downloadUploadExceptions.getErrorRate():f1}%";
+                btnDownloadErrors.Text = $"DL && UP Errors : {pInf.downloadUploadExceptions.getErrorRate():f1}%";
                 btnFrontingErrors.ToolTipText = $"Total errors: {pInf.downloadUploadExceptions.getTotalErros()}";
                 btnDownloadErrors.ToolTipText = $"Total errors: {pInf.frontingExceptions.getTotalErros()}";
             }
@@ -1454,7 +1456,7 @@ namespace WinCFScan
         private void testAvgSingleIP(string IPAddress, int rounds, ScanSpeed dlSpeed, ScanSpeed upSpeed, CustomConfigInfo v2rayConfig, int downloadTimeout, CheckType checkType = CheckType.DOWNLOAD)
         {
 
-            addTextLog($"Testing {IPAddress} for {rounds} rounds, Scan Type: {checkType}...");
+            addTextLog($"{Environment.NewLine}Testing {IPAddress} for {rounds} round(s), Scan type: {checkType}...");
 
             int totalSuccessCount = 0, totalFailedCount = 0;
             long bestDLDuration = 99999, bestUPDuration = 9999, bestFrontingDuration = 99999, totalDLDuration = 0, totalUPDuration = 0, totalFrontingDuration = 0;
@@ -1495,9 +1497,10 @@ namespace WinCFScan
                 averageUPDuration = totalUPDuration / totalSuccessCount;
                 averageFrontingDuration = totalFrontingDuration / totalSuccessCount;
 
-                string results = $"{IPAddress} => {totalSuccessCount}/{rounds} was successful." + Environment.NewLine +
+                // print results
+                string results = $"{IPAddress} => {totalSuccessCount}/{rounds} test(s) was successful." + Environment.NewLine +
                     (bestDLDuration > 0 ? $"\tDownload: Best {bestDLDuration:n0} ms, Average: {averageDLDuration:n0} ms" + Environment.NewLine : "") +
-                    (bestUPDuration> 0 ? $"\tUpload  : Best {bestUPDuration:n0} ms, Average: {averageUPDuration:n0} ms" + Environment.NewLine : "") +
+                    (bestUPDuration > 0 ? $"\tUpload  : Best {bestUPDuration:n0} ms, Average: {averageUPDuration:n0} ms" + Environment.NewLine : "") +
                     $"\tFronting: Best {bestFrontingDuration:n0} ms, Average: {averageFrontingDuration:n0} ms" + Environment.NewLine;
 
                 addTextLog(results);

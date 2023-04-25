@@ -402,7 +402,7 @@
             comboCheckType.Margin = new Padding(7, 0, 1, 0);
             comboCheckType.Name = "comboCheckType";
             comboCheckType.RightToLeft = RightToLeft.No;
-            comboCheckType.Size = new Size(130, 23);
+            comboCheckType.Size = new Size(138, 23);
             comboCheckType.ToolTipText = "Scan Type";
             // 
             // comboUpTargetSpeed
@@ -465,7 +465,7 @@
             lblDebugMode.BackColor = SystemColors.Control;
             lblDebugMode.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
             lblDebugMode.ForeColor = Color.Red;
-            lblDebugMode.Location = new Point(374, 92);
+            lblDebugMode.Location = new Point(289, 92);
             lblDebugMode.Name = "lblDebugMode";
             lblDebugMode.Size = new Size(143, 15);
             lblDebugMode.TabIndex = 13;
@@ -478,9 +478,9 @@
             btnCopyFastestIP.AccessibleDescription = "A button for copy fastest found IP address into the clipboard";
             btnCopyFastestIP.AccessibleName = "Copy fastest IP address";
             btnCopyFastestIP.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnCopyFastestIP.Location = new Point(729, 87);
+            btnCopyFastestIP.Location = new Point(683, 87);
             btnCopyFastestIP.Name = "btnCopyFastestIP";
-            btnCopyFastestIP.Size = new Size(103, 25);
+            btnCopyFastestIP.Size = new Size(149, 25);
             btnCopyFastestIP.TabIndex = 2;
             btnCopyFastestIP.Text = "Copy fastest IP";
             btnCopyFastestIP.UseVisualStyleBackColor = true;
@@ -495,11 +495,11 @@
             txtFastestIP.BackColor = Color.White;
             txtFastestIP.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
             txtFastestIP.ForeColor = Color.Green;
-            txtFastestIP.Location = new Point(539, 89);
+            txtFastestIP.Location = new Point(438, 89);
             txtFastestIP.Name = "txtFastestIP";
             txtFastestIP.PlaceholderText = "Fastest IP";
             txtFastestIP.ReadOnly = true;
-            txtFastestIP.Size = new Size(183, 23);
+            txtFastestIP.Size = new Size(239, 23);
             txtFastestIP.TabIndex = 3;
             // 
             // lblTotalWorkingIPs
@@ -533,7 +533,7 @@
             comboResults.FormattingEnabled = true;
             comboResults.Location = new Point(140, 10);
             comboResults.Name = "comboResults";
-            comboResults.Size = new Size(220, 23);
+            comboResults.Size = new Size(225, 23);
             comboResults.TabIndex = 5;
             toolTip1.SetToolTip(comboResults, "List of last scan results");
             comboResults.SelectedIndexChanged += comboResults_SelectedIndexChanged;
@@ -1072,6 +1072,7 @@
             btnFrontingErrors.ForeColor = SystemColors.ControlText;
             btnFrontingErrors.Image = (Image)resources.GetObject("btnFrontingErrors.Image");
             btnFrontingErrors.ImageTransparentColor = Color.Magenta;
+            btnFrontingErrors.Margin = new Padding(10, 1, 0, 2);
             btnFrontingErrors.Name = "btnFrontingErrors";
             btnFrontingErrors.Size = new Size(123, 30);
             btnFrontingErrors.Text = "Fronting errors: 0%";

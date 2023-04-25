@@ -41,6 +41,7 @@ namespace WinCFScan.Classes
         private int skipMinPercent;
         public bool isDiagnosing = false;
         public bool isRandomScan = false;
+        private ScanType scanType;
 
         public ScanEngine()
         {
@@ -51,6 +52,7 @@ namespace WinCFScan.Classes
 
         public bool resume(ScanType scanType = ScanType.SCAN_CLOUDFLARE_IPS)
         {
+            this.scanType = scanType;
             if (progressInfo.scanStatus != ScanStatus.PAUSED)
                 return false;
 
@@ -61,6 +63,7 @@ namespace WinCFScan.Classes
 
         public bool start(ScanType scanType = ScanType.SCAN_CLOUDFLARE_IPS, int lastIndex = 0)
         {
+            this.scanType = scanType;
             progressInfo.stopRequested = false;
             progressInfo.pauseRequested = false;
 
@@ -330,6 +333,9 @@ namespace WinCFScan.Classes
 
         private void checkForAutoSkips()
         {
+            // no skip in prev result scan mode
+            if (scanType == ScanType.SCAN_IN_PERV_RESULTS)
+                return;
 
             // skip after 3 minute
             if (skipAfterAWhileEnabled)
