@@ -138,7 +138,7 @@ namespace WinCFScan.Classes.Checker
                 var html = client.GetStringAsync(frUrl).Result;
                 Tools.logStep($"Fronting check done in {sw.ElapsedMilliseconds:n0} ms, content: '{html.Substring(0, 50)}'", isDiagnosing);
                 frontingDuration = sw.ElapsedMilliseconds;
-                return true;
+                return html.StartsWith("0000000000");
             }
             catch (Exception ex)
             {
