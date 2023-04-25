@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using WinCFScan.Classes.Checker;
 using WinCFScan.Classes.Config;
 using WinCFScan.Classes.HTTPRequest;
 using WinCFScan.Classes.IP;
@@ -25,11 +26,13 @@ namespace WinCFScan.Classes
         public List<ResultItem>? workingIPsFromPrevScan { get; set; }
         public string v2rayDiagnosingMessage { get; private set; }
         public bool isV2rayExecutionSuccess { get; private set; }
+        public ScanSpeed upTargetSpeed { get; set; }
+        public CheckType checkType { get; set; }
 
         public int concurrentProcess = 4;
-        public ScanSpeed targetSpeed;
+        public ScanSpeed dlTargetSpeed;
         public CustomConfigInfo scanConfig;
-        public int downloadTimeout = 2;
+        public int checkTimeout = 2;
         private bool skipAfterFoundIPsEnabled;
         private bool skipAfterAWhileEnabled;
         private Stopwatch curRangeTimer;
@@ -38,6 +41,7 @@ namespace WinCFScan.Classes
         private int skipMinPercent;
         public bool isDiagnosing = false;
         public bool isRandomScan = false;
+        private ScanType scanType;
 
         public ScanEngine()
         {
@@ -48,6 +52,7 @@ namespace WinCFScan.Classes
 
         public bool resume(ScanType scanType = ScanType.SCAN_CLOUDFLARE_IPS)
         {
+            this.scanType = scanType;
             if (progressInfo.scanStatus != ScanStatus.PAUSED)
                 return false;
 
@@ -58,6 +63,7 @@ namespace WinCFScan.Classes
 
         public bool start(ScanType scanType = ScanType.SCAN_CLOUDFLARE_IPS, int lastIndex = 0)
         {
+            this.scanType = scanType;
             progressInfo.stopRequested = false;
             progressInfo.pauseRequested = false;
 
@@ -238,7 +244,7 @@ namespace WinCFScan.Classes
                     {
                         progressInfo.curentWorkingThreads++;
                     }
-                    var checker = new CheckIPWorking(ip, targetSpeed, scanConfig, downloadTimeout, isDiagnosing);
+                    var checker = new CheckIPWorking(ip, dlTargetSpeed, this.upTargetSpeed, scanConfig, this.checkType, checkTimeout, isDiagnosing);
                     bool isOK = checker.check();
                     
                     lock (locker)
@@ -250,11 +256,11 @@ namespace WinCFScan.Classes
                     }
 
                     //Thread.Sleep(1);
-                    LogControl.Write($"{ip.PadRight(15)} is {isOK.ToString().PadRight(5)} front in: {checker.frontingDuration:n0} ms, dl in: {checker.downloadDuration:n0} ms");
+                    LogControl.Write($"{ip.PadRight(15)} is {isOK.ToString().PadRight(5)} front in: {checker.frontingDuration:n0} ms, dl in: {checker.downloadDuration:n0} ms, up in: {checker.uploadDuration:n0} ms");
 
                     if (isOK)
                     {
-                        progressInfo.scanResults.addIPResult(checker.downloadDuration, ip);
+                        progressInfo.scanResults.addIPResult(checker.downloadDuration, checker.uploadDuration, ip);
                     }
 
                     setDiagnoseMessage(checker);
@@ -312,9 +318,12 @@ namespace WinCFScan.Classes
         {
             // monitoring exceptions rate
             if (checker.downloadException != "")
-                progressInfo.downloadExceptions.addError(checker.downloadException);
-            else
-                progressInfo.downloadExceptions.addScuccess();
+                progressInfo.downloadUploadExceptions.addError(checker.downloadException);
+            if (checker.uploadException != "")
+                progressInfo.downloadUploadExceptions.addError(checker.uploadException);
+            
+            if(checker.downloadException == "" && checker.uploadException == "")
+                progressInfo.downloadUploadExceptions.addScuccess();
 
             if (checker.frontingException != "")
                 progressInfo.frontingExceptions.addError(checker.frontingException);
@@ -324,6 +333,9 @@ namespace WinCFScan.Classes
 
         private void checkForAutoSkips()
         {
+            // no skip in prev result scan mode
+            if (scanType == ScanType.SCAN_IN_PERV_RESULTS)
+                return;
 
             // skip after 3 minute
             if (skipAfterAWhileEnabled)

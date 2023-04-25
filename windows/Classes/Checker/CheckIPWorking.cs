@@ -10,46 +10,52 @@ using System.Windows.Forms;
 using WinCFScan.Classes.Config;
 using WinCFScan.Classes.HTTPRequest;
 
-namespace WinCFScan.Classes
+namespace WinCFScan.Classes.Checker
 {
     internal class CheckIPWorking
     {
         private readonly string ip;
-        private Process? process ;
+        private Process? process;
         private string port;
         private string v2rayConfigPath;
         public long downloadDuration { get; private set; }
+        public long uploadDuration { get; private set; }
         public long frontingDuration { get; private set; }
-        private ScanSpeed targetSpeed;
+        private ScanSpeed dlTargetSpeed;
+        private ScanSpeed upTargetSpeed;
         private readonly CustomConfigInfo scanConfig;
-        private readonly int downloadTimeout;
+        private readonly int checkTimeout;
         public string downloadException = "";
+        public string uploadException = "";
         public string frontingException = "";
         private bool isDiagnosing = false;
         public bool isV2rayExecutionSuccess = false;
+        public CheckType checkType { get; private set; }
+        private CheckResultStatus checkResultStatus;
 
-
-
-        public CheckIPWorking(string ip, ScanSpeed targetSpeed, CustomConfigInfo scanConfig, int downloadTimeout, bool isDiagnosing = false)
+        public CheckIPWorking(string ip, ScanSpeed dlTargetSpeed, ScanSpeed upTargetSpeed, CustomConfigInfo scanConfig, CheckType checkType, int checkTimeout, bool isDiagnosing = false)
         {
             this.ip = ip;
-            this.port = getPortByIP();
+            port = getPortByIP();
             v2rayConfigPath = $"v2ray-config/generated/config.{ip}.json";
-            this.targetSpeed = targetSpeed;
+            this.dlTargetSpeed = dlTargetSpeed;
+            this.upTargetSpeed = upTargetSpeed;
             this.scanConfig = scanConfig;
-            this.downloadTimeout = downloadTimeout;
+            this.checkTimeout = checkTimeout;
             this.isDiagnosing = isDiagnosing;
+            this.checkType = checkType;
+            checkResultStatus = new CheckResultStatus(checkType);
         }
 
         public CheckIPWorking()
         {
         }
 
-         public bool check()
+        public bool check()
         {
             bool v2rayDLSuccess = false;
             Tools.logStep("\n------------ Start IP Check ------------", isDiagnosing);
-            Tools.logStep("IP: " + this.ip, isDiagnosing);
+            Tools.logStep("IP: " + ip, isDiagnosing);
 
             // first of all quick test on fronting domain through cloudflare
             bool frontingSuccess = checkFronting();
@@ -57,7 +63,7 @@ namespace WinCFScan.Classes
             if (frontingSuccess || isDiagnosing) // on diagnosing we will always test v2ray
             {
                 // don't speed test if that mode is selected by user
-                if (targetSpeed.isSpeedZero() && !isDiagnosing)
+                if (dlTargetSpeed.isSpeedZero() && !isDiagnosing)
                 {
                     v2rayDLSuccess = true;
                 }
@@ -70,9 +76,10 @@ namespace WinCFScan.Classes
             }
 
             Tools.logStep(
-                string.Format(Environment.NewLine +  "Fronting  Result:    {0}", frontingSuccess ? "SUCCESS" : "FAILED") + Environment.NewLine +
+                string.Format(Environment.NewLine + "Fronting  Result:    {0}", frontingSuccess ? "SUCCESS" : "FAILED") + Environment.NewLine +
                 string.Format("v2ray.exe Execution: {0}", isV2rayExecutionSuccess ? "SUCCESS" : "FAILED") + Environment.NewLine +
-                string.Format("Download  Result:    {0}", v2rayDLSuccess ? "SUCCESS" : "FAILED"), isDiagnosing
+                string.Format("Download  Result:    {0}", checkResultStatus.isDownSuccess() ? "SUCCESS" : "FAILED") + Environment.NewLine +
+                string.Format("Upload    Result:    {0}", checkResultStatus.isUpSuccess() ? "SUCCESS" : "FAILED"), isDiagnosing
                 );
 
             Tools.logStep("\n------------ End IP Check ------------\n", isDiagnosing);
@@ -80,16 +87,18 @@ namespace WinCFScan.Classes
 
         }
 
-        public bool checkV2ray() {
+        public bool checkV2ray()
+        {
             bool success = false;
+
             // create config
             if (createV2rayConfigFile())
             {
                 // start v2ray.exe process
                 if (runV2rayProcess())
                 {
-                    // send download request
-                    if (checkDownloadSpeed())
+                    // send download/upload request
+                    if (checkV2raySpeed())
                     {
                         // speed was enough
                         success = true;
@@ -123,14 +132,14 @@ namespace WinCFScan.Classes
             Stopwatch sw = new Stopwatch();
             try
             {
-                
+
                 string frUrl = "https://" + ConfigManager.Instance.getAppConfig()?.frontDomain;
                 Tools.logStep($"Fronting check with url: {frUrl}", isDiagnosing);
                 sw.Start();
                 var html = client.GetStringAsync(frUrl).Result;
                 Tools.logStep($"Fronting check done in {sw.ElapsedMilliseconds:n0} ms, content: '{html.Substring(0, 50)}'", isDiagnosing);
                 frontingDuration = sw.ElapsedMilliseconds;
-                return true;
+                return html.StartsWith("0000000000");
             }
             catch (Exception ex)
             {
@@ -156,66 +165,45 @@ namespace WinCFScan.Classes
 
         }
 
-        private bool checkDownloadSpeed()
+        private bool checkV2raySpeed()
         {
-            var proxy = new WebProxy();
-            proxy.Address = new Uri($"socks5://127.0.0.1:{port}");
-            var handler = new HttpClientHandler
+            // check download
+            if (checkType is CheckType.DOWNLOAD or CheckType.BOTH || isDiagnosing)
             {
-                Proxy = proxy
-            };
-
-            int timeout = this.downloadTimeout;
-
-            var client = new HttpClient(handler);
-            client.Timeout = TimeSpan.FromSeconds(timeout); // 2 seconds
-            Tools.logStep(Environment.NewLine + "----- Download Test -----", isDiagnosing);
-            Tools.logStep($"Start check dl speed, proxy port: {port}, timeout: {timeout} sec, target speed: {targetSpeed.getTargetSpeed():n0} b/s", isDiagnosing);
-            Stopwatch sw =  new Stopwatch();
-            //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls;
-
-            try
-            {
-                sw.Start();
-                string dlUrl = "https://" + ConfigManager.Instance.getAppConfig().scanDomain + targetSpeed.getTargetFileSize(timeout);
-                Tools.logStep($"Starting dl url: {dlUrl}", isDiagnosing);
-                var data = client.GetStringAsync(dlUrl).Result;
-                Tools.logStep($"*** Download success in {sw.ElapsedMilliseconds:n0} ms, dl size: {data.Length:n0} bytes for IP {ip}", isDiagnosing);
-
-                return data.Length == targetSpeed.getTargetSpeed() * timeout;
-            }
-            catch (Exception ex)
-            {
-                string message = ex.Message;
-                if (isTimeoutException(ex))
+                string dlUrl = "https://" + ConfigManager.Instance.getAppConfig().downloadDomain + dlTargetSpeed.getTargetFileSize(checkTimeout);
+                var cs = new CheckSettings(ip, port, checkTimeout, dlUrl, isDiagnosing, checkType, dlTargetSpeed);
+                var dlChecker = new DownloadChecker(cs);
+                if (dlChecker.check())
                 {
-                    Tools.logStep("Download timed out.", isDiagnosing);
+                    checkResultStatus.setDownloadSuccess();
+                    downloadDuration = dlChecker.checkDuration;
                 }
                 else
                 {
-                    Tools.logStep($"Download had exception: {message}", isDiagnosing);
-                    // monitor exceptions
-                    downloadException = message;
-                
-                    if (ex.InnerException != null && ex.InnerException?.Message != "" &&  ! ex.Message.Contains(ex.InnerException?.Message))
-                    {
-                        Tools.logStep($"Inner exception: {ex.InnerException?.Message}", isDiagnosing);
-                    }
+                    this.downloadException = dlChecker.exceptionMessage;
                 }
 
-                return false;
             }
-            finally
-            {
-                downloadDuration = sw.ElapsedMilliseconds;
-                if(downloadDuration > (timeout * 1000) + 500)
+
+            // check upload
+            if (checkType is CheckType.UPLOAD or CheckType.BOTH || isDiagnosing){
+                string upUrl = "https://" + ConfigManager.Instance.getAppConfig().uploadDomain;
+                var cs = new CheckSettings(ip, port, checkTimeout, upUrl, isDiagnosing, checkType, upTargetSpeed);
+                var upChecker = new UploadChecker(cs);
+                if (upChecker.check())
                 {
-                    Tools.logStep($"Download took too long! {downloadDuration:n0} ms for IP {ip}", isDiagnosing);
+                    checkResultStatus.setUploadSuccess();
+                    uploadDuration = upChecker.checkDuration;
                 }
-                handler.Dispose();
-                client.Dispose();
+                else
+                {
+                    this.uploadException = upChecker.exceptionMessage;
+                }
             }
+
+            return checkResultStatus.isSuccess();
         }
+
         private bool isTimeoutException(Exception ex)
         {
             string msg = ex.Message;
@@ -240,7 +228,7 @@ namespace WinCFScan.Classes
                         .Replace("HOSTHOST", clientConfig.host)
                         .Replace("CFPORTCFPORT", clientConfig.port)
                         .Replace("RANDOMHOST", getRandomSNI(clientConfig.host))
-                        .Replace("IP.IP.IP.IP", this.ip)
+                        .Replace("IP.IP.IP.IP", ip)
                         .Replace("ENDPOINTENDPOINT", clientConfig.path);
                 }
                 else
@@ -248,7 +236,7 @@ namespace WinCFScan.Classes
                     configTemplate = scanConfig.content;
                     configTemplate = configTemplate
                         .Replace("PORTPORT", port)
-                        .Replace("IP.IP.IP.IP", this.ip);
+                        .Replace("IP.IP.IP.IP", ip);
                 }
 
                 File.WriteAllText(v2rayConfigPath, configTemplate);
@@ -267,15 +255,15 @@ namespace WinCFScan.Classes
         {
             var urlParts = host.Split(".");
             urlParts[0] = Guid.NewGuid().ToString();
-            return string.Join(".", urlParts); 
+            return string.Join(".", urlParts);
         }
 
         // sum of ip segments plus 3000
         private string getPortByIP()
-        {            
-            int sum = Int32.Parse(
-                this.ip.Split(".").Aggregate((current, next) =>
-                                      (Int32.Parse(current) + Int32.Parse(next)).ToString())
+        {
+            int sum = int.Parse(
+                ip.Split(".").Aggregate((current, next) =>
+                                      (int.Parse(current) + int.Parse(next)).ToString())
                 );
 
             return (3000 + sum).ToString();
@@ -287,10 +275,10 @@ namespace WinCFScan.Classes
             startInfo.FileName = "v2ray.exe";
             //if (!ConfigManager.Instance.enableDebug)
             //{
-                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                startInfo.RedirectStandardOutput = true;
-                startInfo.RedirectStandardError = true;
-                startInfo.CreateNoWindow = true;
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.CreateNoWindow = true;
             //}
             startInfo.UseShellExecute = false;
             startInfo.Arguments = $"run -config=\"{v2rayConfigPath}\"";
@@ -309,7 +297,7 @@ namespace WinCFScan.Classes
             {
                 Tools.logStep($"v2ray.exe execution had exception:  {ex.Message}", isDiagnosing);
             }
-            
+
             // log error
             if (!wasSuccess)
             {
@@ -320,7 +308,7 @@ namespace WinCFScan.Classes
                     Tools.logStep(message, isDiagnosing);
                     downloadException = message;
                 }
-                catch (Exception) {}
+                catch (Exception) { }
             }
 
             isV2rayExecutionSuccess = wasSuccess;
@@ -328,6 +316,6 @@ namespace WinCFScan.Classes
             return wasSuccess;
         }
 
-        
+
     }
 }
