@@ -6,9 +6,12 @@ using System.Diagnostics.Eventing.Reader;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Security.Policy;
+using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Automation;
 using WinCFScan.Classes;
+using WinCFScan.Classes.Checker;
 using WinCFScan.Classes.Config;
 using WinCFScan.Classes.HTTPRequest;
 using WinCFScan.Classes.IP;
@@ -41,6 +44,9 @@ namespace WinCFScan
         private bool showDiagnosResultMessageBox = false; // only when new config is added
         private bool isInDiagnosingMode = false;
 
+        private ScanType? lastScanType; // in all - in prev, diagnose
+        private CheckType checkType; // download - upload - both
+
         public frmMain()
         {
             InitializeComponent();
@@ -65,13 +71,21 @@ namespace WinCFScan
                 isAppCongigValid = false;
             }
 
+            //var client = new HttpClient();
+            //string dlUrl = "https://" + ConfigManager.Instance.getAppConfig().scanDomain;
+            //HttpContent c = new StringContent(new String('*', 900_000), Encoding.UTF8, "text/plain");
+            //client.Timeout = TimeSpan.FromSeconds(10);
+            //var rr = client.PostAsync(dlUrl, c).Result;
+
 
 
             scanEngine = new ScanEngine();
 
             loadLastResultsComboList();
-            comboTargetSpeed.SelectedIndex = 3; // 100kb/s
-            comboDownloadTimeout.SelectedIndex = 0; //2 seconds timeout
+            comboDLTargetSpeed.SelectedIndex = 3;   // 100kb/s
+            comboUpTargetSpeed.SelectedIndex = 2;   // 50kb/s
+            comboCheckType.SelectedIndex = 0;       // Only Download
+            comboDownloadTimeout.SelectedIndex = 0; // 2 seconds timeout
             loadCustomConfigsComboList();
 
             appVersion = AppUpdateChecker.getCurrentVersion();
@@ -176,7 +190,7 @@ namespace WinCFScan
             startStopScan((ScanType)scanType);
         }
 
-        private ScanType? lastScanType;
+
 
         private void startStopScan(ScanType scanType = ScanType.SCAN_CLOUDFLARE_IPS)
         {
@@ -206,7 +220,7 @@ namespace WinCFScan
             {
                 // diagnose
                 case ScanType.DIAGNOSING:
-                    scanEngine.setPrevResults(new ResultItem(0, diagnoseIPAddress));
+                    scanEngine.setPrevResults(new ResultItem(0, 0, diagnoseIPAddress));
                     addTextLog($"Start diagnosing for {diagnoseIPAddress}...");
                     break;
 
@@ -254,18 +268,20 @@ namespace WinCFScan
 
             // prepare scan engine
             bool isDiagnosing = scanType == ScanType.DIAGNOSING;
-            scanEngine.targetSpeed = getTargetSpeed(); // set target speed
+            scanEngine.dlTargetSpeed = getDownloadTargetSpeed(); // set dl target speed
             scanEngine.scanConfig = getSelectedV2rayConfig(); // set scan config
-            scanEngine.downloadTimeout = getDownloadTimeout(); // set download timeout
+            scanEngine.checkTimeout = getDownloadTimeout(); // set download timeout
             scanEngine.isDiagnosing = isDiagnosing; // is diagnosing
             scanEngine.isRandomScan = checkScanInRandomOrder.Checked; // is random scan
+            scanEngine.checkType = getSelectedCheckType(); // upload - download - both
+            scanEngine.upTargetSpeed = getUploadTargetSpeed(); // set upload target speed
 
             string scanConfigContent = scanEngine.scanConfig.content;
-            Tools.logStep($"Starting scan engine with target speed: {scanEngine.targetSpeed.getTargetSpeed():n0}, dl timeout: {scanEngine.downloadTimeout}, " +
+            Tools.logStep($"Starting scan engine with target speed: {scanEngine.dlTargetSpeed.getTargetSpeed():n0}, dl timeout: {scanEngine.checkTimeout}, " +
                 $"config: '{scanEngine.scanConfig}' => " +
                 $"{scanConfigContent.Substring(0, Math.Min(150, scanConfigContent.Length))}...", isDiagnosing);
 
-            if(scanEngine.isRandomScan && scanType == ScanType.SCAN_CLOUDFLARE_IPS)
+            if (scanEngine.isRandomScan && scanType == ScanType.SCAN_CLOUDFLARE_IPS)
             {
                 addTextLog("Scan in random order is enabled.", true);
             }
@@ -361,7 +377,8 @@ namespace WinCFScan
                 btnScanInPrevResults.Enabled = false;
                 btnResultsActions.Enabled = false;
                 comboConcurrent.Enabled = false;
-                comboTargetSpeed.Enabled = false;
+                comboUpTargetSpeed.Enabled = false;
+                comboDLTargetSpeed.Enabled = false;
                 comboConfigs.Enabled = false;
                 timerProgress.Enabled = true;
                 //btnSkipCurRange.Enabled = true;
@@ -383,7 +400,8 @@ namespace WinCFScan
                 {
                     comboConcurrent.Enabled = true;
                 }
-                comboTargetSpeed.Enabled = true;
+                comboDLTargetSpeed.Enabled = true;
+                comboUpTargetSpeed.Enabled = true;
                 comboConfigs.Enabled = true;
 
                 if (!isScanPaused())
@@ -433,7 +451,8 @@ namespace WinCFScan
                 lblTotalWorkingIPs.Text = $"Total working IPs found:  {pInf.scanResults.totalFoundWorkingIPs:n0}";
                 if (pInf.scanResults.fastestIP != null)
                 {
-                    txtFastestIP.Text = $"{pInf.scanResults.fastestIP.ip}  -  {pInf.scanResults.fastestIP.delay:n0} ms";
+                    long delay = scanEngine.checkType == CheckType.UPLOAD ? pInf.scanResults.fastestIP.uploadDelay : pInf.scanResults.fastestIP.downloadDelay;
+                    txtFastestIP.Text = $"{pInf.scanResults.fastestIP.ip}  -  {delay:n0} ms";
                 }
 
                 lblRunningWorkers.Text = $"Threads: {pInf.curentWorkingThreads}";
@@ -453,10 +472,10 @@ namespace WinCFScan
 
                 // exception rate
                 pInf.frontingExceptions.setControlColorStyles(btnFrontingErrors);
-                pInf.downloadExceptions.setControlColorStyles(btnDownloadErrors);
+                pInf.downloadUploadExceptions.setControlColorStyles(btnDownloadErrors);
                 btnFrontingErrors.Text = $"Fronting Errors : {pInf.frontingExceptions.getErrorRate():f1}%";
-                btnDownloadErrors.Text = $"Download Errors : {pInf.downloadExceptions.getErrorRate():f1}%";
-                btnFrontingErrors.ToolTipText = $"Total errors: {pInf.downloadExceptions.getTotalErros()}";
+                btnDownloadErrors.Text = $"Download Errors : {pInf.downloadUploadExceptions.getErrorRate():f1}%";
+                btnFrontingErrors.ToolTipText = $"Total errors: {pInf.downloadUploadExceptions.getTotalErros()}";
                 btnDownloadErrors.ToolTipText = $"Total errors: {pInf.frontingExceptions.getTotalErros()}";
             }
         }
@@ -592,7 +611,7 @@ namespace WinCFScan
                 foreach (ResultItem resultItem in workingIPs)
                 {
                     index++;
-                    listResults.Items.Add(new ListViewItem(new string[] { resultItem.ip, resultItem.delay.ToString() }));
+                    listResults.Items.Add(new ListViewItem(new string[] { resultItem.ip, resultItem.downloadDelay.ToString(), resultItem.uploadDelay.ToString() }));
                 }
                 listResults.EndUpdate();
                 listResults.ListViewItemSorter = listResultsColumnSorter;
@@ -864,13 +883,26 @@ namespace WinCFScan
             updateCFIPListStatusText();
         }
 
+        private CheckType getSelectedCheckType()
+        {
+            return (CheckType)comboCheckType.SelectedIndex;
+        }
 
-
-        private ScanSpeed getTargetSpeed()
+        private ScanSpeed getDownloadTargetSpeed()
         {
             int speed;
 
-            if (int.TryParse(comboTargetSpeed.SelectedItem.ToString().Replace(" KB/s", ""), out speed))
+            if (int.TryParse(comboDLTargetSpeed.SelectedItem.ToString().Replace(" KB/s", ""), out speed))
+                return new ScanSpeed(speed);
+            else
+                return new ScanSpeed(0);
+        }
+
+        private ScanSpeed getUploadTargetSpeed()
+        {
+            int speed;
+
+            if (int.TryParse(comboUpTargetSpeed.SelectedItem.ToString().Replace(" KB/s", ""), out speed))
                 return new ScanSpeed(speed);
             else
                 return new ScanSpeed(0);
@@ -1036,7 +1068,7 @@ namespace WinCFScan
             string ipAddr;
             if (getIPFromUser(out ipAddr, "Test Single IP Address"))
             {
-                testAvgSingleIP(ipAddr, 1, getTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
+                testAvgSingleIP(ipAddr, 1, getDownloadTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
             }
         }
 
@@ -1235,7 +1267,7 @@ namespace WinCFScan
 
         private void btnDownloadErrors_ButtonClick(object sender, EventArgs e)
         {
-            ExceptionMonitor downloadExceptions = scanEngine.progressInfo.downloadExceptions;
+            ExceptionMonitor downloadExceptions = scanEngine.progressInfo.downloadUploadExceptions;
             if (downloadExceptions.hasException())
             {
                 addTextLog(downloadExceptions.getTopExceptions());
@@ -1244,7 +1276,7 @@ namespace WinCFScan
 
         private void mnuCopyDownloadErrors_Click(object sender, EventArgs e)
         {
-            if (setClipboard(scanEngine.progressInfo.downloadExceptions.getTopExceptions(7)))
+            if (setClipboard(scanEngine.progressInfo.downloadUploadExceptions.getTopExceptions(7)))
             {
                 addTextLog("Errors copied to the clipboard.");
             }
@@ -1435,7 +1467,8 @@ namespace WinCFScan
             for (int i = 1; i <= rounds; i++)
             {
                 // test
-                var checker = new CheckIPWorking(IPAddress, targetSpeed, v2rayConfig, downloadTimeout);
+                // todo: set upload speed
+                var checker = new CheckIPWorking(IPAddress, targetSpeed, targetSpeed, v2rayConfig, getSelectedCheckType(), downloadTimeout);
                 var success = checker.check();
 
                 long DLDuration = checker.downloadDuration;
@@ -1480,7 +1513,7 @@ namespace WinCFScan
         {
             addTextLog($"Testing {IPAddress} ...");
 
-            var checker = new CheckIPWorking(IPAddress, getTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
+            var checker = new CheckIPWorking(IPAddress, getDownloadTargetSpeed(), getUploadTargetSpeed(), getSelectedV2rayConfig(), getSelectedCheckType(), getDownloadTimeout());
             var success = checker.check();
 
             if (success)
@@ -1509,7 +1542,7 @@ namespace WinCFScan
                                  .ToArray<string>(); ;
 
 
-            var speed = getTargetSpeed();
+            var speed = getDownloadTargetSpeed();
             var conf = getSelectedV2rayConfig();
             var timeout = getDownloadTimeout();
 
@@ -1574,7 +1607,7 @@ namespace WinCFScan
 
             if (ip != null)
             {
-                testAvgSingleIP(ip, 1, getTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
+                testAvgSingleIP(ip, 1, getDownloadTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout());
             }
         }
 
@@ -1645,7 +1678,7 @@ namespace WinCFScan
 
         private void comboTargetSpeed_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (comboTargetSpeed.SelectedIndex == 0)
+            if (comboDLTargetSpeed.SelectedIndex == 0)
             {
                 addTextLog("By selecting this option we won't test download speed via VPN and just quickly return all resolvable IPs.");
             }
@@ -1706,8 +1739,8 @@ namespace WinCFScan
             string ipAddr;
             if (getIPFromUser(out ipAddr, "Add IP To List"))
             {
-                listResults.Items.Add(new ListViewItem(new string[] { ipAddr, "0" }));
-                currentScanResults.Add(new ResultItem(0, ipAddr));
+                listResults.Items.Add(new ListViewItem(new string[] { ipAddr, "0", "0" }));
+                currentScanResults.Add(new ResultItem(0, 0, ipAddr));
             }
         }
 

@@ -13,7 +13,8 @@ namespace WinCFScan.Classes.Config
         protected AppConfig? loadedInstance;
 
         public string frontDomain { get; set; }
-        public string scanDomain { get; set; }
+        public string downloadDomain { get; set; }
+        public string uploadDomain { get; set; }
         public string clientConfigUrl { get; set; }
 
         // load app config
@@ -41,7 +42,7 @@ namespace WinCFScan.Classes.Config
 
         public bool isConfigValid()
         {
-            return frontDomain != null && scanDomain != null && clientConfigUrl != null;
+            return frontDomain != null && downloadDomain != null  && uploadDomain != null && clientConfigUrl != null;
         }
 
         public AppConfig? getLoadedInstance()

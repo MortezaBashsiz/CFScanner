@@ -74,20 +74,26 @@ namespace WinCFScan.Classes.Config
                 }
 
                 string plainString = File.ReadAllText(resultsFileName);
-                long delay = 0; string ip;
-                foreach(var line in plainString.Split("\n"))
+                long DLDelay = 0, UPDelay = 0; string ip;
+                foreach(var line in plainString.Split(Environment.NewLine))
                 {
-                    ip = line; delay = 0;
+                    ip = line;
+                    // DL     UP    IP
+                    // 1023 - 902 - 192.168.1.2
                     if(line.Contains(" - "))
                     {
                         var splited = line.Split(" - ");
-                        long.TryParse(splited[0], out delay);
-                        ip = splited[1];
+                        if (splited.Length == 3)
+                        {
+                            long.TryParse(splited[0], out DLDelay);
+                            long.TryParse(splited[1], out UPDelay);
+                            ip = splited[2];
+                        }
                     }
 
                     if(IPAddressExtensions.isValidIPAddress(ip))
                     {
-                        this.addIPResult(delay, ip);
+                        this.addIPResult(DLDelay, UPDelay, ip);
                     }
 
                 }
@@ -109,7 +115,7 @@ namespace WinCFScan.Classes.Config
             {
                 if (sortBeforeSave)
                 {
-                    workingIPs = this.workingIPs.OrderBy(x => x.delay).ToList<ResultItem>();
+                    workingIPs = this.workingIPs.OrderBy(x => x.downloadDelay).ToList<ResultItem>();
                 }
                 endDate = DateTime.Now;
                 JsonSerializerOptions options= new JsonSerializerOptions();
@@ -134,11 +140,11 @@ namespace WinCFScan.Classes.Config
             {
                 if (sortBeforeSave)
                 {
-                    workingIPs = this.workingIPs.OrderBy(x => x.delay).ToList<ResultItem>();
+                    workingIPs = this.workingIPs.OrderBy(x => x.downloadDelay).ToList<ResultItem>();
                 }
 
-                var plain = workingIPs.Select(x => $"{x.delay} - {x.ip}").ToArray<string>();
-                File.WriteAllText(resultsFileName, String.Join("\n", plain));
+                var plain = workingIPs.Select(x => $"{x.downloadDelay} - {x.uploadDelay} - {x.ip}").ToArray<string>();
+                File.WriteAllText(resultsFileName, String.Join(Environment.NewLine, plain));
             }
             catch (Exception ex)
             {
@@ -155,16 +161,16 @@ namespace WinCFScan.Classes.Config
             return loadedInstance;
         }
 
-        public void addIPResult(long delay, string ip )
+        public void addIPResult(long downloadDelay, long uploadDelay, string ip )
         {
-            ResultItem resultItem = new ResultItem(delay, ip);
+            ResultItem resultItem = new ResultItem(downloadDelay, uploadDelay, ip, downloadDelay);
             workingIPs.Add(resultItem);
-            unFetchedWorkingIPs.Add(new ResultItem(delay, ip));
+            unFetchedWorkingIPs.Add(new ResultItem(downloadDelay, uploadDelay, ip, downloadDelay));
             thereIsNewWorkingIPs = true;
             totalFoundWorkingIPs++;
             totalFoundWorkingIPsCurrentRange++;
             totalUnsavedWorkingIPs++;
-            if (fastestIP == null || resultItem.delay < fastestIP.delay)
+            if (fastestIP == null || resultItem.downloadDelay < fastestIP.downloadDelay || resultItem.uploadDelay < fastestIP.uploadDelay)
             {
                 fastestIP = resultItem;
             }
@@ -203,13 +209,27 @@ namespace WinCFScan.Classes.Config
 
     internal class ResultItem
     {
-        public long delay { get; set; }
+        public long delay { get; set; } // keeping it only for compatibility reasons
+        public long downloadDelay { get; set; }
+        public long uploadDelay { get; set; }
         public string ip { get; set; }
 
-        public ResultItem(long delay = 0, string ip = "")
+        public ResultItem(long downloadDelay = 0, long uploadDelay = 0, string ip = "", long delay = 0)
         {
-            this.delay = delay;
             this.ip = ip;
+
+            // for compatibility of old releases which only have delay field
+            if (delay != 0 && downloadDelay ==0  && uploadDelay == 0)
+            {
+                this.delay = delay;
+                this.downloadDelay = delay;
+                return;
+            }
+
+            this.delay = downloadDelay; // remove it on future releases
+            this.downloadDelay = downloadDelay;
+            this.uploadDelay = uploadDelay;
+            
         }
     }
 }
