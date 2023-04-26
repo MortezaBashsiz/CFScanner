@@ -75,7 +75,14 @@ namespace WinCFScan.Classes.Config
 
                 string plainString = File.ReadAllText(resultsFileName);
                 long DLDelay = 0, UPDelay = 0; string ip;
-                foreach(var line in plainString.Split(Environment.NewLine))
+                
+                var lines = plainString.Split(Environment.NewLine);
+
+                if (lines.Length == 1 ) { // support old format: LF only
+                    lines = plainString.Split("\n");
+                }
+
+                foreach (var line in lines)
                 {
                     ip = line;
                     // DL     UP    IP
@@ -88,6 +95,11 @@ namespace WinCFScan.Classes.Config
                             long.TryParse(splited[0], out DLDelay);
                             long.TryParse(splited[1], out UPDelay);
                             ip = splited[2];
+                        }
+                        else if(splited.Length == 2) // old format, dl only
+                        {
+                            long.TryParse(splited[0], out DLDelay);
+                            ip = splited[1];
                         }
                     }
 
