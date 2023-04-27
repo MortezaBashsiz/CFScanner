@@ -41,5 +41,9 @@ This script is also available for python3 [here](https://github.com/MortezaBashs
 
 This script is also available for golang [here](https://github.com/MortezaBashsiz/CFScanner/tree/main/golang "here").
 
+## Android
+
+Find for android here [here](https://github.com/MortezaBashsiz/CFScanner/tree/main/android "here").
+
 ## Video Guide
 You can find a video guide for this script on [youtube](https://youtu.be/BKLRAHolhvM "youtube").
