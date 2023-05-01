@@ -228,6 +228,8 @@ Contributors names and contact info
   * reduced the file size used for fronting test
 * 1.3.14
   * Fixed a bug in reading ips from url. The regex now supports single ips as well
+* 1.3.15
+  * Fixed a bug in reading subnets from file with full address in windows
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.3.13-blue
+[version]: https://img.shields.io/badge/Version-1.3.15-blue
