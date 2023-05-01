@@ -147,10 +147,10 @@ def read_cidrs(
     Returns:
         list: The list of cidrs found in the file
     """
-    if urlparse(url_or_path).scheme:
-        cidrs = read_cidrs_from_url(url_or_path, timeout)
-    elif os.path.isfile(url_or_path):
+    if os.path.isfile(url_or_path):
         cidrs = read_cidrs_from_file(url_or_path)
+    elif urlparse(url_or_path).scheme:
+        cidrs = read_cidrs_from_url(url_or_path, timeout)
     else:
         raise SubnetsReadError(
             f"\"{url_or_path}\" is neither a valid url nor a file path."
