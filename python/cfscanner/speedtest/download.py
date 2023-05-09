@@ -1,10 +1,16 @@
+import socket
 import time
 from typing import Tuple
 
 import requests
 
+from .tools import override_addrinfo
+
+ORG_ADDR_INFO = socket.getaddrinfo
+
 
 def download_speed_test(
+    ip: str,
     n_bytes: int,
     proxies: dict,
     timeout: int
@@ -12,6 +18,7 @@ def download_speed_test(
     """tests the download speed using cloudflare servers
 
     Args:
+        ip (str): The edge server ip address to be tested
         n_bytes (int): size of file to download in bytes
         proxies (dict): the proxies to use for ``requests.get``
         timeout (int): the timeout for the download request        
@@ -20,6 +27,7 @@ def download_speed_test(
         download_speed (float): the download speed in megabit per second
         latency (float): the round trip time latency in seconds
     """
+    socket.getaddrinfo = override_addrinfo(ip, ORG_ADDR_INFO)
     start_time = time.perf_counter()
     r = requests.get(
         url="https://speed.cloudflare.com/__down",

@@ -230,6 +230,8 @@ Contributors names and contact info
   * Fixed a bug in reading ips from url. The regex now supports single ips as well
 * 1.3.15
   * Fixed a bug in reading subnets from file with full address in windows
+* 1.3.16
+  * Added domain resolving
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.3.15-blue
+[version]: https://img.shields.io/badge/Version-1.3.16-blue
