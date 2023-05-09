@@ -110,6 +110,7 @@ def test_ip(
     @timeout_fun(test_config.max_dl_latency + test_config.max_dl_time)
     def timeout_download_fun():
         return download_speed_test(
+            ip=ip,
             n_bytes=n_bytes,
             proxies=proxies,
             timeout=test_config.max_dl_latency
@@ -167,6 +168,7 @@ def test_ip(
             n_bytes = test_config.min_ul_speed * 1000 * test_config.max_ul_time
             try:
                 up_speed, up_latency = upload_speed_test(
+                    ip=ip,
                     n_bytes=n_bytes,
                     proxies=proxies,
                     timeout=test_config.max_ul_latency + test_config.max_ul_time
