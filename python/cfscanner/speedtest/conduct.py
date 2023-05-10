@@ -66,13 +66,14 @@ def test_ip(
         n_tries=test_config.n_tries
     )
 
-    for try_idx in range(test_config.n_tries):
-        fronting_result_msg = fronting_test(
-            ip, timeout=test_config.fronting_timeout)
-        if "NO" in fronting_result_msg:
-            test_result.message = fronting_result_msg
-            test_result.is_ok = False
-            return test_result
+    if not test_config.no_fronting:
+        for try_idx in range(test_config.n_tries):
+            fronting_result_msg = fronting_test(
+                ip, timeout=test_config.fronting_timeout)
+            if "NO" in fronting_result_msg:
+                test_result.message = fronting_result_msg
+                test_result.is_ok = False
+                return test_result
 
     if not test_config.novpn:
         try:

@@ -141,14 +141,26 @@ def parse_args():
     ############################################################
     # Fronting options
     fronting_test_grp = parser.add_argument_group(
-        _title("Fronting speed test options"))
-    fronting_test_grp.add_argument(
+        _title("Fronting speed test options")
+    )
+    ft_or_nofronting = fronting_test_grp.add_mutually_exclusive_group(
+        required=False
+    )
+    ft_or_nofronting.add_argument(
         "--fronting-timeout", "-FT",
         metavar="",
         help="Maximum time to wait for fronting response, default is 1",
         type=float,
         dest="fronting_timeout",
         default=1,
+        required=False
+    )
+    ft_or_nofronting.add_argument(
+        "--no-fronting",
+        help="If passed, fronting speed test will not be performed",
+        action="store_true",
+        dest="no_fronting",
+        default=False,
         required=False
     )
     ############################################################
