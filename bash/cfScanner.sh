@@ -181,6 +181,7 @@ function fncCheckIPList {
 	upThreshold="${14}"
 	downloadOrUpload="${15}"
 	vpnOrNot="${16}"
+	quickOrNot="${17}"
 	binDir="$scriptDir/../bin"
 	tempConfigDir="$scriptDir/tempConfig"
 	uploadFile="$tempConfigDir/upload_file"
@@ -218,7 +219,13 @@ function fncCheckIPList {
 				fi
 				if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 				then
-					domainFronting=$($timeoutCommand 1 curl -k -s --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=10")
+					if [[ "$quickOrNot" == "NO" ]]
+					then
+						domainFronting=$($timeoutCommand 1 curl -k -s --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=10")
+					elif [[ "$quickOrNot" == "YES" ]]
+					then
+						domainFronting="0000000000"
+					fi
 					if [[ "$domainFronting" == "0000000000" ]]
 					then
 						mainDomain=$(echo "$configHost" | awk -F '.' '{ print $2"."$3}')
@@ -373,7 +380,13 @@ function fncCheckIPList {
 				fi
 				if $timeoutCommand 1 bash -c "</dev/tcp/$ip/443" > /dev/null 2>&1;
 				then
-					domainFronting=$($timeoutCommand 1 curl -k -s --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=10")
+					if [[ "$quickOrNot" == "NO" ]]
+					then
+						domainFronting=$($timeoutCommand 1 curl -k -s --tlsv1.2 -H "Host: speed.cloudflare.com" --resolve "speed.cloudflare.com:443:$ip" "https://speed.cloudflare.com/__down?bytes=10")
+					elif [[ "$quickOrNot" == "YES" ]]
+					then
+						domainFronting="0000000000"
+					fi
 					if [[ "$domainFronting" == "0000000000" ]]
 					then
 						downTotalTime=0
@@ -521,7 +534,7 @@ function fncCreateDir {
 # Function fncMainCFFindSubnet
 # main Function for Subnet
 function fncMainCFFindSubnet {
-	local threads progressBar resultFile scriptDir configId configHost configPort configPath fileSize osVersion parallelVersion subnetsFile breakedSubnets network netmask downloadOrUpload tryCount downThreshold upThreshold vpnOrNot
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath fileSize osVersion parallelVersion subnetsFile breakedSubnets network netmask downloadOrUpload tryCount downThreshold upThreshold vpnOrNot quickOrNot
 	threads="${1}"
 	progressBar="${2}"
 	resultFile="${3}"
@@ -538,6 +551,7 @@ function fncMainCFFindSubnet {
 	upThreshold="${14}"
 	downloadOrUpload="${15}"
 	vpnOrNot="${16}"
+	quickOrNot="${17}"
 
 	if [[ "$osVersion" == "Linux" ]]
 	then
@@ -619,10 +633,10 @@ function fncMainCFFindSubnet {
 	  	tput cuu1; tput ed # rewrites Parallel's bar
 	  	if [[ $parallelVersion -gt 20220515 ]];
 	  	then
-	  	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downThreshold" ::: "$upThreshold" ::: "$downloadOrUpload" ::: "$vpnOrNot"
+	  	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downThreshold" ::: "$upThreshold" ::: "$downloadOrUpload" ::: "$vpnOrNot" ::: "$quickOrNot"
 	  	else
 	  	  echo -e "${RED}$progressBar${NC}"
-	  	  parallel -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downThreshold" ::: "$upThreshold" ::: "$downloadOrUpload" ::: "$vpnOrNot"
+	  	  parallel -j "$threads" fncCheckIPList ::: "$ipList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downThreshold" ::: "$upThreshold" ::: "$downloadOrUpload" ::: "$vpnOrNot" ::: "$quickOrNot"
 	  	fi
 			killall v2ray > /dev/null 2>&1
 			passedIpsCount=$(( passedIpsCount+1 ))
@@ -635,7 +649,7 @@ function fncMainCFFindSubnet {
 # Function fncMainCFFindIP
 # main Function for IP
 function fncMainCFFindIP {
-	local threads progressBar resultFile scriptDir configId configHost configPort configPath fileSize osVersion parallelVersion IPFile downloadOrUpload downThreshold upThreshold
+	local threads progressBar resultFile scriptDir configId configHost configPort configPath fileSize osVersion parallelVersion IPFile downloadOrUpload downThreshold upThreshold vpnOrNot quickOrNot
 	threads="${1}"
 	progressBar="${2}"
 	resultFile="${3}"
@@ -652,6 +666,7 @@ function fncMainCFFindIP {
 	upThreshold="${14}"
 	downloadOrUpload="${15}"
 	vpnOrNot="${16}"
+	quickOrNot="${17}"
 
 	if [[ "$osVersion" == "Linux" ]]
 	then
@@ -671,10 +686,10 @@ function fncMainCFFindIP {
 	tput cuu1; tput ed # rewrites Parallel's bar
 	if [[ $parallelVersion -gt 20220515 ]];
 	then
-	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downThreshold" ::: "$upThreshold" ::: "$downloadOrUpload" ::: "$vpnOrNot"
+	  parallel --ll --bar -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downThreshold" ::: "$upThreshold" ::: "$downloadOrUpload" ::: "$vpnOrNot" ::: "$quickOrNot"
 	else
 	  echo -e "${RED}$progressBar${NC}"
-	  parallel -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downThreshold" ::: "$upThreshold" ::: "$downloadOrUpload" ::: "$vpnOrNot"
+	  parallel -j "$threads" fncCheckIPList ::: "$cfIPList" ::: "$progressBar" ::: "$resultFile" ::: "$scriptDir" ::: "$configId" ::: "$configHost" ::: "$configPort" ::: "$configPath" ::: "$fileSize" ::: "$osVersion" ::: "$v2rayCommand" ::: "$tryCount" ::: "$downThreshold" ::: "$upThreshold" ::: "$downloadOrUpload" ::: "$vpnOrNot" ::: "$quickOrNot"
 	fi
 	killall v2ray > /dev/null 2>&1
 	sort -n -k1 -t, "$resultFile" -o "$resultFile"
@@ -700,6 +715,7 @@ function fncUsage {
 			[ -d <int> ] download threshold
 			[ -u <int> ] upload threshold
 			[ -f <custome-ip-file> (if you chose IP mode)]
+			[ -q YES/NO]
 			[ -h ] help\n"
 		exit 2
 	elif [[ "$osVersion" == "Linux" ]]
@@ -715,6 +731,7 @@ function fncUsage {
 			[ -d|--down-threshold <int> ]
 			[ -u|--up-threshold <int> ]
 			[ -f|--file <custome-ip-file> (if you chose IP mode)]
+			[ -q|--quick YES/NO]
 			[ -h|--help ]\n"
 		 exit 2
 	fi
@@ -732,13 +749,14 @@ threads="4"
 tryCount="1"
 config="NULL"
 speed="100"
+quickOrNot="NO"
 
 if [[ "$osVersion" == "Mac" ]]
 then
-	parsedArguments=$(getopt v:m:t:p:n:c:s:r:d:u:f:h "$@")
+	parsedArguments=$(getopt v:m:t:p:n:c:s:r:d:u:f:q:h "$@")
 elif [[ "$osVersion" == "Linux" ]]
 then
-	parsedArguments=$(getopt -a -n cfScanner -o v:m:t:p:n:c:s:r:d:u:f:h --long vpn-mode:,mode:,test-type:,thread:,tryCount:,config:,speed:,random:,down-threshold:,up-threshold:,file:,help -- "$@")
+	parsedArguments=$(getopt -a -n cfScanner -o v:m:t:p:n:c:s:r:d:u:f:q:h --long vpn-mode:,mode:,test-type:,thread:,tryCount:,config:,speed:,random:,down-threshold:,up-threshold:,file:,quick:,help -- "$@")
 fi
 
 eval set -- "$parsedArguments"
@@ -758,6 +776,7 @@ then
 			-d) downThreshold="$2" ; shift 2 ;;
 			-u) upThreshold="$2" ; shift 2 ;;
 			-f) subnetIPFile="$2" ; shift 2 ;;
+			-q) quickOrNot="$2" ; shift 2 ;;
 			-h) fncUsage ;;
 			--) shift; break ;;
 			*) echo "Unexpected option: $1 is not acceptable"
@@ -780,6 +799,7 @@ then
 			-d|--down-threshold) downThreshold="$2" ; shift 2 ;;
 			-u|--up-threshold) upThreshold="$2" ; shift 2 ;;
 			-f|--file) subnetIPFile="$2" ; shift 2 ;;
+			-q|--quick) quickOrNot="$2" ; shift 2 ;;
 			-h|--help) fncUsage ;;
 			--) shift; break ;;
 			*) echo "Unexpected option: $1 is not acceptable"
@@ -888,10 +908,10 @@ fncValidateConfig "$config"
 
 if [[ "$subnetOrIP" == "SUBNET" ]]
 then
-	fncMainCFFindSubnet	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$fileSize" "$osVersion" "$subnetIPFile" "$tryCount" "$downThreshold" "$upThreshold" "$downloadOrUpload" "$vpnOrNot"
+	fncMainCFFindSubnet	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$fileSize" "$osVersion" "$subnetIPFile" "$tryCount" "$downThreshold" "$upThreshold" "$downloadOrUpload" "$vpnOrNot" "$quickOrNot"
 elif [[ "$subnetOrIP" == "IP" ]]
 then
-	fncMainCFFindIP	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$fileSize" "$osVersion" "$subnetIPFile" "$tryCount" "$downThreshold" "$upThreshold" "$downloadOrUpload" "$vpnOrNot"
+	fncMainCFFindIP	"$threads" "$progressBar" "$resultFile" "$scriptDir" "$configId" "$configHost" "$configPort" "$configPath" "$fileSize" "$osVersion" "$subnetIPFile" "$tryCount" "$downThreshold" "$upThreshold" "$downloadOrUpload" "$vpnOrNot" "$quickOrNot"
 else
 	echo "$subnetOrIP is not correct choose one SUBNET or IP"
 	exit 1
