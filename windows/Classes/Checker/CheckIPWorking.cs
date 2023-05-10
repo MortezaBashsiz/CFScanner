@@ -34,7 +34,8 @@ namespace WinCFScan.Classes.Checker
         public FrontingType frontingType { get; private set; }
         private CheckResultStatus checkResultStatus;
 
-        public CheckIPWorking(string ip, ScanSpeed dlTargetSpeed, ScanSpeed upTargetSpeed, CustomConfigInfo scanConfig, CheckType checkType, FrontingType frontingType, int checkTimeout, bool isDiagnosing = false)
+        public CheckIPWorking(string ip, ScanSpeed dlTargetSpeed, ScanSpeed upTargetSpeed, CustomConfigInfo scanConfig, 
+            CheckType checkType, FrontingType frontingType, int checkTimeout, bool isDiagnosing = false)
         {
             this.ip = ip;
             port = getPortByIP();

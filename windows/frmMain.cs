@@ -191,7 +191,7 @@ namespace WinCFScan
             startStopScan((ScanType)scanType);
         }
 
-        // setting Fronting to NO and also DL Target Speed to Zero in same time is not a valid scan setting
+        // setting Fronting to NO and also DL Target Speed to Zero at the same time is not a valid scan setting
         // and here we will prevent it.
         private bool isValidScanSettings()
         {
