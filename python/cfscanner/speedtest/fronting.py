@@ -1,3 +1,5 @@
+import re
+
 import requests
 
 
@@ -16,28 +18,28 @@ def fronting_test(
     """
     s = requests.Session()
     s.get_adapter(
-        'https://').poolmanager.connection_pool_kw['server_hostname'] = "speed.cloudflare.com"
+        'https://').poolmanager.connection_pool_kw['server_hostname'] = "jafar.mashallah.gq"
     s.get_adapter(
-        'https://').poolmanager.connection_pool_kw['assert_hostname'] = "speed.cloudflare.com"
+        'https://').poolmanager.connection_pool_kw['assert_hostname'] = "jafar.mashallah.gq"
 
     try:
         compatible_ip = f"[{ip}]" if ":" in ip else ip
         r = s.get(
             f"https://{compatible_ip}/__down?bytes=10",
             timeout=timeout,
-            headers={"Host": "speed.cloudflare.com"}
+            headers={"Host": "jafar.mashallah.gq"}
         )
-        if r.status_code != 200:
-            return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting error {r.status_code} [/yellow1]"
-        elif r.content != b"0" * 10:
-            return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting error - unexpected response [/yellow1]"
-    except requests.exceptions.ConnectTimeout as e:
-        return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting connect timeout[/yellow1]"
-    except requests.exceptions.ReadTimeout as e:
-        return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting read timeout[/yellow1]"
+    except requests.exceptions.Timeout as e:
+        return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting timeout[/yellow1]"
     except requests.exceptions.ConnectionError as e:
         return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting connection error[/yellow1]"
+
+    try:
+        regex = r"^<title>(.+)<\/title>$"
+        re_match = re.findall(regex, r.text, re.MULTILINE)[0]
+        if "CNAME Cross-User Banned" in re_match:
+            return "OK"
+        else:
+            return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting Unknown error[/yellow1]"
     except Exception as e:
         return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting Unknown error[/yellow1]"
-
-    return "OK"
