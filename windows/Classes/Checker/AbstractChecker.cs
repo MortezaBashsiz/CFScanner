@@ -67,5 +67,10 @@ namespace WinCFScan.Classes.Checker
         UPLOAD,
         BOTH
     }
+    public enum FrontingType
+    {
+        YES,
+        NO
+    }
 
 }

@@ -85,6 +85,7 @@ namespace WinCFScan
             comboDLTargetSpeed.SelectedIndex = 3;   // 100kb/s
             comboUpTargetSpeed.SelectedIndex = 2;   // 50kb/s
             comboCheckType.SelectedIndex = 0;       // Only Download
+            comboFronting.SelectedIndex = 0;       // With Fronting
             comboDownloadTimeout.SelectedIndex = 0; // 2 seconds timeout
             loadCustomConfigsComboList();
 
@@ -190,6 +191,15 @@ namespace WinCFScan
             startStopScan((ScanType)scanType);
         }
 
+        // setting Fronting to NO and also DL Target Speed to Zero in same time is not a valid scan setting
+        // and here we will prevent it.
+        private bool isValidScanSettings()
+        {
+            if (getSelectedFrontingType() == FrontingType.NO && getDownloadTargetSpeed().isSpeedZero())
+                return false;
+            
+            return true;
+        }
 
 
         private void startStopScan(ScanType scanType = ScanType.SCAN_CLOUDFLARE_IPS)
@@ -203,6 +213,12 @@ namespace WinCFScan
             if (isManualTesting)
             {
                 addTextLog($"Can not start while app is scanning.");
+                return;
+            }
+            
+            if (! isValidScanSettings())
+            {
+                addTextLog($"You are not allowed to set Fronting test to NO and No Speed Test at the same time!");
                 return;
             }
 
@@ -274,6 +290,7 @@ namespace WinCFScan
             scanEngine.isDiagnosing = isDiagnosing; // is diagnosing
             scanEngine.isRandomScan = checkScanInRandomOrder.Checked; // is random scan
             scanEngine.checkType = getSelectedCheckType(); // upload - download - both
+            scanEngine.frontingType = getSelectedFrontingType(); // YES - NO Fronting
             scanEngine.upTargetSpeed = getUploadTargetSpeed(); // set upload target speed
 
             string scanConfigContent = scanEngine.scanConfig.content;
@@ -381,6 +398,7 @@ namespace WinCFScan
                 comboDLTargetSpeed.Enabled = false;
                 comboConfigs.Enabled = false;
                 comboCheckType.Enabled = false;
+                comboFronting.Enabled = false;
                 timerProgress.Enabled = true;
                 //btnSkipCurRange.Enabled = true;
                 comboResults.Enabled = false;
@@ -405,6 +423,7 @@ namespace WinCFScan
                 comboUpTargetSpeed.Enabled = true;
                 comboConfigs.Enabled = true;
                 comboCheckType.Enabled = true;
+                comboFronting.Enabled = true;
 
                 if (!isScanPaused())
                 {
@@ -890,6 +909,11 @@ namespace WinCFScan
             return (CheckType)comboCheckType.SelectedIndex;
         }
 
+        private FrontingType getSelectedFrontingType()
+        {
+            return (FrontingType)comboFronting.SelectedIndex;
+        }
+
         private ScanSpeed getDownloadTargetSpeed()
         {
             int speed;
@@ -1066,7 +1090,7 @@ namespace WinCFScan
             string ipAddr;
             if (getIPFromUser(out ipAddr, "Test Single IP Address"))
             {
-                testAvgSingleIP(ipAddr, 1, getDownloadTargetSpeed(), getUploadTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout(), getSelectedCheckType());
+                testAvgSingleIP(ipAddr, 1, getDownloadTargetSpeed(), getUploadTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout(), getSelectedCheckType(), getSelectedFrontingType());
             }
         }
 
@@ -1453,7 +1477,7 @@ namespace WinCFScan
         }
 
 
-        private void testAvgSingleIP(string IPAddress, int rounds, ScanSpeed dlSpeed, ScanSpeed upSpeed, CustomConfigInfo v2rayConfig, int downloadTimeout, CheckType checkType = CheckType.DOWNLOAD)
+        private void testAvgSingleIP(string IPAddress, int rounds, ScanSpeed dlSpeed, ScanSpeed upSpeed, CustomConfigInfo v2rayConfig, int downloadTimeout, CheckType checkType, FrontingType frontingType)
         {
 
             addTextLog($"{Environment.NewLine}Testing {IPAddress} for {rounds} round(s), Scan type: {checkType}...");
@@ -1465,7 +1489,7 @@ namespace WinCFScan
             for (int i = 1; i <= rounds; i++)
             {
                 // test
-                var checker = new CheckIPWorking(IPAddress, dlSpeed, upSpeed, v2rayConfig, checkType, downloadTimeout);
+                var checker = new CheckIPWorking(IPAddress, dlSpeed, upSpeed, v2rayConfig, checkType, frontingType, downloadTimeout);
                 var success = checker.check();
 
                 long DLDuration = checker.downloadDuration;
@@ -1531,6 +1555,7 @@ namespace WinCFScan
             var dlSpeed = getDownloadTargetSpeed();
             var upSpeed = getUploadTargetSpeed();
             var checkType = getSelectedCheckType();
+            var frontingType = getSelectedFrontingType();
             var conf = getSelectedV2rayConfig();
             var timeout = getDownloadTimeout();
 
@@ -1550,7 +1575,7 @@ namespace WinCFScan
                 for (int i = 0; i < selectedIPs.Length; i++)
                 {
                     var ip = selectedIPs[i];
-                    testAvgSingleIP(ip, rounds, dlSpeed, upSpeed, conf, timeout, checkType);
+                    testAvgSingleIP(ip, rounds, dlSpeed, upSpeed, conf, timeout, checkType, frontingType);
 
                     // stop requested
                     if (stopAvgTetingIsRequested)
@@ -1600,7 +1625,7 @@ namespace WinCFScan
 
             if (ip != null)
             {
-                testAvgSingleIP(ip, 1, getDownloadTargetSpeed(), getUploadTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout(), getSelectedCheckType());
+                testAvgSingleIP(ip, 1, getDownloadTargetSpeed(), getUploadTargetSpeed(), getSelectedV2rayConfig(), getDownloadTimeout(), getSelectedCheckType(), getSelectedFrontingType());
             }
         }
 

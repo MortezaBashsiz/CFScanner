@@ -28,6 +28,7 @@ namespace WinCFScan.Classes
         public bool isV2rayExecutionSuccess { get; private set; }
         public ScanSpeed upTargetSpeed { get; set; }
         public CheckType checkType { get; set; }
+        public FrontingType frontingType { get; set; }
 
         public int concurrentProcess = 4;
         public ScanSpeed dlTargetSpeed;
@@ -244,7 +245,7 @@ namespace WinCFScan.Classes
                     {
                         progressInfo.curentWorkingThreads++;
                     }
-                    var checker = new CheckIPWorking(ip, dlTargetSpeed, this.upTargetSpeed, scanConfig, this.checkType, checkTimeout, isDiagnosing);
+                    var checker = new CheckIPWorking(ip, dlTargetSpeed, this.upTargetSpeed, scanConfig, this.checkType, frontingType, checkTimeout, isDiagnosing);
                     bool isOK = checker.check();
                     
                     lock (locker)
