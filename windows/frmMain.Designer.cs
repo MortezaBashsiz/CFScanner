@@ -54,6 +54,7 @@
             toolStripSeparator2 = new ToolStripSeparator();
             comboConcurrent = new ToolStripComboBox();
             lblConcurrent = new ToolStripLabel();
+            comboFronting = new ToolStripComboBox();
             comboCheckType = new ToolStripComboBox();
             comboUpTargetSpeed = new ToolStripComboBox();
             comboDLTargetSpeed = new ToolStripComboBox();
@@ -171,7 +172,7 @@
             txtLog.Name = "txtLog";
             txtLog.ReadOnly = true;
             txtLog.ScrollBars = ScrollBars.Vertical;
-            txtLog.Size = new Size(838, 182);
+            txtLog.Size = new Size(873, 182);
             txtLog.TabIndex = 1;
             txtLog.Text = "Welcome to Cloudflare IP Scanner.\r\n";
             // 
@@ -218,7 +219,7 @@
             groupBox1.Location = new Point(12, 21);
             groupBox1.Name = "groupBox1";
             groupBox1.Padding = new Padding(3, 0, 3, 3);
-            groupBox1.Size = new Size(838, 120);
+            groupBox1.Size = new Size(873, 120);
             groupBox1.TabIndex = 3;
             groupBox1.TabStop = false;
             // 
@@ -228,7 +229,7 @@
             toolStrip2.Dock = DockStyle.None;
             toolStrip2.GripStyle = ToolStripGripStyle.Hidden;
             toolStrip2.Items.AddRange(new ToolStripItem[] { prgOveral, toolStripLabel1, btnSkipCurRange, prgCurRange, toolStripLabel2 });
-            toolStrip2.Location = new Point(386, 52);
+            toolStrip2.Location = new Point(421, 52);
             toolStrip2.Name = "toolStrip2";
             toolStrip2.RightToLeft = RightToLeft.Yes;
             toolStrip2.Size = new Size(446, 28);
@@ -332,11 +333,11 @@
             toolStrip1.AccessibleName = "Main scan settings";
             toolStrip1.GripStyle = ToolStripGripStyle.Hidden;
             toolStrip1.ImageScalingSize = new Size(20, 20);
-            toolStrip1.Items.AddRange(new ToolStripItem[] { btnStart, toolStripSeparator2, comboConcurrent, lblConcurrent, comboCheckType, comboUpTargetSpeed, comboDLTargetSpeed, lblTargetSpeed, comboConfigs, toolStripLabel3 });
+            toolStrip1.Items.AddRange(new ToolStripItem[] { btnStart, toolStripSeparator2, comboConcurrent, lblConcurrent, comboFronting, comboCheckType, comboUpTargetSpeed, comboDLTargetSpeed, lblTargetSpeed, comboConfigs, toolStripLabel3 });
             toolStrip1.Location = new Point(3, 16);
             toolStrip1.Name = "toolStrip1";
             toolStrip1.RightToLeft = RightToLeft.Yes;
-            toolStrip1.Size = new Size(832, 33);
+            toolStrip1.Size = new Size(867, 33);
             toolStrip1.TabIndex = 1;
             toolStrip1.TabStop = true;
             toolStrip1.Text = "toolStrip1";
@@ -392,6 +393,17 @@
             lblConcurrent.Name = "lblConcurrent";
             lblConcurrent.Size = new Size(67, 30);
             lblConcurrent.Text = "Concurrent";
+            // 
+            // comboFronting
+            // 
+            comboFronting.AutoSize = false;
+            comboFronting.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboFronting.FlatStyle = FlatStyle.System;
+            comboFronting.Items.AddRange(new object[] { "With Fronting", "NO Fronting" });
+            comboFronting.Name = "comboFronting";
+            comboFronting.RightToLeft = RightToLeft.No;
+            comboFronting.Size = new Size(105, 23);
+            comboFronting.ToolTipText = "With or Without fronting test";
             // 
             // comboCheckType
             // 
@@ -465,7 +477,7 @@
             lblDebugMode.BackColor = SystemColors.Control;
             lblDebugMode.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
             lblDebugMode.ForeColor = Color.Red;
-            lblDebugMode.Location = new Point(289, 92);
+            lblDebugMode.Location = new Point(324, 92);
             lblDebugMode.Name = "lblDebugMode";
             lblDebugMode.Size = new Size(143, 15);
             lblDebugMode.TabIndex = 13;
@@ -478,7 +490,7 @@
             btnCopyFastestIP.AccessibleDescription = "A button for copy fastest found IP address into the clipboard";
             btnCopyFastestIP.AccessibleName = "Copy fastest IP address";
             btnCopyFastestIP.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnCopyFastestIP.Location = new Point(683, 87);
+            btnCopyFastestIP.Location = new Point(718, 87);
             btnCopyFastestIP.Name = "btnCopyFastestIP";
             btnCopyFastestIP.Size = new Size(149, 25);
             btnCopyFastestIP.TabIndex = 2;
@@ -495,7 +507,7 @@
             txtFastestIP.BackColor = Color.White;
             txtFastestIP.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
             txtFastestIP.ForeColor = Color.Green;
-            txtFastestIP.Location = new Point(438, 89);
+            txtFastestIP.Location = new Point(473, 89);
             txtFastestIP.Name = "txtFastestIP";
             txtFastestIP.PlaceholderText = "Fastest IP";
             txtFastestIP.ReadOnly = true;
@@ -555,7 +567,7 @@
             btnLoadIPRanges.AccessibleDescription = "A botton to allow you to load your custom Cloudflare IP ranges into the app";
             btnLoadIPRanges.AccessibleName = "Load custom IP ranges";
             btnLoadIPRanges.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnLoadIPRanges.Location = new Point(528, 8);
+            btnLoadIPRanges.Location = new Point(563, 8);
             btnLoadIPRanges.Name = "btnLoadIPRanges";
             btnLoadIPRanges.Size = new Size(104, 23);
             btnLoadIPRanges.TabIndex = 4;
@@ -568,7 +580,7 @@
             // 
             checkScanInRandomOrder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             checkScanInRandomOrder.AutoSize = true;
-            checkScanInRandomOrder.Location = new Point(330, 11);
+            checkScanInRandomOrder.Location = new Point(365, 11);
             checkScanInRandomOrder.Name = "checkScanInRandomOrder";
             checkScanInRandomOrder.Size = new Size(194, 19);
             checkScanInRandomOrder.TabIndex = 5;
@@ -584,7 +596,7 @@
             listResults.GridLines = true;
             listResults.Location = new Point(0, 40);
             listResults.Name = "listResults";
-            listResults.Size = new Size(830, 219);
+            listResults.Size = new Size(865, 219);
             listResults.TabIndex = 4;
             listResults.UseCompatibleStateImageBehavior = false;
             listResults.View = View.Details;
@@ -678,7 +690,7 @@
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(txtLog);
-            splitContainer1.Size = new Size(838, 480);
+            splitContainer1.Size = new Size(873, 480);
             splitContainer1.SplitterDistance = 294;
             splitContainer1.TabIndex = 7;
             // 
@@ -692,7 +704,7 @@
             tabControl1.Location = new Point(0, 0);
             tabControl1.Name = "tabControl1";
             tabControl1.SelectedIndex = 0;
-            tabControl1.Size = new Size(838, 294);
+            tabControl1.Size = new Size(873, 294);
             tabControl1.TabIndex = 4;
             // 
             // tabPageCFRanges
@@ -709,7 +721,7 @@
             tabPageCFRanges.Location = new Point(4, 24);
             tabPageCFRanges.Name = "tabPageCFRanges";
             tabPageCFRanges.Padding = new Padding(3);
-            tabPageCFRanges.Size = new Size(830, 266);
+            tabPageCFRanges.Size = new Size(865, 266);
             tabPageCFRanges.TabIndex = 1;
             tabPageCFRanges.Text = "Cloudflare IP ranges";
             // 
@@ -720,7 +732,7 @@
             listCFIPList.Columns.AddRange(new ColumnHeader[] { headIPRange, headTotalIPs });
             listCFIPList.Location = new Point(0, 35);
             listCFIPList.Name = "listCFIPList";
-            listCFIPList.Size = new Size(828, 223);
+            listCFIPList.Size = new Size(863, 223);
             listCFIPList.TabIndex = 0;
             listCFIPList.UseCompatibleStateImageBehavior = false;
             listCFIPList.View = View.Details;
@@ -750,7 +762,7 @@
             // 
             btnSelectNoneIPRanges.AccessibleName = "Unselect all Cloudflare IP ranges";
             btnSelectNoneIPRanges.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnSelectNoneIPRanges.Location = new Point(639, 9);
+            btnSelectNoneIPRanges.Location = new Point(674, 9);
             btnSelectNoneIPRanges.Name = "btnSelectNoneIPRanges";
             btnSelectNoneIPRanges.Size = new Size(88, 23);
             btnSelectNoneIPRanges.TabIndex = 2;
@@ -762,7 +774,7 @@
             // 
             btnSelectAllIPRanges.AccessibleName = "Select all Cloudflare IP ranges";
             btnSelectAllIPRanges.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnSelectAllIPRanges.Location = new Point(736, 9);
+            btnSelectAllIPRanges.Location = new Point(771, 9);
             btnSelectAllIPRanges.Name = "btnSelectAllIPRanges";
             btnSelectAllIPRanges.Size = new Size(88, 23);
             btnSelectAllIPRanges.TabIndex = 1;
@@ -784,7 +796,7 @@
             tabPageResults.Location = new Point(4, 24);
             tabPageResults.Name = "tabPageResults";
             tabPageResults.Padding = new Padding(3);
-            tabPageResults.Size = new Size(830, 266);
+            tabPageResults.Size = new Size(865, 266);
             tabPageResults.TabIndex = 0;
             tabPageResults.Text = "Scan Results";
             tabPageResults.UseVisualStyleBackColor = true;
@@ -838,7 +850,7 @@
             mnuMain.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, toolsToolStripMenuItem, helpToolStripMenuItem });
             mnuMain.Location = new Point(0, 0);
             mnuMain.Name = "mnuMain";
-            mnuMain.Size = new Size(864, 24);
+            mnuMain.Size = new Size(899, 24);
             mnuMain.TabIndex = 8;
             mnuMain.Text = "menuStrip1";
             // 
@@ -1060,7 +1072,7 @@
             toolStripBottom.Items.AddRange(new ToolStripItem[] { btnFrontingErrors, toolStripSeparator3, btnDownloadErrors, toolStripSeparator4, lblAutoSkipStatus, seperatorAutoSkip, lblRunningWorkers, linkBuyMeCoffee, linkGithub, seperatorPaused, lblScanPaused });
             toolStripBottom.Location = new Point(0, 628);
             toolStripBottom.Name = "toolStripBottom";
-            toolStripBottom.Size = new Size(864, 33);
+            toolStripBottom.Size = new Size(899, 33);
             toolStripBottom.TabIndex = 9;
             toolStripBottom.Text = "toolStrip2";
             // 
@@ -1178,7 +1190,7 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(864, 661);
+            ClientSize = new Size(899, 661);
             Controls.Add(toolStripBottom);
             Controls.Add(mnuMain);
             Controls.Add(splitContainer1);
@@ -1332,5 +1344,6 @@
         private ToolStripLabel toolStripLabel4;
         private ToolStripComboBox comboCheckType;
         private ColumnHeader hdrUPDelay;
+        private ToolStripComboBox comboFronting;
     }
 }

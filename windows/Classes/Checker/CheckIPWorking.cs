@@ -31,9 +31,11 @@ namespace WinCFScan.Classes.Checker
         private bool isDiagnosing = false;
         public bool isV2rayExecutionSuccess = false;
         public CheckType checkType { get; private set; }
+        public FrontingType frontingType { get; private set; }
         private CheckResultStatus checkResultStatus;
 
-        public CheckIPWorking(string ip, ScanSpeed dlTargetSpeed, ScanSpeed upTargetSpeed, CustomConfigInfo scanConfig, CheckType checkType, int checkTimeout, bool isDiagnosing = false)
+        public CheckIPWorking(string ip, ScanSpeed dlTargetSpeed, ScanSpeed upTargetSpeed, CustomConfigInfo scanConfig, 
+            CheckType checkType, FrontingType frontingType, int checkTimeout, bool isDiagnosing = false)
         {
             this.ip = ip;
             port = getPortByIP();
@@ -44,6 +46,7 @@ namespace WinCFScan.Classes.Checker
             this.checkTimeout = checkTimeout;
             this.isDiagnosing = isDiagnosing;
             this.checkType = checkType;
+            this.frontingType = frontingType;
             checkResultStatus = new CheckResultStatus(checkType);
         }
 
@@ -58,7 +61,7 @@ namespace WinCFScan.Classes.Checker
             Tools.logStep("IP: " + ip, isDiagnosing);
 
             // first of all quick test on fronting domain through cloudflare
-            bool frontingSuccess = checkFronting();
+            bool frontingSuccess = frontingType == FrontingType.YES || isDiagnosing ? checkFronting() : true;
 
             if (frontingSuccess || isDiagnosing) // on diagnosing we will always test v2ray
             {
