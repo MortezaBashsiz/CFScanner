@@ -46,4 +46,4 @@ This script is also available for golang [here](https://github.com/MortezaBashsi
 Find for android [here](https://github.com/MortezaBashsiz/CFScanner/tree/main/android "here").
 
 ## Video Guide
-You can find a video guide for this script on [youtube](https://youtu.be/BKLRAHolhvM "youtube").
+You can find a video guide for this script on [youtube](https://youtu.be/BKLRAHolhvM "youtube") and [youtybe](https://youtu.be/4xJvWYdGuV8 "youtube") and [youtube](https://youtu.be/cgV6uPBty90 "youtube").
