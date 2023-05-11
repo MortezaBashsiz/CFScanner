@@ -46,6 +46,7 @@ var (
 )
 
 // const WorkerCount = 48
+
 func scanner(ip string, Config config.Configuration, Worker config.Worker) *ScanResult {
 
 	result := &ScanResult{
@@ -323,6 +324,13 @@ func scan(Config *config.Configuration, worker *config.Worker, ip string) {
 	Writer.Output()
 	Writer.Write()
 
+	// Save results & sort based on download latency
+	err := saveResults(results, config.FinalResultsPathSorted, true)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 }
 func Start(C config.Configuration, Worker config.Worker, ipList []string, threadsCount int) {
 	var (
@@ -398,12 +406,6 @@ func Start(C config.Configuration, Worker config.Worker, ipList []string, thread
 		_ = keyboard.Close()
 	}()
 
-	// Save results
-	err = saveResults(results, config.FinalResultsPathSorted, true)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 }
 
 // controller is a event listener for pausing or running workers

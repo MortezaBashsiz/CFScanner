@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -32,6 +33,7 @@ func Round(val float64, roundOn float64, places int) (newVal float64) {
 }
 
 func CreateDir(dirPath string) {
+	dirPath = filepath.FromSlash(dirPath)
 	if _, err := os.Stat(dirPath); os.IsNotExist(err) {
 		err := os.MkdirAll(dirPath, 0755)
 		if err != nil {
