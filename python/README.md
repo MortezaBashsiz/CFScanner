@@ -234,6 +234,10 @@ Contributors names and contact info
   * Added no-fronting option
 * 1.3.17
   * Improved the fronting test method (jafar method)
+* 1.3.18
+  * changed fronting domain
+* 1.3.19
+  * fixed a bug in xray config saving in windows. ":" is not allowed in windows file names
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.3.17-blue
+[version]: https://img.shields.io/badge/Version-1.3.19-blue
