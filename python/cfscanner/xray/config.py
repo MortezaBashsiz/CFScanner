@@ -35,7 +35,7 @@ def create_proxy_config(
         random_sni = f"{uuid.uuid4()}.{hostname}"
         config = config.replace("RANDOMHOST", random_sni)
 
-    config_path = os.path.join(config_dir, f"config-{edge_ip}.json")
+    config_path = os.path.join(config_dir, f"config-{edge_ip.replace(':', '_')}.json")
     with open(config_path, "w") as configFile:
         configFile.write(config)
 
