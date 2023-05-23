@@ -19,9 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import ir.filternet.cfscanner.R
 import ir.filternet.cfscanner.utils.mirror
 
 @Composable
@@ -36,7 +38,7 @@ fun HeaderPage(title: String,modifier:Modifier = Modifier, onBackPress: () -> Un
             Icons.Rounded.ArrowBackIos, contentDescription = null,
             Modifier
                 .clip(RoundedCornerShape(50))
-                .clickable {
+                .clickable(onClickLabel = stringResource(id = R.string.back)) {
                     onBackPress()
                 }
                 .background(MaterialTheme.colors.primary.copy(alpha = 0.05f))

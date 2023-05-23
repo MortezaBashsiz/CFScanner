@@ -26,6 +26,7 @@ import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.random.Random
 
 @Singleton
 class CFScanner @Inject constructor(
@@ -47,6 +48,8 @@ class CFScanner @Inject constructor(
 
     private val cidrs: ArrayList<CIDR> = arrayListOf()
     private var scan: Scan? = null
+
+    private var skipCurrentRange: Boolean = false
 
     fun startScan(scan: Scan, options: ScanOptions = ScanOptions()) {
         discoveryJob?.cancel()
@@ -88,20 +91,28 @@ class CFScanner @Inject constructor(
         return discoveryJob?.isActive ?: false
     }
 
+
+    fun skipCurrentRange() {
+        if (!skipCurrentRange) {
+            skipCurrentRange = true
+        }
+    }
+
     private suspend fun CoroutineScope.startScan(scan: Scan, options: ScanOptions) {
         val scope = this
         val config = scan.config
         val isp = scan.isp
 
 
-        val allCIDR = getScanCidrs(scan,options)
-        this@CFScanner.scan = scan.copy(scanCidrOrder = allCIDR.joinToString(" "){ it.uid.toString() })
+        val allCIDR = getScanCidrs(scan, options)
+        this@CFScanner.scan = scan.copy(scanCidrOrder = allCIDR.joinToString(" ") { it.uid.toString() })
 
         delay(1000)
 
         /* set options */
         val parallel = options.parallel
         frontDomain = options.frontingDomain
+        val autoSkip = options.autoSkipPortion
 
         /* load previous scan history*/
         val (lastCidr, lastConnection) = getLastDetails(scan)
@@ -111,7 +122,7 @@ class CFScanner @Inject constructor(
         /* ================= */
 
         /* Start Process Log */
-        logger.add(Log("worker", context.getString(R.string.worker_initialized,parallel), STATUS.SUCCESS))
+        logger.add(Log("worker", context.getString(R.string.worker_initialized, parallel), STATUS.SUCCESS))
         Timber.d("CFScanner: Start Scan by $parallel worker")
         /* ================= */
 
@@ -123,14 +134,14 @@ class CFScanner @Inject constructor(
             yield()
         }
         val ipCount = allCIDR.map { calculateUsableHostCountBySubnetMask(it.subnetMask) }.reduce { a, i -> a + i }
-        logger.add(Log("ips", context.getString(R.string.ip_found_to_check,ipCount), STATUS.SUCCESS))
+        logger.add(Log("ips", context.getString(R.string.ip_found_to_check, ipCount), STATUS.SUCCESS))
 
         delay(1000)
 
         runBlocking {
             // worker controller
             val semaphore = Semaphore(parallel)
-
+            var skipped = 0
             allCIDR.let {
 
                 // delete scanned cidr
@@ -153,10 +164,12 @@ class CFScanner @Inject constructor(
                 } ?: -1
 
                 /* Start Scan Log */
-                logger.add(Log(cidr.address, context.getString(R.string.start_scan_for,cidr.address,cidr.subnetMask), STATUS.INPROGRESS))
+                logger.add(Log(cidr.address, context.getString(R.string.start_scan_for, cidr.address, cidr.subnetMask), STATUS.INPROGRESS))
                 Timber.d("CFScanner: Start Scan for ${cidr.address}/${cidr.subnetMask} by $count ips")
                 /* ============== */
 
+                var failed = 0
+                skipped = 0
                 repeat(count) { index ->
 
                     val ip = getIpAddressByIndex(cidr.address, cidr.subnetMask, index)
@@ -166,6 +179,22 @@ class CFScanner @Inject constructor(
                         return@repeat
                     }
 
+                    // auto skip
+                    if (autoSkip >= 1 && !skipCurrentRange) {
+                        val shouldSkip = (((failed*1f) / count)*100f) >= autoSkip
+                        if (shouldSkip){
+                            logger.add(Log(ip+ Random(100).toString(), context.getString(R.string.auto_skip_triggered_for,cidr.address), STATUS.SUCCESS))
+                            skipCurrentRange()
+                        }
+                    }
+
+                    // skip range check
+                    if (skipCurrentRange) {
+                        skipped++
+                        return@repeat
+                    }
+
+
                     semaphore.acquire()
                     scope.launch {
                         ip?.let {
@@ -174,13 +203,26 @@ class CFScanner @Inject constructor(
                                 logger.add(Log(it, it, STATUS.INPROGRESS))
                                 Timber.d("CFScanner: check status for $it")
                                 yield()
-                                val delay = checkIpDelay(config, it)
+                                var delay = checkIpDelay(config, it)
                                 yield()
                                 if (delay > 0) {
-                                    founded++
-                                    logger.add(Log(it, "$it ($delay ms)", STATUS.SUCCESS))
-                                    Timber.d("CFScanner: result status for $it ==> Success (${delay}ms)")
+
+                                    // apply ping limit filter on result
+                                    if (delay > options.pingFilter) {
+                                        logger.add(Log(it, context.getString(R.string.ping_error, it), STATUS.FAILED))
+                                        failed++
+                                        delay = -1
+                                    } else {
+                                        // reset failed count to avoid auto skip
+                                        failed = 0
+
+                                        founded++
+                                        logger.add(Log(it, "$it ($delay ms)", STATUS.SUCCESS))
+                                        Timber.d("CFScanner: result status for $it ==> Success (${delay}ms)")
+                                    }
+
                                 } else {
+                                    failed++
                                     Timber.d("CFScanner: result status for $it ==> Failed!")
                                 }
 
@@ -199,7 +241,14 @@ class CFScanner @Inject constructor(
                         semaphore.release()
                     }
                 }
-                logger.add(Log(cidr.address, context.getString(R.string.end_scan_for,cidr.address,cidr.subnetMask), STATUS.SUCCESS))
+
+                skipCurrentRange = false
+
+                if (skipped > 0) {
+                    logger.add(Log(cidr.address + Random(100).toString(), context.getString(R.string.skipped_range, skipped, cidr.address), STATUS.SUCCESS))
+                } else {
+                    logger.add(Log(cidr.address, context.getString(R.string.end_scan_for, cidr.address, cidr.subnetMask), STATUS.SUCCESS))
+                }
             }
 
             semaphore.tryAcquire(parallel, 10, TimeUnit.SECONDS)
@@ -218,8 +267,8 @@ class CFScanner @Inject constructor(
 
         // 2. convert cidrs order to cidr list
         val cidrList = cidrRepository.getAllCIDR(options.autoFetch)
-                // filter custom range
-            .let { if(options.customRange) it.filter { it.custom } else it }
+            // filter custom range
+            .let { if (options.customRange) it.filter { it.custom } else it }
 
         return if (!cidrIdList.isNullOrEmpty()) {
             cidrList.sortedBy { cidrIdList.indexOf(it.uid) }
@@ -238,14 +287,14 @@ class CFScanner @Inject constructor(
     private suspend fun checkIpDelay(config: Config, address: String, port: Int = 443): Long {
         // 1. check port opening
         if (!isPortOpen(address, port, 2000)) {
-            logger.add(Log(address, context.getString(R.string.port_close,address), STATUS.FAILED))
+            logger.add(Log(address, context.getString(R.string.port_close, address), STATUS.FAILED))
             Timber.d("CFScanner: check status for $address ==> Port $port is not Open!")
             return -1
         }
 
         // 2. check domain fronting
         if (!checkDomainFronting(address)) {
-            logger.add(Log(address, context.getString(R.string.fronting_error,address), STATUS.FAILED))
+            logger.add(Log(address, context.getString(R.string.fronting_error, address), STATUS.FAILED))
             Timber.d("CFScanner: check status for $address ==> Fronting not Ok!")
             return -1
         }
@@ -317,7 +366,7 @@ class CFScanner @Inject constructor(
         val conf = v2rarUtils.createServerConfig(config)?.fullConfig?.getByCustomVnextOutbound(port, ip)?.getByCustomInbound(ports)?.toPrettyPrinting()!!
         val client = V2RayClient(context, conf)
         client.connect("$ip:$port")
-        logger.add(Log(ip, context.getString(R.string.v2ray_cooldown,ip), STATUS.INPROGRESS))
+        logger.add(Log(ip, context.getString(R.string.v2ray_cooldown, ip), STATUS.INPROGRESS))
         delay(2000)
         val delay = client.measureDelay()
 
@@ -328,14 +377,14 @@ class CFScanner @Inject constructor(
                 client.disconnect()
             }
 
-        }catch (e:Exception){
+        } catch (e: Exception) {
             e.printStackTrace()
-            logger.add(Log(ip, context.getString(R.string.v2ray_failed,ip), STATUS.FAILED))
+            logger.add(Log(ip, context.getString(R.string.v2ray_failed, ip), STATUS.FAILED))
         }
 
 
         if (delay < 0) {
-            logger.add(Log(ip, context.getString(R.string.v2ray_failed,ip), STATUS.FAILED))
+            logger.add(Log(ip, context.getString(R.string.v2ray_failed, ip), STATUS.FAILED))
         }
         return delay
     }
@@ -382,6 +431,8 @@ class CFScanner @Inject constructor(
     data class ScanOptions(
         val parallel: Int = 4,
         val frontingDomain: String = "",
+        val pingFilter: Float = 2900f,
+        val autoSkipPortion: Float = 0f,
         val autoFetch: Boolean = true,
         val shuffle: Boolean = false,
         val customRange: Boolean = false,

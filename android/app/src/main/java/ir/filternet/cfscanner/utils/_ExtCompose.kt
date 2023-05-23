@@ -25,6 +25,8 @@ import ir.filternet.cfscanner.service.CloudSpeedService
 import timber.log.Timber
 
 @Composable
+fun isRTL()= LocalLayoutDirection.current == LayoutDirection.Rtl
+@Composable
 fun Dp.toPx(): Float = with(LocalDensity.current) { this@toPx.toPx() }
 
 @Composable

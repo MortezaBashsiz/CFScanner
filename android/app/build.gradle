@@ -24,8 +24,8 @@ android {
         applicationId "ir.filternet.cfscanner"
         minSdk 24
         targetSdk 33
-        versionCode 6
-        versionName "1.0.6"
+        versionCode 7
+        versionName "1.0.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary true
@@ -223,6 +223,8 @@ dependencies {
     implementation "dev.chrisbanes.snapper:snapper:0.2.1"
     implementation "com.github.skydoves:whatif:1.1.2"
     implementation 'com.coolerfall:android-http-download-manager:2.0.0'
+
+    implementation "com.airbnb.android:lottie-compose:6.0.0"
 }
 
 appmetrica {

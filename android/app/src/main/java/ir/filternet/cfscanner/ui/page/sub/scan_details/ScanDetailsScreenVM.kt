@@ -125,7 +125,7 @@ class ScanDetailsScreenVM @Inject constructor(
         Timber.e("DetailsScanScreenVM ==> Scan get: $scan")
         setState { copy(loading = true, scan = scan) }
 
-        val connections = connectionRepository.getAllConnectionByScanID(scan)
+        val connections = connectionRepository.getAllConnectionByScanID(scan).distinctBy { it.ip }
         Timber.e("DetailsScanScreenVM ==> Scan connection count: ${connections.size}")
         setState { copy(loading = false) }
         setConnectionBySort(connections)

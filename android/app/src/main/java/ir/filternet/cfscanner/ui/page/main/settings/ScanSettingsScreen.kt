@@ -1,5 +1,6 @@
 package ir.filternet.cfscanner.ui.page.main.settings
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -28,12 +29,12 @@ import dev.vivvvek.seeker.Segment
 import dev.vivvvek.seeker.rememberSeekerState
 import ir.filternet.cfscanner.BuildConfig
 import ir.filternet.cfscanner.R
-import ir.filternet.cfscanner.ui.page.main.history.HistoryContract
+import ir.filternet.cfscanner.ui.theme.Gray
+import ir.filternet.cfscanner.ui.theme.Green
 import ir.filternet.cfscanner.utils.AppConfig
 import ir.filternet.cfscanner.utils.mirror
 import ir.filternet.cfscanner.utils.openBrowser
 import kotlinx.coroutines.flow.Flow
-import timber.log.Timber
 
 @Composable
 fun ScanSettingScreen(
@@ -66,6 +67,14 @@ fun ScanSettingScreen(
         Spacer(modifier = Modifier.height(15.dp))
         SpeedCell(scan.speedTestSize) {
             onEventSent.invoke(ScanSettingsContract.Event.UpdateSettings(scan.copy(speedTestSize = it)))
+        }
+        Spacer(modifier = Modifier.height(15.dp))
+        PingFilterCell(scan.pingFilter) {
+            onEventSent.invoke(ScanSettingsContract.Event.UpdateSettings(scan.copy(pingFilter = it)))
+        }
+        Spacer(modifier = Modifier.height(15.dp))
+        AutoSkipCell(scan.autoSkipPortion) {
+            onEventSent.invoke(ScanSettingsContract.Event.UpdateSettings(scan.copy(autoSkipPortion = it)))
         }
         Spacer(modifier = Modifier.height(15.dp))
         FrontingCell(scan.fronting) {
@@ -212,6 +221,123 @@ fun SpeedCell(num: Float, onChange: (Float) -> Unit = {}) {
         )
 
         Text(text = stringResource(R.string.speed_download_seeting_desc), modifier = Modifier.padding(8.dp), fontSize = 13.sp, fontWeight = FontWeight.Light)
+    }
+
+}
+
+
+@Composable
+fun PingFilterCell(num: Float, onChange: (Float) -> Unit = {}) {
+
+    var value by remember(num) { mutableStateOf(num) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isDragging by interactionSource.collectIsDraggedAsState()
+    val state = rememberSeekerState()
+    val thumbRadius by animateDpAsState(if (isDragging) 10.dp else 5.dp)
+
+
+    LaunchedEffect(isDragging) {
+        if (!isDragging && num != value)
+            onChange(value)
+    }
+
+
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colors.onSurface)
+            .padding(10.dp)
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = stringResource(R.string.ping_filter), Modifier.weight(1f))
+            Text(text = "${value.toInt()}ms", fontSize = 14.sp)
+        }
+
+        Spacer(modifier = Modifier.height(5.dp))
+
+        Seeker(
+            value = value,
+            modifier = Modifier.height(20.dp),
+            range = 150f..8000f,
+            state = state,
+            interactionSource = interactionSource,
+            dimensions = SeekerDefaults.seekerDimensions(thumbRadius = thumbRadius),
+            onValueChange = { value = it }
+        )
+
+        Text(text = stringResource(R.string.ping_filter_desc), modifier = Modifier.padding(8.dp), fontSize = 13.sp, fontWeight = FontWeight.Light)
+    }
+
+}
+
+
+@Composable
+fun AutoSkipCell(num: Float, onChange: (Float) -> Unit = {}) {
+
+    var value by remember(num) { mutableStateOf(num) }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isDragging by interactionSource.collectIsDraggedAsState()
+    val state = rememberSeekerState()
+    val thumbRadius by animateDpAsState(if (isDragging) 10.dp else 5.dp)
+
+
+    LaunchedEffect(isDragging) {
+        if (!isDragging && num != value)
+            onChange(value)
+    }
+
+
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colors.onSurface)
+            .padding(10.dp)
+    ) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = stringResource(R.string.auto_skip), Modifier.weight(1f))
+
+            Switch(
+                checked = value.toInt() > 0,
+                onCheckedChange = {
+                    value = if (it) 30f else 0f
+                    onChange(value)
+                },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Green,
+                    uncheckedThumbColor = Gray,
+                    checkedTrackColor = Green.copy(0.4f),
+                    uncheckedTrackColor = Gray.copy(0.4f)
+                )
+            )
+        }
+
+
+        AnimatedVisibility(visible = value.toInt() > 0) {
+            Spacer(modifier = Modifier.height(5.dp))
+
+            Seeker(
+                value = value,
+                modifier = Modifier.height(20.dp),
+                range = 1f..90f,
+                state = state,
+                interactionSource = interactionSource,
+                dimensions = SeekerDefaults.seekerDimensions(thumbRadius = thumbRadius),
+                onValueChange = { value = it }
+            )
+        }
+
+        val percent = if (value.toInt() > 0) value.toInt().toString() + "%" else stringResource(R.string.specific_proportion)
+        Text(text = stringResource(R.string.auto_skip_desc, percent), modifier = Modifier.padding(8.dp), fontSize = 13.sp, fontWeight = FontWeight.Light)
     }
 
 }

@@ -33,6 +33,7 @@ import ir.filternet.cfscanner.ui.common.HeaderPage
 import ir.filternet.cfscanner.ui.page.main.scan.component.LoadingView
 import ir.filternet.cfscanner.ui.page.sub.scan_details.component.*
 import ir.filternet.cfscanner.utils.clickableWithNoRipple
+import ir.filternet.cfscanner.utils.tryStartForegroundService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -98,7 +99,7 @@ fun ScanDetailsScreen(
             if (scan != null)
                 item {
                     ActionCell(isScanning, !deleteable, {
-                        ContextCompat.startForegroundService(context, Intent(context, CloudScannerService::class.java))
+                        context.tryStartForegroundService(CloudScannerService::class.java)
                         onEventSent.invoke(ScanDetailsContract.Event.ResumeScan)
                     }, stop = {
                         onEventSent.invoke(ScanDetailsContract.Event.StopScan)
@@ -143,7 +144,9 @@ fun ScanDetailsScreen(
                             Text(text = stringResource(R.string.sort_by), color = Color.Black, modifier = Modifier.padding(start = 15.dp))
                             Text(
                                 "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
-                                modifier = Modifier.weight(1f).padding(start = 15.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(start = 15.dp),
                                 textAlign = TextAlign.Center,
                                 maxLines = 1,
                                 color = MaterialTheme.colors.background
@@ -172,20 +175,20 @@ fun ScanDetailsScreen(
                         }
 
 
-                        AnimatedVisibility(sort.value in 1..2,Modifier.width(IntrinsicSize.Min)) {
-                           Column {
-                               SpeedCheckButton(speedStatus, {
-                                   ContextCompat.startForegroundService(context, Intent(context, CloudSpeedService::class.java))
-                                   if(sort.value==1){
-                                       onEventSent(ScanDetailsContract.Event.StartSortAllByPing)
-                                   }else{
-                                       onEventSent(ScanDetailsContract.Event.StartSortAllBySpeed)
-                                   }
+                        AnimatedVisibility(sort.value in 1..2, Modifier.width(IntrinsicSize.Min)) {
+                            Column {
+                                SpeedCheckButton(speedStatus, {
+                                    context.tryStartForegroundService(CloudSpeedService::class.java)
+                                    if (sort.value == 1) {
+                                        onEventSent(ScanDetailsContract.Event.StartSortAllByPing)
+                                    } else {
+                                        onEventSent(ScanDetailsContract.Event.StartSortAllBySpeed)
+                                    }
 
-                               }) {
-                                   onEventSent(ScanDetailsContract.Event.StopSortAll)
-                               }
-                           }
+                                }) {
+                                    onEventSent(ScanDetailsContract.Event.StopSortAll)
+                                }
+                            }
                         }
 
                     }
@@ -195,7 +198,7 @@ fun ScanDetailsScreen(
 
 
             items(connections, { it.ip }) {
-                ConnectionCell(Modifier.animateItemPlacement(), it, speedChecking,configs) {
+                ConnectionCell(Modifier.animateItemPlacement(), it, speedChecking, configs) {
                     onEventSent.invoke(ScanDetailsContract.Event.UpdateSpeed(it))
                 }
             }

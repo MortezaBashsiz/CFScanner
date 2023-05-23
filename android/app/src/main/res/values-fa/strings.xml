@@ -123,6 +123,7 @@
     <string name="end_scan_for">پایان اسکن برای %s/%d</string>
     <string name="scan_finished_successfully">اسکن با موفقیت تمام شد.</string>
     <string name="port_close">%s (پورت بسته)</string>
+    <string name="ping_error">%s (محدودیت پینگ)</string>
     <string name="fronting_error">%s (ادرس نامعتبر)</string>
     <string name="v2ray_cooldown">%s (اتصال V2ray)</string>
     <string name="v2ray_failed">%s (خطا اتصال V2ray)</string>
@@ -156,4 +157,16 @@
     <string name="download_update_finished">فرایند دانلود آپدیت برنامه به پایان رسید.</string>
     <string name="update_downloading">دریافت آپدیت %s\%%</string>
     <string name="update_ready_to_install">آپدیت آماده نصب است</string>
+    <string name="waiting_for_network">در انتظار اینترنت</string>
+    <string name="skipped_range">%d مورد رد شد برای %s</string>
+    <string name="skip_this_range">پَرش از رنج فعلی</string>
+    <string name="ping_filter">فیلتر پینگ</string>
+    <string name="ping_filter_desc">با تعیین حداکثر پینگ قابل قبول نتایج جستجو را محدود کنید.</string>
+    <string name="auto_skip">پَرش خودکار</string>
+    <string name="auto_skip_desc">برای پرش از رنج های کثیف در صورت کثیف بودن %s از IP ها استفاده می شود.</string>
+    <string name="specific_proportion">نسبت مشخصی</string>
+    <string name="auto_skip_triggered_for">اعمال پَرش خودکار برای %s</string>
+    <string name="scanner_page">صفحه اسکنر</string>
+    <string name="settings_page">صفحه تنظیمات</string>
+    <string name="back">بازگشت</string>
 </resources>
