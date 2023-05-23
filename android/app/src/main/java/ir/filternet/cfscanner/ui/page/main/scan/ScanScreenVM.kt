@@ -68,7 +68,12 @@ class ScanScreenVM @Inject constructor(
             is ScanContract.Event.StopScan -> {
                 stopScan()
             }
-
+            is ScanContract.Event.DisableNotificationDialog -> {
+                setState { copy(dismissNotificationDialog = true) }
+            }
+            is ScanContract.Event.SkipCurrentRange -> {
+                binder?.skipCurrentRange()
+            }
         }
     }
 
@@ -200,6 +205,9 @@ class ScanScreenVM @Inject constructor(
             }
             is CloudScannerService.ServiceStatus.Disabled -> {
                 setState { copy(buttonState = ScanButtonState.Disabled(status.message)) }
+            }
+            is CloudScannerService.ServiceStatus.WaitingForNetwork -> {
+                setState { copy(buttonState = ScanButtonState.WaitingForNetwork) }
             }
             else -> {}
         }

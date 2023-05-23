@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import ir.filternet.cfscanner.R
 import ir.filternet.cfscanner.contracts.SIDE_EFFECTS_KEY
@@ -27,6 +28,7 @@ import ir.filternet.cfscanner.ui.navigation.CFScannerSubNavigation
 import ir.filternet.cfscanner.ui.page.root.components.PlayfulBottomNavigation
 import ir.filternet.cfscanner.ui.page.root.components.UpdateHeader
 import ir.filternet.cfscanner.utils.installFile
+import ir.filternet.cfscanner.utils.tryStartForegroundService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
@@ -71,7 +73,7 @@ fun MainScreen(
         Column {
             UpdateHeader(update,
                 onDownload = {
-                    ContextCompat.startForegroundService(context, Intent(context, CloudUpdateService::class.java))
+                    context.tryStartForegroundService(CloudUpdateService::class.java)
                     onEventSent.invoke(MainContract.Event.StartDownloadUpdate)
                 },
                 onCancel = {
@@ -103,7 +105,10 @@ fun MainScreen(
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter),
             index = selectedIndex,
-            icons = arrayOf(R.drawable.ic_cloud_done, R.drawable.ic_network_check, R.drawable.ic_settings),
+            icons = arrayOf(
+                R.drawable.ic_cloud_done to stringResource(R.string.scan_history),
+                R.drawable.ic_network_check to stringResource(R.string.scanner_page),
+                R.drawable.ic_settings to stringResource(R.string.settings_page)),
             unselectedColor = MaterialTheme.colors.onPrimary.copy(0.8f),
             selectedColor = MaterialTheme.colors.onPrimary,
             indicatorColor = MaterialTheme.colors.onPrimary,

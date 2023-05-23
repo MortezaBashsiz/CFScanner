@@ -61,7 +61,7 @@ class CloudScannerService : Service(),
 
     private var isp: ISP? = null
     private var scan: Scan? = null
-    private var serviceStatus: ServiceStatus = ServiceStatus.Idle()
+    private var serviceStatus: ServiceStatus = ServiceStatus.WaitingForNetwork(scan)
 
 
     /* connection flow */
@@ -184,6 +184,10 @@ class CloudScannerService : Service(),
             stopScan()
         }
 
+        fun skipCurrentRange() {
+            _skipCurrentRange()
+        }
+
         fun getLastScan(): Scan? = scan
 
         fun getServiceStatus(): ServiceStatus = serviceStatus
@@ -220,7 +224,9 @@ class CloudScannerService : Service(),
                     frontingDomain = scanSettings.fronting,
                     autoFetch = scanSettings.autoFetch,
                     shuffle = scanSettings.shuffle,
-                    customRange = scanSettings.customRange
+                    customRange = scanSettings.customRange,
+                    pingFilter = scanSettings.pingFilter,
+                    autoSkipPortion = scanSettings.autoSkipPortion,
                 )
             )
         }
@@ -228,8 +234,16 @@ class CloudScannerService : Service(),
 
     private fun stopScan() {
         Timber.d("CloudScannerService stopScan")
-        cfScanner?.apply {
+        cfScanner.apply {
             stopScan(true)
+        }
+    }
+
+
+    private fun _skipCurrentRange() {
+        Timber.d("CloudScannerService skipCurrentRange")
+        cfScanner.apply {
+            skipCurrentRange()
         }
     }
 
@@ -242,6 +256,7 @@ class CloudScannerService : Service(),
         Timber.d("CloudScannerService: add connections to db: ${connections.size}")
         val healthyConnections = connections.filter { it.delay > 0 }
         val lastConnection = connections.lastOrNull()
+
         if (healthyConnections.isNotEmpty()) {
             connectionRepository.insertAll(healthyConnections)
         }
@@ -303,7 +318,7 @@ class CloudScannerService : Service(),
         this.scan = scan
 
         if (networkManager.getNetworkState() == NetworkManager.NetworkState.DISCONNECTED) {
-            setServiceStatus(ServiceStatus.Disabled(reason))
+            setServiceStatus(ServiceStatus.WaitingForNetwork(scan))
         } else {
             setServiceStatus(ServiceStatus.Paused(scan, ScanProgress(), reason))
         }
@@ -334,7 +349,7 @@ class CloudScannerService : Service(),
                 if (cfScanner.isRunning()) {
                     cfScanner.stopScan(byUser = false, reason = "No internet connection")
                 }
-                setServiceStatus(ServiceStatus.Disabled("No internet connection"))
+                setServiceStatus(ServiceStatus.WaitingForNetwork(scan))
             }
 
             NetworkManager.NetworkState.DISCONNECTED -> {
@@ -368,6 +383,7 @@ class CloudScannerService : Service(),
         data class Idle(val isp: ISP? = null) : ServiceStatus()
         data class Scanning(val scan: Scan) : ServiceStatus()
         data class Paused(val scan: Scan, val progress: ScanProgress, val message: String) : ServiceStatus()
+        data class WaitingForNetwork(val scan: Scan? = null) : ServiceStatus()
         data class Disabled(val message: String) : ServiceStatus()
     }
 }

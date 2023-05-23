@@ -34,7 +34,7 @@ import ir.filternet.cfscanner.ui.theme.Orange
 import ir.filternet.cfscanner.ui.theme.Red
 
 @Composable
-fun LogBox(modifier: Modifier = Modifier, log: List<Log>? = emptyList()) {
+fun LogBox(modifier: Modifier = Modifier, log: List<Log>? = emptyList(),onSkipClick:()->Unit = {}) {
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val state = rememberLazyListState()
@@ -68,6 +68,11 @@ fun LogBox(modifier: Modifier = Modifier, log: List<Log>? = emptyList()) {
                 .fillMaxHeight()
                 .background(Brush.verticalGradient(0f to Color.Transparent, 1f to MaterialTheme.colors.background))
         )
+
+
+        OptionSide{
+            onSkipClick()
+        }
 
         LaunchedEffect(log) {
             val index = if (log?.lastIndex == null || log.lastIndex < 0) 0 else log.lastIndex

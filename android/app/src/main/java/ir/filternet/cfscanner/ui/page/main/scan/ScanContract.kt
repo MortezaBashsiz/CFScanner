@@ -11,6 +11,8 @@ class ScanContract {
     sealed class Event : ViewEvent {
         object StartScan : Event()
         object StopScan : Event()
+        object DisableNotificationDialog : Event()
+        object SkipCurrentRange : Event()
         data class DeleteConfig(val config: Config) : Event()
         data class UpdateConfig(val config: Config) : Event()
         data class AddConfig(val config: String) : Event()
@@ -24,6 +26,7 @@ class ScanContract {
         val logs: List<Log> = emptyList(),
         val buttonState: ScanButtonState = ScanButtonState.Disabled(),
         val configEdit: Config? = null,
+        val dismissNotificationDialog:Boolean = false,
     ) : ViewState
 
     sealed class Effect : ViewSideEffect {

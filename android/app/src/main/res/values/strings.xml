@@ -125,6 +125,7 @@
     <string name="scan_finished_successfully">Scan Finished Successfully.</string>
     <string name="port_close">%s (Port Not Open)</string>
     <string name="fronting_error">%s (Fronting Error)</string>
+    <string name="ping_error">%s (Ping Limit)</string>
     <string name="v2ray_cooldown">%s (V2ray Cooldown)</string>
     <string name="v2ray_failed">%s (V2ray Failed!)</string>
     <string name="get_cidr_from_network">getting CIDRs from network ...</string>
@@ -157,4 +158,16 @@
     <string name="download_update_finished">Update Downloading process finished.</string>
     <string name="update_downloading">Update Downloading %s\%%</string>
     <string name="update_ready_to_install">Update is Read to Install</string>
+    <string name="waiting_for_network">Waiting for Network</string>
+    <string name="skipped_range">%d IPs skipped for %s</string>
+    <string name="skip_this_range">Skip this range</string>
+    <string name="ping_filter">Ping Filter</string>
+    <string name="ping_filter_desc">filter scan result by setting maximum acceptable ping value.</string>
+    <string name="auto_skip">Auto Skip</string>
+    <string name="auto_skip_desc">use to skip dirty CIDR after checking %s of IPs.</string>
+    <string name="specific_proportion">specific proportion</string>
+    <string name="auto_skip_triggered_for">Auto skip triggered for %s</string>
+    <string name="scanner_page">Scanner Page</string>
+    <string name="settings_page">Settings page</string>
+    <string name="back">Back</string>
 </resources>

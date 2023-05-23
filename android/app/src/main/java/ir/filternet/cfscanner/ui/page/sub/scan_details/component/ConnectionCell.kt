@@ -36,7 +36,9 @@ import ir.filternet.cfscanner.R
 import ir.filternet.cfscanner.model.Config
 import ir.filternet.cfscanner.model.Connection
 import ir.filternet.cfscanner.utils.applyNewAddress
+import ir.filternet.cfscanner.utils.applyNewAddressByISPname
 import ir.filternet.cfscanner.utils.convertToServerConfig
+import ir.filternet.cfscanner.utils.parseToCommonName
 import ir.filternet.cfscanner.utils.share2Clipboard
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -123,10 +125,11 @@ fun ConnectionCell(
                         .clip(RoundedCornerShape(50))
                         .combinedClickable(onClick = {
                             val configID = connection.scan?.config?.uid
+                            val scanIsp = connection.scan?.isp
                             val config = configs
                                 .find { it.uid == configID }
                                 ?.convertToServerConfig()
-                                ?.applyNewAddress(connection.ip)
+                                ?.applyNewAddressByISPname(connection.ip,scanIsp?.parseToCommonName(context))
                             if (config != null) {
                                 Toast
                                     .makeText(context, context.getString(R.string.config_copied_to_clipboard), Toast.LENGTH_SHORT)
@@ -149,8 +152,8 @@ fun ConnectionCell(
                 ConfigDropDown(
                     expanded, configs,
                     onSelect = {
-                        val configID = connection.scan?.config?.uid
-                        val config = it.convertToServerConfig().applyNewAddress(connection.ip)?.let {
+                        val ispName = connection.scan?.isp
+                        val config = it.convertToServerConfig().applyNewAddressByISPname(connection.ip,ispName?.parseToCommonName(context))?.let {
                             share2Clipboard(context, it)
                             Toast.makeText(context, context.getString(R.string.config_copied_to_clipboard), Toast.LENGTH_SHORT).show()
                         }

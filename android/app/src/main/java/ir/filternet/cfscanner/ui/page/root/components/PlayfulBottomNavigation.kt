@@ -29,7 +29,7 @@ import kotlin.math.roundToInt
 @Composable
 fun PlayfulBottomNavigation(
     modifier: Modifier = Modifier,
-    @IntegerRes icons: Array<Int>,
+    icons: Array<Pair<Int,String>>,
     index: Int = 0,
     duration: Int = 1200,
     unselectedColor: Color = Color.White,
@@ -57,8 +57,8 @@ fun PlayfulBottomNavigation(
             content = {
                 repeat(icons.size) {
                     Icon(
-                        painter = painterResource(id = icons[it]),
-                        contentDescription = null,
+                        painter = painterResource(id = icons[it].first),
+                        contentDescription = icons[it].second,
                         modifier = Modifier
                             .size(40.dp)
 //                            .background(iconColor.copy(0.2f), RoundedCornerShape(50))
