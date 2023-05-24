@@ -20,10 +20,14 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.LocalTextStyle
@@ -67,14 +71,14 @@ fun UpdateDialog(
     Dialog(onDismissRequest = { dismiss() }) {
         ConstraintLayout(
             Modifier
-                .height(IntrinsicSize.Min)
+                .wrapContentHeight()
                 .clickableWithNoRipple { dismiss() }) {
             val cardRef = createRef()
             val iconRef = createRef()
             Card(
                 Modifier
-                    .fillMaxWidth(0.95f)
-                    .aspectRatio(0.85f)
+                    .fillMaxWidth(1f)
+                    .height(IntrinsicSize.Min)
                     .constrainAs(cardRef) {
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
@@ -84,8 +88,8 @@ fun UpdateDialog(
                     .clickableWithNoRipple { },
                 shape = RoundedCornerShape(8.dp)
             ) {
-                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(contentAlignment = Alignment.Center) {
+                Column(Modifier.fillMaxWidth().heightIn(min=300.dp,500.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
                         Image(
                             painter = rememberAsyncImagePainter(R.drawable.update_bg),
                             contentDescription = "",
@@ -133,6 +137,7 @@ fun UpdateDialog(
                         Modifier
                             .weight(1f)
                             .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
                             .padding(start = 17.dp, end = 8.dp),
                         textAlign = TextAlign.Start,
                         color = MaterialTheme.colors.onBackground.copy(0.9f)
