@@ -77,6 +77,7 @@ class TestConfig:
         test_config.no_fronting = args.no_fronting
 
         test_config.sample_size = args.sample_size
+        test_config.sampling_timeout = args.sampling_timeout
 
         system_info = detect_system()
         if test_config.novpn:

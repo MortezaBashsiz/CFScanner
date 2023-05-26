@@ -177,7 +177,6 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
                 logger.exception(e)
                 exit(1)
 
-    test_config.sampling_timeout = 2
     def ip_generator():
         for cidr in cidr_generator:
             for ip in cidr_to_ip_gen(
