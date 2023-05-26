@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import copy
 import logging
 import multiprocessing
 import os
@@ -17,7 +18,7 @@ from .args.testconfig import TestConfig
 from .report.print import TitledProgress
 from .speedtest.conduct import test_ip
 from .speedtest.tools import mean_jitter
-from .subnets import cidr_to_ip_list, get_num_ips_in_cidr, read_cidrs
+from .subnets import cidr_to_ip_gen, get_num_ips_in_cidr, read_cidrs
 from .utils.exceptions import *
 from .utils.os import create_dir
 
@@ -29,39 +30,42 @@ RESULTDIR = f"{SCRIPTDIR}/result"
 START_DT_STR = datetime.now().strftime(r"%Y%m%d_%H%M%S")
 INTERIM_RESULTS_PATH = os.path.join(RESULTDIR, f'{START_DT_STR}_result.csv')
 
+
 def _prescan_sigint_handler(sig, frame):
     console.log(
         f"[yellow]KeyboardInterrupt detected (pre-scan phase) - {START_DT_STR}[/yellow]")
     exit(1)
-    
+
+
 def _init_pool():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
+
 
 def main():
     logger = logging.getLogger(__name__)
     console = Console()
-    
+
     logo = """                                                                                                                                        
 ____ ____ ____ ____ ____ _  _ _  _ ____ ____ 
 |    |___ [__  |    |__| |\ | |\ | |___ |__/ 
 |___ |    ___] |___ |  | | \| | \| |___ |  \ 
 """
     console.print(f"[bold green1]{logo}[/bold green1]")
-    
+
     try:
-        console.print(f"[bold green1]v{pkg_resources.get_distribution('cfscanner').version}[bold green1]\n\n")
+        console.print(
+            f"[bold green1]v{pkg_resources.get_distribution('cfscanner').version}[bold green1]\n\n")
     except pkg_resources.DistributionNotFound:
         console.print(f"[bold green1]v0.0.0[bold green1]\n\n")
-   
+
     log_dir = os.path.join(SCRIPTDIR, "log")
     os.makedirs(log_dir, exist_ok=True)
     logging.basicConfig(
         filename=os.path.join(log_dir, f"{START_DT_STR}.log")
     )
 
-    
     console.log(f"[green]Scan started - {START_DT_STR}[/green]")
-    
+
     original_sigint_handler = signal.signal(
         signal.SIGINT, _prescan_sigint_handler
     )
@@ -76,7 +80,8 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
                 console.log("[red1]Could not create config directory[/red1]")
                 logger.exception("Could not create config directory")
                 exit(1)
-        console.log(f"[bright_blue]Config directory created \"{CONFIGDIR}\"[/bright_blue]")
+        console.log(
+            f"[bright_blue]Config directory created \"{CONFIGDIR}\"[/bright_blue]")
         configFilePath = args.config_path
 
     with console.status(f"[green]Creating results directory \"{RESULTDIR}\"[/green]"):
@@ -86,7 +91,8 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
             console.log("[red1]Could not create results directory[/red1]")
             logger.exception("Could not create results directory")
             exit(1)
-    console.log(f"[bright_blue]Results directory created \"{RESULTDIR}\"[/bright_blue]")
+    console.log(
+        f"[bright_blue]Results directory created \"{RESULTDIR}\"[/bright_blue]")
 
     # create empty result file
     with console.status(f"[green]Creating empty result file {INTERIM_RESULTS_PATH}[/green]"):
@@ -114,13 +120,33 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
             )
             logger.exception("Could not create empty result file")
             exit(1)
+            
+    try:
+        test_config = TestConfig.from_args(args)
+    except TemplateReadError as e:
+        console.log(
+            f"[red1]Could not read template from file \"{args.template_path}\"[/red1]"        )
+        logger.exception(e)
+        exit(1)
+    except BinaryNotFoundError:
+        console.log(
+            f"[red1]Could not find xray/v2ray binary from path \"{args.binpath}\"[/red1]")
+        logger.exception(e)
+        exit(1)
+    except Exception as e:
+        console.print_exception()
+        logger.exception(e)
+        exit(1)
 
     threadsCount = args.threads
 
     if args.subnets:
         with console.status("[green]Reading subnets from \"{args.subnets}\"[/green]"):
             try:
-                cidr_list = read_cidrs(args.subnets)
+                cidr_gen, n_cidrs = read_cidrs(
+                    args.subnets,
+                    shuffle=args.shuffle_subnets,
+                )
             except SubnetsReadError as e:
                 console.log("[red1]Could not read subnets.[/red1]")
                 logger.exception("Could not read subnets")
@@ -138,72 +164,32 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
         )
         with console.status(f"[green]Retrieving subnets from \"{subnets_default_address}\"[/green]"):
             try:
-                cidr_list = read_cidrs(
-                    "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist"
+                cidr_gen, n_cidrs = read_cidrs(
+                    "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist",
+                    shuffle=args.shuffle_subnets,
                 )
             except SubnetsReadError as e:
                 console.log(f"[red1]Could not read subnets. {e}[/red1]")
                 logger.exception(e)
                 exit(1)
             except Exception as e:
-                console.log(f"Unknown error in reading subnets: {e}")
+                console.log(
+                    f"[red1]Unknown error in reading subnets: {e}[/red1]")
                 logger.exception(e)
                 exit(1)
-    
-    n_cidrs_before = len(cidr_list)
-    with console.status("[green]Removing duplicates from subnets[/green]"):
-        try:
-            cidr_list = list(dict.fromkeys(cidr_list))
-            if len(cidr_list) < n_cidrs_before:
-                console.log(
-                    f"[yellow]Removed {n_cidrs_before - len(cidr_list)} duplicates from subnets[/yellow]"
-                )
-        except:
-            console.log("[yellow]Could not remove duplicates from subnets. Using original list[/yellow]")
-            logger.exception(e)
-    
-    if args.shuffle_subnets:    
-        with console.status(f"[green]Shuffling subnets[/green]"):
-            try:
-                random.shuffle(cidr_list)
-            except Exception as e:
-                console.log("[yellow]Could not shuffle subnets. Using original order[/yellow]")
-                logger.exception(e)            
-    
-    try:
-        test_config = TestConfig.from_args(args)
-    except TemplateReadError as e:
-        console.log(
-            f"[red1]Could not read template from file \"{args.template_path}\"[/red1]"
-        )
-        logger.exception(e)        
-        exit(1)
-    except BinaryNotFoundError:
-        console.log(
-            f"[red1]Could not find xray/v2ray binary from path \"{args.binpath}\"[/red1]")
-        logger.exception(e)
-        exit(1)
-    except Exception as e:
-        console.print_exception()
-        logger.exception(e)
-        exit(1)
 
-    n_total_ips = sum(get_num_ips_in_cidr(
-        cidr,
-        sample_size=test_config.sample_size
-    ) for cidr in cidr_list)
-    console.log(f"[bright_blue]Starting to scan {n_total_ips} ips...[/bright_blue]")
-
-    cidr_ip_lists = [
-        cidr_to_ip_list(
+    cidr_ip_gens = {
+        cidr: cidr_to_ip_gen(
             cidr,
             sample_size=test_config.sample_size)
-        for cidr in cidr_list
-    ]
-    big_ip_list = [(ip, cidr) for cidr, ip_list in zip(
-        cidr_list, cidr_ip_lists) for ip in ip_list]
+        for cidr in cidr_gen
+    }
+    big_ip_list = (
+        (ip, cidr) for cidr, ip_list in
+        cidr_ip_gens.items() for ip in ip_list
+    )
 
-    cidr_scanned_ips = {cidr: 0 for cidr in cidr_list}
+    cidr_scanned_ips = {cidr: 0 for cidr in cidr_ip_gens.keys()}
 
     cidr_prog_tasks = dict()
 
@@ -211,8 +197,8 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
         title=f"start: [green]{START_DT_STR}[/green]"
     ) as progress:
         console = progress.console
-        all_ips_task = progress.add_task(
-            f"all subnets - {n_total_ips} ips", total=n_total_ips)
+        all_subnets_task = progress.add_task(
+            f"all subnets - {n_cidrs} subnets", total=n_cidrs)
         with multiprocessing.Pool(processes=threadsCount, initializer=_init_pool) as pool:
             signal.signal(signal.SIGINT, original_sigint_handler)
             iterator = pool.imap(
@@ -220,7 +206,6 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
             while True:
                 try:
                     res = next(iterator)
-                    progress.update(all_ips_task, advance=1)
                     if cidr_scanned_ips[res.cidr] == 0:
                         n_ips_cidr = get_num_ips_in_cidr(
                             res.cidr, sample_size=test_config.sample_size)
@@ -261,6 +246,7 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
 
                     cidr_scanned_ips[res.cidr] += 1
                     if cidr_scanned_ips[res.cidr] == get_num_ips_in_cidr(res.cidr, sample_size=test_config.sample_size):
+                        progress.update(all_subnets_task, advance=1)
                         progress.remove_task(cidr_prog_tasks[res.cidr])
                 except StartProxyServiceError as e:
                     progress.stop()
@@ -273,7 +259,8 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
                         progress.stop_task(task.id)
                         progress.remove_task(task.id)
                     progress.stop()
-                    progress.log(f"Finished scanning ips. Start: [green]{START_DT_STR}[/green]")
+                    progress.log(
+                        f"Finished scanning ips. Start: [green]{START_DT_STR}[/green]")
                     break
                 except KeyboardInterrupt as e:
                     for task_id in progress.task_ids:
@@ -288,4 +275,3 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
                     progress.log("[red1]Unknown error![/red1]")
                     console.print_exception()
                     logger.exception(e)
-                        
