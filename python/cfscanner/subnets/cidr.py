@@ -20,7 +20,8 @@ console = Console()
 
 def cidr_to_ip_gen(
     cidr: str,
-    sample_size: Union[int, float, None] = None
+    sample_size: Union[int, float, None] = None,
+    sampling_timeout: float = None
 ) -> list:
     """converts a subnet to a list of ips
 
@@ -28,6 +29,8 @@ def cidr_to_ip_gen(
         cidr (str): the cidr in the form of "ip/subnet"
         sample_size (Union[int, float, None], optional): The number of ips to sample from the subnet or
         the ratio of ips to sample from the subnet. If None, all ips will be returned Defaults to None.
+        sampling_timeout (float, optional): The timeout for the sampling process. Defaults to None. If exceeded, 
+        the sampling process will be terminated and the current sampled ips will be returned.
 
     Returns:
         list: a list of ips associated with the subnet
@@ -38,9 +41,17 @@ def cidr_to_ip_gen(
     if sample_size is None or sample_size >= n_ips:
         return ip_generator
     elif 1 <= sample_size < n_ips:
-        return reservoir_sampling(ip_generator, round(sample_size))
+        return reservoir_sampling(
+            ip_generator, 
+            round(sample_size),
+            sampling_timeout=sampling_timeout
+        )
     elif 0 < sample_size < 1:
-        return reservoir_sampling(ip_generator, math.ceil(n_ips * sample_size))
+        return reservoir_sampling(
+            ip_generator, 
+            math.ceil(n_ips * sample_size),
+            sampling_timeout=sampling_timeout
+        )
     else:
         raise ValueError(f"Invalid sample size: {sample_size}")
 
