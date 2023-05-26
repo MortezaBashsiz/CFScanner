@@ -73,3 +73,19 @@ def create_dir(dir_path):
     """
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
+        
+        
+def get_n_lines(path: str) -> int:
+    """returns the number of lines in a file
+
+    Args:
+        path (str): path to the file
+
+    Returns:
+        int: number of lines in the file
+    """    
+    with open(path, "rb") as infile:
+        for n_lines, _ in enumerate(infile):
+            pass        
+    return n_lines + 1
+    
