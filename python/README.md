@@ -248,4 +248,4 @@ Contributors names and contact info
   * The program does not remove the duplicate subnets anymore due to the new logic and in favor of memory usage
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.3.19-blue
+[version]: https://img.shields.io/badge/Version-1.4.0-blue
