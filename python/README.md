@@ -242,7 +242,8 @@ Contributors names and contact info
   * Improved memory usage
     * The program now uses a generator to read ips from file/url
     * The program uses [reservoir sampling](https://en.wikipedia.org/wiki/Reservoir_sampling) to select ips from the list
-    * Sampling till time out after ``sample-timeout`` seconds. In this case there is no guarantee that the probability of selecting the different ips are equal
+    * Sampling till time out after ``sample-timeout`` seconds (input argument, default 1). In this case there is no guarantee
+    that the probability of selecting the different ips are equal
   * The main progress bar is now based on the number of subnets (not the total ips)
   * The program does not remove the duplicate subnets anymore due to the new logic and in favor of memory usage
 
