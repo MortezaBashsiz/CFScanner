@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
-import copy
 import logging
 import multiprocessing
 import os
-import random
 import signal
 import statistics
 from datetime import datetime
@@ -82,7 +80,6 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
                 exit(1)
         console.log(
             f"[bright_blue]Config directory created \"{CONFIGDIR}\"[/bright_blue]")
-        configFilePath = args.config_path
 
     with console.status(f"[green]Creating results directory \"{RESULTDIR}\"[/green]"):
         try:
@@ -125,12 +122,14 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
         test_config = TestConfig.from_args(args)
     except TemplateReadError as e:
         console.log(
-            f"[red1]Could not read template from file \"{args.template_path}\"[/red1]"        )
+            f"[red1]Could not read template from file \"{args.template_path}\"[/red1]"    
+        )
         logger.exception(e)
         exit(1)
     except BinaryNotFoundError:
         console.log(
-            f"[red1]Could not find xray/v2ray binary from path \"{args.binpath}\"[/red1]")
+            f"[red1]Could not find xray/v2ray binary from path \"{args.binpath}\"[/red1]"
+        )
         logger.exception(e)
         exit(1)
     except Exception as e:
@@ -143,7 +142,7 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
     if args.subnets:
         with console.status("[green]Reading subnets from \"{args.subnets}\"[/green]"):
             try:
-                cidr_gen, n_cidrs = read_cidrs(
+                cidr_generator, n_cidrs = read_cidrs(
                     args.subnets,
                     shuffle=args.shuffle_subnets,
                 )
@@ -164,7 +163,7 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
         )
         with console.status(f"[green]Retrieving subnets from \"{subnets_default_address}\"[/green]"):
             try:
-                cidr_gen, n_cidrs = read_cidrs(
+                cidr_generator, n_cidrs = read_cidrs(
                     "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist",
                     shuffle=args.shuffle_subnets,
                 )
@@ -178,19 +177,17 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
                 logger.exception(e)
                 exit(1)
 
-    cidr_ip_gens = {
-        cidr: cidr_to_ip_gen(
-            cidr,
-            sample_size=test_config.sample_size)
-        for cidr in cidr_gen
-    }
-    big_ip_list = (
-        (ip, cidr) for cidr, ip_list in
-        cidr_ip_gens.items() for ip in ip_list
-    )
+    test_config.sampling_timeout = 2
+    def ip_generator():
+        for cidr in cidr_generator:
+            for ip in cidr_to_ip_gen(
+                cidr,
+                sample_size=test_config.sample_size,
+                sampling_timeout=test_config.sampling_timeout,
+            ):
+                yield ip, cidr
 
-    cidr_scanned_ips = {cidr: 0 for cidr in cidr_ip_gens.keys()}
-
+    cidr_scanned_ips = dict()
     cidr_prog_tasks = dict()
 
     with TitledProgress(
@@ -202,15 +199,19 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
         with multiprocessing.Pool(processes=threadsCount, initializer=_init_pool) as pool:
             signal.signal(signal.SIGINT, original_sigint_handler)
             iterator = pool.imap(
-                partial(test_ip, test_config=test_config, config_dir=CONFIGDIR), big_ip_list)
+                partial(test_ip, test_config=test_config, config_dir=CONFIGDIR), ip_generator()
+            )
             while True:
                 try:
                     res = next(iterator)
-                    if cidr_scanned_ips[res.cidr] == 0:
+                    if res.cidr not in cidr_scanned_ips:
+                        cidr_scanned_ips[res.cidr] = 0
                         n_ips_cidr = get_num_ips_in_cidr(
-                            res.cidr, sample_size=test_config.sample_size)
+                            res.cidr, sample_size=test_config.sample_size
+                        )
                         cidr_prog_tasks[res.cidr] = progress.add_task(
-                            f"{res.cidr:17s} - {n_ips_cidr} ips", total=n_ips_cidr)
+                            f"{res.cidr:17s} - {n_ips_cidr} ips", total=n_ips_cidr
+                        )
                     progress.update(cidr_prog_tasks[res.cidr], advance=1)
 
                     if res.is_ok:
@@ -248,6 +249,7 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
                     if cidr_scanned_ips[res.cidr] == get_num_ips_in_cidr(res.cidr, sample_size=test_config.sample_size):
                         progress.update(all_subnets_task, advance=1)
                         progress.remove_task(cidr_prog_tasks[res.cidr])
+                        cidr_scanned_ips.pop(res.cidr)
                 except StartProxyServiceError as e:
                     progress.stop()
                     console.log(f"[red1]{e}[/red1]")
