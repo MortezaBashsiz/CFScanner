@@ -85,7 +85,9 @@ def get_n_lines(path: str) -> int:
         int: number of lines in the file
     """    
     with open(path, "rb") as infile:
-        for n_lines, _ in enumerate(infile):
-            pass        
-    return n_lines + 1
+        n_lines = 0
+        for _, line in enumerate(infile):
+            if line.strip():
+                n_lines += 1        
+    return n_lines
     

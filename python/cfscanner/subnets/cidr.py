@@ -132,7 +132,8 @@ def read_cidrs_from_file(
 
             for pos in shuf_order:
                 line = linecache.getline(filepath, pos)
-                yield line.strip()
+                if line.strip():
+                    yield line.strip()
         else:
             with open(filepath, "r") as f:
                 for line in f:
