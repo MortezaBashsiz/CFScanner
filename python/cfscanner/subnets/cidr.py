@@ -1,19 +1,24 @@
 import ipaddress
+import linecache
 import math
 import os
 import random
 import re
-from typing import Union
+from typing import Generator, Tuple, Union
 from urllib.parse import urlparse
 
 import requests
 from rich.console import Console
-from ..utils.exceptions import *
 
+from ..utils.exceptions import *
+from ..utils.os import get_n_lines
+from ..utils.random import reservoir_sampling
+
+PATH = os.getcwd()
 console = Console()
 
 
-def cidr_to_ip_list(
+def cidr_to_ip_gen(
     cidr: str,
     sample_size: Union[int, float, None] = None
 ) -> list:
@@ -27,13 +32,15 @@ def cidr_to_ip_list(
     Returns:
         list: a list of ips associated with the subnet
     """
-    ip_list = list(map(str, ipaddress.ip_network(cidr, strict=False)))
-    if sample_size is None or sample_size >= len(ip_list):
-        return ip_list
-    elif 1 <= sample_size < len(ip_list):
-        return random.sample(ip_list, round(sample_size))
+    n_ips = get_num_ips_in_cidr(cidr)
+    ip_generator = map(str, ipaddress.ip_network(cidr, strict=False))
+    
+    if sample_size is None or sample_size >= n_ips:
+        return ip_generator
+    elif 1 <= sample_size < n_ips:
+        return reservoir_sampling(ip_generator, round(sample_size))
     elif 0 < sample_size < 1:
-        return random.sample(ip_list, math.ceil(len(ip_list) * sample_size))
+        return reservoir_sampling(ip_generator, math.ceil(n_ips * sample_size))
     else:
         raise ValueError(f"Invalid sample size: {sample_size}")
 
@@ -62,26 +69,6 @@ def get_num_ips_in_cidr(
         return min(math.ceil(n_ips * sample_size), n_ips)
     else:
         raise ValueError(f"Invalid sample size: {sample_size}")
-
-
-def read_cidrs_from_asnlookup(
-    asn_list: list = ["AS13335", "AS209242"]
-) -> list:
-    """reads cidrs from asn lookup 
-
-    Args:
-        asn_list (list, optional): a list of ASN codes to read from asn lookup. Defaults to ["AS13335", "AS209242"].
-
-    Returns:
-        list: The list of cidrs associated with ``asn_list``
-    """
-    cidrs = []
-    for asn in asn_list:
-        url = f"https://asnlookup.com/asn/{asn}/"
-        this_cidrs = read_cidrs_from_url(url)
-        cidrs.extend(this_cidrs)
-
-    return cidrs
 
 
 def read_cidrs_from_url(
@@ -114,45 +101,72 @@ def read_cidrs_from_url(
 
 
 def read_cidrs_from_file(
-    filepath: str
-) -> list:
+    filepath: str,
+    shuffle: bool = False,
+    n_lines: int = None
+):
     """reads cidrs from a file
 
     Args:
         filepath (str): The path to the file to read the cidrs from
-
-    Returns:
-        list: The list of cidrs found in the file
+        shuffle (bool, optional): Whether to shuffle the cidrs. Defaults to False.
+        n_lines (int): The number of lines in the file. If not provided, the function will try to get it from the file itself
     """
     try:
-        with open(filepath, "r") as f:
-            cidrs = f.read().splitlines()
-        if len(cidrs) == 0:
-            raise SubnetsReadError(
-                f"Could not find any cidr in file {filepath}")
+        if shuffle:
+            if n_lines is None:
+                n_lines = get_n_lines(filepath)
+            shuf_order = list(range(n_lines))
+            random.shuffle(shuf_order)
+
+            for pos in shuf_order:
+                line = linecache.getline(filepath, pos)
+                yield line.strip()
+        else:
+            with open(filepath, "r") as f:
+                for line in f:
+                    yield line.strip()
+
     except Exception as e:
         raise SubnetsReadError(f"Could not read cidrs from file {filepath}")
-    return cidrs
 
 
 def read_cidrs(
     url_or_path: str,
+    shuffle: bool = False,
     timeout: float = 10
-):
+) -> Tuple[Generator, int]:
     """reads cidrs from a url or file
 
     Args:
         url_or_path (str): The url or path to the file to read the cidrs from
+        shuffle (bool, optional): Whether to shuffle the cidrs. Defaults to False.
+        timeout (float, optional): The timeout for the request. Defaults to 10.
 
     Returns:
-        list: The list of cidrs found in the file
+        Genrator: A generator of cidrs
     """
     if os.path.isfile(url_or_path):
-        cidrs = read_cidrs_from_file(url_or_path)
+        n_cidrs = get_n_lines(url_or_path)
+        cidrs = read_cidrs_from_file(
+            url_or_path,
+            shuffle=shuffle, 
+            n_lines=n_cidrs
+        )
     elif urlparse(url_or_path).scheme:
-        cidrs = read_cidrs_from_url(url_or_path, timeout)
+        cidrs_list = read_cidrs_from_url(url_or_path, timeout)
+        n_cidrs = len(cidrs_list)
+        subnets_path = os.path.join(PATH, ".tmp")
+        os.makedirs(subnets_path, exist_ok=True)
+        with open(os.path.join(subnets_path, "cidrs.txt"), "w") as f:
+            f.write("\n".join(cidrs_list))
+        cidrs = read_cidrs_from_file(
+            os.path.join(subnets_path, "cidrs.txt"),
+            shuffle=shuffle,
+            n_lines=len(cidrs_list)
+        )
     else:
         raise SubnetsReadError(
             f"\"{url_or_path}\" is neither a valid url nor a file path."
         )
-    return cidrs
+    return cidrs, n_cidrs
