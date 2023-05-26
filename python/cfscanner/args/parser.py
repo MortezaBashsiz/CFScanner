@@ -96,7 +96,7 @@ def parse_args():
         type=float,
         metavar="",
         dest="sampling_timeout",
-        default=1
+        default=1,
         required=False
     )
     ############################################################
