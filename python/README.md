@@ -246,6 +246,7 @@ Contributors names and contact info
     that the probability of selecting the different ips are equal
   * The main progress bar is now based on the number of subnets (not the total ips)
   * The program does not remove the duplicate subnets anymore due to the new logic and in favor of memory usage
+  * Added info about the number of scanned ips and ok ips to the progress bar
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
 [version]: https://img.shields.io/badge/Version-1.4.0-blue

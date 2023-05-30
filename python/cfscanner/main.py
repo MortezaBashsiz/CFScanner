@@ -212,8 +212,10 @@ ____ ____ ____ ____ ____ _  _ _  _ ____ ____
                             f"{res.cidr:17s} - {n_ips_cidr} ips", total=n_ips_cidr
                         )
                     progress.update(cidr_prog_tasks[res.cidr], advance=1)
+                    progress.scanned_ips += 1
 
                     if res.is_ok:
+                        progress.ok_ips += 1
                         down_mean_jitter = mean_jitter(
                             res.result["download"]["latency"])
                         up_mean_jitter = mean_jitter(

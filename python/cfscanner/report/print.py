@@ -23,9 +23,13 @@ class TitledProgress(Progress):
         redirect_stderr: bool = True,
         get_time: Optional[GetTimeCallable] = None, 
         disable: bool = False, 
-        expand: bool = False
+        expand: bool = False,
+        scanned_ips: int = 0,
+        ok_ips: int = 0
     ) -> None:
         self.title = title
+        self.scanned_ips = scanned_ips
+        self.ok_ips = ok_ips
         super().__init__(
             *columns, 
             console=console, 
@@ -52,6 +56,13 @@ class TitledProgress(Progress):
 
         if self.title is not None: 
             table.add_row(self.title)
+        if self.scanned_ips is not None and self.ok_ips is not None:
+            table.add_row(
+                f"scanned ips:{str(self.scanned_ips).ljust(8)}" 
+                f"ok ips: {self.ok_ips} "
+                f"({self.ok_ips / self.scanned_ips * 100:.2f}%)" if self.scanned_ips > 0 else ""
+            )
+            
         for task in tasks:
             if task.visible:
                 table.add_row(
