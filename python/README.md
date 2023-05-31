@@ -238,6 +238,15 @@ Contributors names and contact info
   * changed fronting domain
 * 1.3.19
   * fixed a bug in xray config saving in windows. ":" is not allowed in windows file names
+* 1.4.0
+  * Improved memory usage
+    * The program now uses a generator to read ips from file/url
+    * The program uses [reservoir sampling](https://en.wikipedia.org/wiki/Reservoir_sampling) to select ips from the list
+    * Sampling till time out after ``sample-timeout`` seconds (input argument, default 1). In this case there is no guarantee
+    that the probability of selecting the different ips are equal
+  * The main progress bar is now based on the number of subnets (not the total ips)
+  * The program does not remove the duplicate subnets anymore due to the new logic and in favor of memory usage
+  * Added info about the number of scanned ips and ok ips to the progress bar
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.3.19-blue
+[version]: https://img.shields.io/badge/Version-1.4.0-blue

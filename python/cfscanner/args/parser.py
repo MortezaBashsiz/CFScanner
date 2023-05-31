@@ -90,6 +90,15 @@ def parse_args():
         required=False,
         default=False        
     )
+    randomscan_grp.add_argument(
+        "--sampling-timeout",
+        help="Maximum time (in seconds) to wait for a random sample to be taken from a subnet, default is 1",
+        type=float,
+        metavar="",
+        dest="sampling_timeout",
+        default=1,
+        required=False
+    )
     ############################################################
     # Xray config options
     config_options = parser.add_argument_group(_title("Xray config options"))
