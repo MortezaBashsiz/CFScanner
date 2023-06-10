@@ -1,8 +1,8 @@
 {
 	"id": "201b62c5-0f84-5e61-a220-4911c0c221b4",
-	"host": "scherebest.opensource.ga", 
+	"host": "scherewelove.latex.cf", 
 	"port": "443",
 	"path": "api01",
-	"serverName": "815a2e4b-f639-56f5-b498-2c149402ee80.opensource.ga",
+	"serverName": "815a2e4b-f639-56f5-b498-2c149402ee80.latex.cf",
 	"subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist"
 }
