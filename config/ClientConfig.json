@@ -3,6 +3,6 @@
 	"host": "scherewelove.latex.cf", 
 	"port": "443",
 	"path": "api01",
-	"serverName": "815a2e4b-f639-56f5-b498-2c149402ee80.welove.latex.cf",
+	"serverName": "815a2e4b-f639-56f5-b498-2c149402ee80.latex.cf",
 	"subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist"
 }
