@@ -13,7 +13,7 @@ import ir.filternet.cfscanner.model.STATUS
 import ir.filternet.cfscanner.scanner.CFSLogger
 import ir.filternet.cfscanner.utils.AppConfig
 import ir.filternet.cfscanner.utils.calculateUsableHostCountBySubnetMask
-import ir.filternet.cfscanner.utils.getFromGithub
+import ir.filternet.cfscanner.utils.getFromGithubRaw
 import kotlinx.coroutines.delay
 import okhttp3.Request
 import timber.log.Timber
@@ -87,9 +87,9 @@ class CIDRRepository @Inject constructor(
     }
 
 
-    private fun getCIDRSGithub(): List<String>? {
+    private suspend fun getCIDRSGithub(): List<String>? {
         return try {
-            getFromGithub(AppConfig.CIDR_Address).lines().toList() ?: emptyList()
+            getFromGithubRaw(AppConfig.CIDR_Address).lines().toList() ?: emptyList()
         } catch (e: Exception) {
             println("An error occurred: " + e.message)
             e.printStackTrace()

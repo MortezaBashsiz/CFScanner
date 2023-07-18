@@ -13,20 +13,24 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
+import com.yandex.metrica.impl.ob.`in`
 import ir.filternet.cfscanner.model.Config
 import ir.filternet.cfscanner.scanner.v2ray.EConfigType
 import ir.filternet.cfscanner.scanner.v2ray.ServerConfig
-import ir.filternet.cfscanner.service.CloudScannerService
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import timber.log.Timber
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.URL
 import java.net.URLDecoder
 import java.net.URLEncoder
-import java.util.*
+import java.util.UUID
 import kotlin.math.pow
+
 
 fun Context.tryStartForegroundService(serviceClass:Class<*>){
     if(isNotificationEnabled()){
@@ -103,7 +107,7 @@ fun extractValidAddress(text: String): List<String> {
     }
 }
 
-fun getFromGithub(url: String): String {
+fun getFromGithubPage(url: String): String {
     val itemText = mutableListOf<String>()
     val document: Document = Jsoup.connect(url).get()
     val table = document.getElementsByClass("highlight tab-size js-file-line-container js-code-nav-container js-tagsearch-file")
@@ -118,6 +122,20 @@ fun getFromGithub(url: String): String {
         }
     }
 //    Timber.d("Elements: $itemText")
+    return itemText.joinToString(separator = "\n") { it }
+}
+
+
+fun getFromGithubRaw(url: String): String {
+    val itemText = mutableListOf<String>()
+    val urlAddress = URL(url)
+    val input = BufferedReader(InputStreamReader(urlAddress.openStream()))
+
+    var inputLine: String?
+    while (input.readLine().also { inputLine = it } != null) {
+        itemText.add(inputLine!!)
+    }
+
     return itemText.joinToString(separator = "\n") { it }
 }
 

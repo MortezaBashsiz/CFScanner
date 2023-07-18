@@ -91,6 +91,8 @@ object AppConfig {
 
 //    const val APPLICATION_REPOSITORY = "https://github.com/0ut0fCode/TestRepo/releases"
     const val APPLICATION_REPOSITORY = "https://github.com/MortezaBashsiz/CFScanner/releases"
-    const val CIDR_Address = "https://github.com/MortezaBashsiz/CFScanner/blob/main/config/cf.local.iplist"
-    const val Config_Address = "https://github.com/MortezaBashsiz/CFScanner/blob/main/config/ClientConfig.json"
+    const val CIDR_Address = "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist"
+//    const val CIDR_Address = "https://github.com/MortezaBashsiz/CFScanner/blob/main/config/cf.local.iplist"
+//    const val Config_Address = "https://github.com/MortezaBashsiz/CFScanner/blob/main/config/ClientConfig.json"
+    const val Config_Address = "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/ClientConfig.json"
 }
