@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Automation;
+using System.Windows.Forms.Design;
 using WinCFScan.Classes;
 using WinCFScan.Classes.Checker;
 using WinCFScan.Classes.Config;
@@ -197,7 +198,7 @@ namespace WinCFScan
         {
             if (getSelectedFrontingType() == FrontingType.NO && getDownloadTargetSpeed().isSpeedZero())
                 return false;
-            
+
             return true;
         }
 
@@ -215,8 +216,8 @@ namespace WinCFScan
                 addTextLog($"Can not start while app is scanning.");
                 return;
             }
-            
-            if (! isValidScanSettings())
+
+            if (!isValidScanSettings())
             {
                 addTextLog($"You are not allowed to set Fronting test to NO and No Speed Test at the same time!");
                 return;
@@ -887,18 +888,17 @@ namespace WinCFScan
             }
 
             listCFIPList.Items.Clear();
-            listCFIPList.BeginUpdate();
+
             isUpdatinglistCFIP = true;
-            uint totalIPs = 0;
             addTextLog($"Loading Cloudflare IPs ranges...");
 
-            foreach (var ipRange in scanEngine.ipListLoader.validIPRanges)
+            var items = scanEngine.ipListLoader.validIPRanges.Select(ipRange =>
+            new ListViewItem(new[] { ipRange.rangeText, $"{ipRange.totalIps:n0}" })
             {
-                var lvwItem = listCFIPList.Items.Add(new ListViewItem(new string[] { ipRange.rangeText, $"{ipRange.totalIps:n0}" }));
-                lvwItem.Checked = true;
-            }
+                Checked = true
+            }).ToArray();
+            listCFIPList.Items.AddRange(items);
 
-            listCFIPList.EndUpdate();
             isUpdatinglistCFIP = false;
             addTextLog($"Total {scanEngine.ipListLoader.totalIPs:n0} Cloudflare IPs are ready to be scanned.");
             updateCFIPListStatusText();
