@@ -3,10 +3,7 @@ import re
 import requests
 
 
-def fronting_test(
-    ip: str,
-    timeout: float
-) -> bool:
+def fronting_test(ip: str, timeout: float) -> bool:
     """conducts a fronting test on an ip and return true if status 200 is received
 
     Args:
@@ -17,17 +14,19 @@ def fronting_test(
         bool: True if ``status_code`` is 200, False otherwise
     """
     s = requests.Session()
-    s.get_adapter(
-        'https://').poolmanager.connection_pool_kw['server_hostname'] = "jafar.jafarcloud.ml"
-    s.get_adapter(
-        'https://').poolmanager.connection_pool_kw['assert_hostname'] = "jafar.jafarcloud.ml"
+    s.get_adapter("https://").poolmanager.connection_pool_kw[
+        "server_hostname"
+    ] = "believeme.definitelynotadomain.tk"
+    s.get_adapter("https://").poolmanager.connection_pool_kw[
+        "assert_hostname"
+    ] = "believeme.definitelynotadomain.tk"
 
     try:
         compatible_ip = f"[{ip}]" if ":" in ip else ip
         r = s.get(
             f"https://{compatible_ip}/__down?bytes=10",
             timeout=timeout,
-            headers={"Host": "jafar.jafarcloud.ml"}
+            headers={"Host": "believeme.definitelynotadomain.tk"},
         )
     except requests.exceptions.Timeout as e:
         return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting timeout[/yellow1]"
