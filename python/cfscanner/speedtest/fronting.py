@@ -16,17 +16,17 @@ def fronting_test(ip: str, timeout: float) -> bool:
     s = requests.Session()
     s.get_adapter("https://").poolmanager.connection_pool_kw[
         "server_hostname"
-    ] = "believeme.definitelynotadomain.tk"
+    ] = "speed.jafar.beauty"
     s.get_adapter("https://").poolmanager.connection_pool_kw[
         "assert_hostname"
-    ] = "believeme.definitelynotadomain.tk"
+    ] = "speed.jafar.beauty"
 
     try:
         compatible_ip = f"[{ip}]" if ":" in ip else ip
         r = s.get(
             f"https://{compatible_ip}/__down?bytes=10",
             timeout=timeout,
-            headers={"Host": "believeme.definitelynotadomain.tk"},
+            headers={"Host": "speed.jafar.beauty"},
         )
     except requests.exceptions.Timeout as e:
         return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3][yellow1] fronting timeout[/yellow1]"
