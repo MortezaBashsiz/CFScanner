@@ -257,6 +257,8 @@ Contributors names and contact info
   - Added info about the number of scanned ips and ok ips to the progress bar
 - 1.4.2
   - Changed fronting domain
+- 1.4.3
+  - Changed fronting domain
 
 [python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.4.2-blue
+[version]: https://img.shields.io/badge/Version-1.4.3-blue
