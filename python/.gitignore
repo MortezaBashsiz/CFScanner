@@ -1,0 +1,11 @@
+docs/
+*.egg-info/
+_version.py
+__pycache__/
+.tmp/
+.vscode/
+.xray-configs/
+dist/
+log/
+result/
+venv/
