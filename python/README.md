@@ -1,36 +1,57 @@
-![python][python]
-![version][version]
-
 # CFScanner - Python
+
+![PyPI - Version](https://img.shields.io/pypi/v/cfscanner)
+
+1. [Introduction](#introduction)
+2. [Dependencies](#dependencies)
+3. [Installing (and upgrading)](#installing-and-upgrading)
+   1. [Creating a custom config file (optional)](#creating-a-custom-config-file-optional)
+4. [Executing program](#executing-program)
+   1. [**How to run**](#how-to-run)
+   2. [Arguments](#arguments)
+      1. [Help](#help)
+      2. [General Options](#general-options)
+      3. [Random Scan Options](#random-scan-options)
+      4. [Xray Config Options](#xray-config-options)
+      5. [Fronting Speed Test Options](#fronting-speed-test-options)
+      6. [Download Speed Test Options](#download-speed-test-options)
+      7. [Upload Speed Test Options](#upload-speed-test-options)
+5. [Results](#results)
+6. [Remarks](#remarks)
+7. [Authors](#authors)
+8. [Version History](#version-history)
+
+## Introduction
 
 The script is designed to scan Cloudflare's edge IPs and locate ones that are viable for use with v2ray/xray. It aims to identify edge IPs that are accessible and not blocked.
 
-CFSCanner runs on different operating systems including and not limited to:
+CFScanner runs on different operating systems including and not limited to:
 
 - Linux
 - MacOS
 - Windows
 - Android (termux, UserLAnd, etc.)
 
-# Dependencies
+## Dependencies
 
 - Python (>=3.6)
 - Libraries
   - requests
   - pysocks
   - rich
+  - fancylogging
 
-# Installing (and upgrading)
+## Installing (and upgrading)
 
 ```bash
 pip install cfscanner --upgrade
 ```
 
-## Creating a custom config file (optional)
+### Creating a custom config file (optional)
 
 - If you want to use the default sudoer config, you can skip this step
 
-* create a config json file (e.g., myconfig.json) with the following content. replace the values with your own!
+- Create a config json file (e.g., myconfig.json) with the following content. Replace the values with your own!
 
 ```json
 {
@@ -42,11 +63,11 @@ pip install cfscanner --upgrade
 }
 ```
 
-# Executing program
+## Executing program
 
-## **How to run**
+### **How to run**
 
-In the following, you can find examples of running the script with and without custom config and subnets file. For more details on the arguments, please see [Arguments](#anchor-args)
+In the following, you can find examples of running the script with and without custom config and subnets file. For more details on the arguments, please see [Arguments](#arguments)
 
 - To run with sudoer default config and only one thread on the default subnets list:
 
@@ -74,7 +95,7 @@ In the following, you can find examples of running the script with and without c
 
   Each line of the file can be either a subnet (in CIDR notation) or a single IP (v4 or v6):
 
-  ```
+  ```txt
   1.0.0.0/24
   108.162.218.0/24
   108.162.236.0/22
@@ -112,7 +133,7 @@ In the following, you can find examples of running the script with and without c
 
 ---
 
-## <a name="anchor-args"></a>Arguments
+### Arguments
 
 To use this tool, you can specify various options as follows:
 
@@ -148,6 +169,8 @@ To see the help message, use the `--help` or `-h` option.
 #### Fronting Speed Test Options
 
 - `--fronting-timeout`, `-FT`: Maximum time to wait for fronting response. Default value is 1.
+- `--no-fronting`: If passed, fronting speed test will not be performed.
+- `--fronting-domain`, `-FD`: CNAME to speed.cloudflare.com (use only if speed.cloudflare.com is blocked by your ISP)  
 
 #### Download Speed Test Options
 
@@ -162,16 +185,11 @@ To see the help message, use the `--help` or `-h` option.
 - `--upload-latency`, `-UL`: Maximum allowed latency (seconds) for upload. Default value is 2.
 - `--upload-time`, `-UT`: Maximum (effective, excluding http time) time (in seconds) to spend for each upload. Default value is 2.
 
-## Remarks
-
-- In the current version, an IP is marked "OK", only if it passes all tries of the experiment
-- The size of the file for download is determined based on the arguments `download-speed` and `download-time` (similar for upload as well). Therefore, it is recommended to choose these parameters carefully based on your expectations, internet speed and the number of threads being used
-
-# **Results**
+## Results
 
 The results will be stored in the `results` directory. Each line of the generated **csv** file includes a Cloudflare edge ip together with the following values:
 
-- `avg_download_speed `: Average download speed in mbps
+- `avg_download_speed`: Average download speed in mbps
 - `avg_upload_speed`: Average upload speed in mbps
 - `avg_download_latency`: Average download latency in ms
 - `avg_upload_latency`: Average upload latency in ms
@@ -186,14 +204,19 @@ The results will be stored in the `results` directory. Each line of the generate
 
 For each time running the code, a result file is generated in the result folder with the datetime string to avoid overwriting (e.g, `20230226_180502_result.csv`)
 
-# Authors
+## Remarks
+
+- In the current version, an IP is marked "OK", only if it passes all tries of the experiment
+- The size of the file for download is determined based on the arguments `download-speed` and `download-time` (similar for upload as well). Therefore, it is recommended to choose these parameters carefully based on your expectations, internet speed and the number of threads being used
+
+## Authors
 
 Contributors names and contact info
 
 - [Tempookian](https://github.com/tempookian)
 - [Morteza Bashsiz](https://github.com/MortezaBashsiz/)
 
-# Version History
+## Version History
 
 - 0.1
   - Initial Releas
@@ -259,6 +282,7 @@ Contributors names and contact info
   - Changed fronting domain
 - 1.4.3
   - Changed fronting domain
-
-[python]: https://img.shields.io/badge/-Python-3776AB?logo=python&logoColor=white
-[version]: https://img.shields.io/badge/Version-1.4.3-blue
+- 1.5.0
+  - Add fronting-domain option
+  - Default to fronting without fronting domain
+  - Default xray core version changed to v1.8.10

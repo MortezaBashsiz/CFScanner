@@ -1,28 +1,29 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "cfscanner"
-version = "1.4.3"
 authors = [
-  { name="tempookian", email="tempookian@gmail.com" },
-  { name="Morteza Bashsiz", email="morteza.bashsiz@gmail.com"}
+  { name = "tempookian", email = "tempookian@gmail.com" },
+  { name = "Morteza Bashsiz", email = "morteza.bashsiz@gmail.com" },
 ]
 description = "Cloudflare's edge IPs scanner to locate ones that are viable for use with v2ray/xray"
 readme = "README.md"
 requires-python = ">=3.6"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-    "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+  "Operating System :: OS Independent",
 ]
 dependencies = [
   "requests>=2.28.2",
   "pysocks>=1.7.1",
   "rich>=13.3.3",
-  "setuptools"
+  "setuptools",
+  "fancylogging>=0.0.3",
 ]
+dynamic = ["version"]
 
 [project.urls]
 "Homepage" = "https://github.com/MortezaBashsiz/CFScanner/tree/main/python"
@@ -30,3 +31,8 @@ dependencies = [
 
 [project.scripts]
 cfscanner = "cfscanner:main"
+
+[tool.setuptools_scm]
+version_file = "src/cfscanner/_version.py"
+tag_regex = 'python-(?P<version>v.+)'
+root = ".."

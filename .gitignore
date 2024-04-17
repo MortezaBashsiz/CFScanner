@@ -3,17 +3,6 @@ bash/subnets.list
 bash/tempConfig/
 bash/result/
 bash/log/
-python/log/
-python/venv/
-python/__pycache__/
-python/*/__pycache__/
-python/.vscode/
-python/*/log/
-python/.xray-configs
-python/result/
-python/*/*/__pycache__/
-python/dist/
-.tmp
 golang/CFScanner
 windows/*.rsuser
 windows/*.suo
