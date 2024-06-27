@@ -1,7 +1,11 @@
+import logging
+import re
 import time
 from typing import Tuple
 
 import requests
+
+log = logging.getLogger(__name__)
 
 
 def download_speed_test(
@@ -26,7 +30,20 @@ def download_speed_test(
         proxies=proxies,
     )
     total_time = time.perf_counter() - start_time
-    cf_time = float(r.headers.get("Server-Timing").split("=")[1]) / 1000
+
+    server_timing_header = r.headers.get("Server-Timing")
+    pattern = r"dur=(\d*\.\d+)"
+    match = re.search(pattern, server_timing_header)
+    if match:
+        cf_time = float(match.group(1))
+    else:
+        msg = f"Cannot parse CF header: {server_timing_header}"
+        log.error(
+            msg,
+            extra={"header": server_timing_header},
+        )
+        raise ValueError(msg)
+
     latency = r.elapsed.total_seconds() - cf_time
     download_time = total_time - latency
 
