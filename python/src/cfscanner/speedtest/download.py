@@ -35,7 +35,7 @@ def download_speed_test(
     pattern = r"dur=(\d*\.\d+)"
     match = re.search(pattern, server_timing_header)
     if match:
-        cf_time = float(match.group(1))
+        cf_time = float(match.group(1)) / 1000
     else:
         msg = f"Cannot parse CF header: {server_timing_header}"
         log.error(
