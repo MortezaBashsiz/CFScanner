@@ -2,24 +2,18 @@
 
 ![PyPI - Version](https://img.shields.io/pypi/v/cfscanner)
 
-1. [Introduction](#introduction)
-2. [Dependencies](#dependencies)
-3. [Installing (and upgrading)](#installing-and-upgrading)
-   1. [Creating a custom config file (optional)](#creating-a-custom-config-file-optional)
-4. [Executing program](#executing-program)
-   1. [**How to run**](#how-to-run)
-   2. [Arguments](#arguments)
-      1. [Help](#help)
-      2. [General Options](#general-options)
-      3. [Random Scan Options](#random-scan-options)
-      4. [Xray Config Options](#xray-config-options)
-      5. [Fronting Speed Test Options](#fronting-speed-test-options)
-      6. [Download Speed Test Options](#download-speed-test-options)
-      7. [Upload Speed Test Options](#upload-speed-test-options)
-5. [Results](#results)
-6. [Remarks](#remarks)
-7. [Authors](#authors)
-8. [Version History](#version-history)
+- [CFScanner - Python](#cfscanner---python)
+  - [Introduction](#introduction)
+  - [Dependencies](#dependencies)
+  - [Installing (and upgrading)](#installing-and-upgrading)
+    - [Creating a custom config file (optional)](#creating-a-custom-config-file-optional)
+  - [Executing program](#executing-program)
+    - [**How to run**](#how-to-run)
+    - [Arguments](#arguments)
+  - [Results](#results)
+  - [Remarks](#remarks)
+  - [Authors](#authors)
+  - [Version History](#version-history)
 
 ## Introduction
 
@@ -286,3 +280,5 @@ Contributors names and contact info
   - Add fronting-domain option
   - Default to fronting without fronting domain
   - Default xray core version changed to v1.8.10
+- 1.5.1
+  - Change header parsing in download test
