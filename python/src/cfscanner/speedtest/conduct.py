@@ -185,8 +185,15 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
                 test_result.message = fail_msg
                 test_result.is_ok = False
                 return test_result
-            except Exception:
-                fail_msg = no_and_kill(ip, "upload unknown error", process)
+            except Exception as e:
+                log.exception(e)
+                log.error(
+                    f"Upload unknown error: {e}",
+                    extra={
+                        "ip": ip,
+                    },
+                )
+                fail_msg = no_and_kill(ip, "Upload unknown error", process)
                 test_result.message = fail_msg
                 test_result.is_ok = False
                 return test_result
