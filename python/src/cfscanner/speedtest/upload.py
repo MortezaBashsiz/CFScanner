@@ -29,7 +29,7 @@ def upload_speed_test(
         proxies=proxies,
     )
     total_time = time.perf_counter() - start_time
-    cf_time = float(r.headers.get("Server-Timing").split("=")[1]) / 1000
+    cf_time = float(r.headers.get("Server-Timing").split(',')[0].split(';')[1].split('=')[1]) / 1000
     latency = total_time - cf_time
 
     mb = n_bytes * 8 / (10**6)

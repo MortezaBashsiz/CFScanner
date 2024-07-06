@@ -286,3 +286,5 @@ Contributors names and contact info
   - Add fronting-domain option
   - Default to fronting without fronting domain
   - Default xray core version changed to v1.8.10
+- 1.5.1
+  - Fixed a bug in reading the speed time from cloudflare response on download and upload requests
