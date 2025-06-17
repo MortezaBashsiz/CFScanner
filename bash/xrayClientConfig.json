@@ -1,0 +1,8 @@
+{
+  "id": "1a818676-8610-4a15-9bac-4ce139338310",
+  "host": "vpn.adas.net", 
+  "port": "443",
+  "path": "api01",
+  "serverName": "temp.adas.net",
+  "subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist"
+}
