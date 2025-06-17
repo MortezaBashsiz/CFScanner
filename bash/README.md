@@ -31,13 +31,15 @@ In the config file the variables are
 	"Port": "Port which you are using behind Cloudflare on your origin server",
 	"path": "Websocket endpoint like api20",
 	"serverName": "SNI",
-   	"subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist"
+  "subnetsList": "https://raw.githubusercontent.com/MortezaBashsiz/CFScanner/main/config/cf.local.iplist"
 }
 ```
 
 ### 3. Execute it
 
 You have following switches to define the arguments 
+
+-x: XRAY or V2RAY, you can define which core you want to use
 
 -v: YES or NO, you are able to define for script to test with your vmess or not
 
