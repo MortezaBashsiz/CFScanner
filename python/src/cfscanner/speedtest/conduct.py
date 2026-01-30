@@ -105,7 +105,7 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
       )
       log.debug(
         "Timeout in dl test",
-        extra={"ip": ip, "cidr": cidr, "dl_speed": dl_speed, "dl_latency": dl_latency},
+        extra={"ip": ip, "cidr": cidr},
       )
       test_result.message = fail_msg
       test_result.is_ok = False
