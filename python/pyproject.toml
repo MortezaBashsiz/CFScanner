@@ -18,7 +18,7 @@ classifiers = [
   "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
   "Operating System :: OS Independent",
 ]
-version = "1.6.0a0"
+version = "1.6.0a1"
 
 [project.scripts]
 cfscanner = "cfscanner:main"
