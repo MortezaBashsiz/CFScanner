@@ -180,6 +180,15 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
           proxies=proxies,
           timeout=test_config.max_ul_latency + test_config.max_ul_time,
         )
+        log.debug(
+          "Upload test successful",
+          extra={
+            "ip": ip,
+            "cidr": cidr,
+            "up_speed": up_speed,
+            "up_latency": up_latency,
+          },
+        )
       except requests.exceptions.ReadTimeout:
         fail_msg = no_and_kill(ip, "upload read timeout", process)
         test_result.message = fail_msg

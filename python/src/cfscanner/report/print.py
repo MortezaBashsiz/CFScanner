@@ -88,7 +88,7 @@ def no_and_kill(ip: str, message: str, process: Popen):
       message (str): the message related to the error
       process (Popen): the process (xray) to be killed
   """
-  log.debug("Result No", extra={"ip": ip, "message": message})
+  log.debug("Result No", extra={"ip": ip, "err_message": message})
   process.kill()
   return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3] [yellow1]{message}[/yellow1]"
 
