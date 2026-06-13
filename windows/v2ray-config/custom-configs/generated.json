@@ -1,0 +1,51 @@
+{
+"inbounds": [{
+    "port": "PORTPORT", 
+    "listen": "127.0.0.1",
+    "tag": "socks-inbound",
+    "protocol": "socks",
+    "settings": {
+      "auth": "noauth",
+      "udp": false,
+      "ip": "127.0.0.1"
+    },
+    "sniffing": {
+      "enabled": true,
+      "destOverride": ["http", "tls"]
+    }
+  }],
+  "outbounds": [
+    {
+      "tag": "proxy",
+      "protocol": "vless",
+      "settings": {
+        "vnext": [{
+        "address": "IP.IP.IP.IP", 
+        "port": 443,
+        "users": [{"id": "0ebaf3a8-2a06-96af-e4c5-7973125faedc",
+		"encryption": "none"
+			}]
+      }]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "tls",
+        "tlsSettings": {
+          "allowInsecure": false,
+          "serverName": "nahebrahim.itpetropaak.workers.dev",
+          "alpn": [
+            "http/1.1"
+          ],
+          "fingerprint": "chrome"
+        },
+        "wsSettings": {
+          "path": "/sync",
+          "headers": {
+            "Host": "nahebrahim.itpetropaak.workers.dev"
+          }
+        }
+      }
+    }
+  ],
+	"other": {}
+}

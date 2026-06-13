@@ -111,6 +111,8 @@
             downloadTimeoutToolStripMenuItem = new ToolStripMenuItem();
             comboDownloadTimeout = new ToolStripComboBox();
             mnushowScanStatus = new ToolStripMenuItem();
+            toolStripMenuItem4 = new ToolStripSeparator();
+            configBuilderToolStripMenuItem = new ToolStripMenuItem();
             toolStripSeparator5 = new ToolStripSeparator();
             checkForUpdateToolStripMenuItem = new ToolStripMenuItem();
             updateClientConfigCloudflareSubnetsToolStripMenuItem = new ToolStripMenuItem();
@@ -127,6 +129,7 @@
             mnuResultsActions = new ContextMenuStrip(components);
             mnuAddIPToList = new ToolStripMenuItem();
             exportResultsToolStripMenuItem = new ToolStripMenuItem();
+            exportResultsExcel = new ToolStripMenuItem();
             importResultsToolStripMenuItem = new ToolStripMenuItem();
             deleteResultsToolStripMenuItem = new ToolStripMenuItem();
             toolStripBottom = new ToolStrip();
@@ -145,8 +148,8 @@
             toolStripLabel4 = new ToolStripLabel();
             mnuIPRangeActions = new ContextMenuStrip(components);
             mnuAddAnIPRange = new ToolStripMenuItem();
-            mnuClearIPRange = new ToolStripMenuItem();
             mnuAddIPRangesFromClipboard = new ToolStripMenuItem();
+            mnuClearIPRange = new ToolStripMenuItem();
             groupBox1.SuspendLayout();
             toolStrip2.SuspendLayout();
             toolStrip1.SuspendLayout();
@@ -170,7 +173,7 @@
             txtLog.AccessibleName = "Scan Logs";
             txtLog.BackColor = Color.FromArgb(21, 23, 24);
             txtLog.Dock = DockStyle.Fill;
-            txtLog.Font = new Font("Consolas", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            txtLog.Font = new Font("Consolas", 9F);
             txtLog.ForeColor = Color.PaleTurquoise;
             txtLog.Location = new Point(0, 0);
             txtLog.Multiline = true;
@@ -233,6 +236,7 @@
             toolStrip2.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             toolStrip2.Dock = DockStyle.None;
             toolStrip2.GripStyle = ToolStripGripStyle.Hidden;
+            toolStrip2.ImageScalingSize = new Size(20, 20);
             toolStrip2.Items.AddRange(new ToolStripItem[] { prgOveral, toolStripLabel1, btnSkipCurRange, prgCurRange, toolStripLabel2 });
             toolStrip2.Location = new Point(421, 52);
             toolStrip2.Name = "toolStrip2";
@@ -355,7 +359,7 @@
             btnStart.BackColor = SystemColors.Control;
             btnStart.DisplayStyle = ToolStripItemDisplayStyle.Text;
             btnStart.DropDownItems.AddRange(new ToolStripItem[] { mnuPauseScan });
-            btnStart.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            btnStart.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             btnStart.ForeColor = SystemColors.ControlText;
             btnStart.Image = (Image)resources.GetObject("btnStart.Image");
             btnStart.ImageTransparentColor = Color.Magenta;
@@ -480,9 +484,9 @@
             lblDebugMode.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             lblDebugMode.AutoSize = true;
             lblDebugMode.BackColor = SystemColors.Control;
-            lblDebugMode.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            lblDebugMode.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             lblDebugMode.ForeColor = Color.Red;
-            lblDebugMode.Location = new Point(324, 92);
+            lblDebugMode.Location = new Point(309, 92);
             lblDebugMode.Name = "lblDebugMode";
             lblDebugMode.Size = new Size(143, 15);
             lblDebugMode.TabIndex = 13;
@@ -510,7 +514,7 @@
             txtFastestIP.AccessibleRole = AccessibleRole.Text;
             txtFastestIP.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             txtFastestIP.BackColor = Color.White;
-            txtFastestIP.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            txtFastestIP.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             txtFastestIP.ForeColor = Color.Green;
             txtFastestIP.Location = new Point(473, 89);
             txtFastestIP.Name = "txtFastestIP";
@@ -557,7 +561,7 @@
             // 
             // btnScanInPrevResults
             // 
-            btnScanInPrevResults.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            btnScanInPrevResults.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             btnScanInPrevResults.Location = new Point(419, 10);
             btnScanInPrevResults.Name = "btnScanInPrevResults";
             btnScanInPrevResults.Size = new Size(115, 24);
@@ -585,7 +589,7 @@
             // 
             checkScanInRandomOrder.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             checkScanInRandomOrder.AutoSize = true;
-            checkScanInRandomOrder.Location = new Point(365, 11);
+            checkScanInRandomOrder.Location = new Point(364, 11);
             checkScanInRandomOrder.Name = "checkScanInRandomOrder";
             checkScanInRandomOrder.Size = new Size(194, 19);
             checkScanInRandomOrder.TabIndex = 5;
@@ -601,7 +605,7 @@
             listResults.GridLines = true;
             listResults.Location = new Point(0, 40);
             listResults.Name = "listResults";
-            listResults.Size = new Size(865, 219);
+            listResults.Size = new Size(865, 218);
             listResults.TabIndex = 4;
             listResults.UseCompatibleStateImageBehavior = false;
             listResults.View = View.Details;
@@ -617,7 +621,7 @@
             // 
             // hdrDLDelay
             // 
-            hdrDLDelay.Text = "Dowload Delay";
+            hdrDLDelay.Text = "Download Delay";
             hdrDLDelay.Width = 120;
             // 
             // hdrUPDelay
@@ -737,7 +741,7 @@
             listCFIPList.Columns.AddRange(new ColumnHeader[] { headIPRange, headTotalIPs });
             listCFIPList.Location = new Point(0, 35);
             listCFIPList.Name = "listCFIPList";
-            listCFIPList.Size = new Size(863, 223);
+            listCFIPList.Size = new Size(863, 222);
             listCFIPList.TabIndex = 0;
             listCFIPList.UseCompatibleStateImageBehavior = false;
             listCFIPList.View = View.Details;
@@ -809,7 +813,7 @@
             // 
             // btnStopAvgTest
             // 
-            btnStopAvgTest.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            btnStopAvgTest.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             btnStopAvgTest.Location = new Point(661, 10);
             btnStopAvgTest.Name = "btnStopAvgTest";
             btnStopAvgTest.Size = new Size(115, 24);
@@ -906,7 +910,7 @@
             // 
             // toolsToolStripMenuItem
             // 
-            toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { scanASingleIPAddressToolStripMenuItem, addCustomV2rayConfigToolStripMenuItem, downloadTimeoutToolStripMenuItem, mnushowScanStatus, toolStripSeparator5, checkForUpdateToolStripMenuItem, updateClientConfigCloudflareSubnetsToolStripMenuItem, toolStripSeparator7, toolStripMenuItem3 });
+            toolsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { scanASingleIPAddressToolStripMenuItem, addCustomV2rayConfigToolStripMenuItem, downloadTimeoutToolStripMenuItem, mnushowScanStatus, toolStripMenuItem4, configBuilderToolStripMenuItem, toolStripSeparator5, checkForUpdateToolStripMenuItem, updateClientConfigCloudflareSubnetsToolStripMenuItem, toolStripSeparator7, toolStripMenuItem3 });
             toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
             toolsToolStripMenuItem.Size = new Size(46, 20);
             toolsToolStripMenuItem.Text = "Tools";
@@ -948,6 +952,19 @@
             mnushowScanStatus.Size = new Size(297, 22);
             mnushowScanStatus.Text = "Show scan status";
             mnushowScanStatus.Click += mnushowScanStatus_Click;
+            // 
+            // toolStripMenuItem4
+            // 
+            toolStripMenuItem4.Name = "toolStripMenuItem4";
+            toolStripMenuItem4.Size = new Size(294, 6);
+            // 
+            // configBuilderToolStripMenuItem
+            // 
+            configBuilderToolStripMenuItem.Name = "configBuilderToolStripMenuItem";
+            configBuilderToolStripMenuItem.ShortcutKeys = Keys.Control | Keys.B;
+            configBuilderToolStripMenuItem.Size = new Size(297, 22);
+            configBuilderToolStripMenuItem.Text = "Config Builder";
+            configBuilderToolStripMenuItem.Click += configBuilderToolStripMenuItem_Click_1;
             // 
             // toolStripSeparator5
             // 
@@ -1036,9 +1053,9 @@
             // mnuResultsActions
             // 
             mnuResultsActions.ImageScalingSize = new Size(20, 20);
-            mnuResultsActions.Items.AddRange(new ToolStripItem[] { mnuAddIPToList, exportResultsToolStripMenuItem, importResultsToolStripMenuItem, deleteResultsToolStripMenuItem });
+            mnuResultsActions.Items.AddRange(new ToolStripItem[] { mnuAddIPToList, exportResultsToolStripMenuItem, exportResultsExcel, importResultsToolStripMenuItem, deleteResultsToolStripMenuItem });
             mnuResultsActions.Name = "mnuResultsActions";
-            mnuResultsActions.Size = new Size(194, 92);
+            mnuResultsActions.Size = new Size(194, 114);
             mnuResultsActions.Text = "Actions";
             // 
             // mnuAddIPToList
@@ -1052,8 +1069,15 @@
             // 
             exportResultsToolStripMenuItem.Name = "exportResultsToolStripMenuItem";
             exportResultsToolStripMenuItem.Size = new Size(193, 22);
-            exportResultsToolStripMenuItem.Text = "Export results";
+            exportResultsToolStripMenuItem.Text = "Export results(Txt)";
             exportResultsToolStripMenuItem.Click += exportResultsToolStripMenuItem_Click;
+            // 
+            // exportResultsExcel
+            // 
+            exportResultsExcel.Name = "exportResultsExcel";
+            exportResultsExcel.Size = new Size(193, 22);
+            exportResultsExcel.Text = "Export results(Excel)";
+            exportResultsExcel.Click += exportResultsExcel_Click_1;
             // 
             // importResultsToolStripMenuItem
             // 
@@ -1177,7 +1201,7 @@
             // 
             // lblScanPaused
             // 
-            lblScanPaused.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            lblScanPaused.Font = new Font("Segoe UI Semibold", 9F, FontStyle.Bold);
             lblScanPaused.ForeColor = Color.Crimson;
             lblScanPaused.Name = "lblScanPaused";
             lblScanPaused.Size = new Size(51, 30);
@@ -1193,9 +1217,10 @@
             // 
             // mnuIPRangeActions
             // 
+            mnuIPRangeActions.ImageScalingSize = new Size(20, 20);
             mnuIPRangeActions.Items.AddRange(new ToolStripItem[] { mnuAddAnIPRange, mnuAddIPRangesFromClipboard, mnuClearIPRange });
             mnuIPRangeActions.Name = "mnuIPRangeActions";
-            mnuIPRangeActions.Size = new Size(230, 92);
+            mnuIPRangeActions.Size = new Size(230, 70);
             // 
             // mnuAddAnIPRange
             // 
@@ -1204,19 +1229,19 @@
             mnuAddAnIPRange.Text = "Add an IP range";
             mnuAddAnIPRange.Click += mnuAddAnIPRange_Click;
             // 
-            // mnuClearIPRange
-            // 
-            mnuClearIPRange.Name = "mnuClearIPRange";
-            mnuClearIPRange.Size = new Size(229, 22);
-            mnuClearIPRange.Text = "Clear IP range";
-            mnuClearIPRange.Click += mnuClearIPRange_Click;
-            // 
             // mnuAddIPRangesFromClipboard
             // 
             mnuAddIPRangesFromClipboard.Name = "mnuAddIPRangesFromClipboard";
             mnuAddIPRangesFromClipboard.Size = new Size(229, 22);
             mnuAddIPRangesFromClipboard.Text = "Add IP ranges from clipboard";
             mnuAddIPRangesFromClipboard.Click += mnuAddIPRangesFromClipboard_Click;
+            // 
+            // mnuClearIPRange
+            // 
+            mnuClearIPRange.Name = "mnuClearIPRange";
+            mnuClearIPRange.Size = new Size(229, 22);
+            mnuClearIPRange.Text = "Clear IP range";
+            mnuClearIPRange.Click += mnuClearIPRange_Click;
             // 
             // frmMain
             // 
@@ -1230,11 +1255,12 @@
             Icon = (Icon)resources.GetObject("$this.Icon");
             KeyPreview = true;
             MaximizeBox = false;
-            MaximumSize = new Size(1200, 896);
-            MinimumSize = new Size(880, 690);
+            MaximumSize = new Size(1200, 894);
+            MinimumSize = new Size(880, 688);
             Name = "frmMain";
             Text = "Cloudflare Scan";
             FormClosing += frmMain_FormClosing;
+            Load += frmMain_Load;
             KeyDown += frmMain_KeyDown;
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
@@ -1381,5 +1407,8 @@
         private ToolStripMenuItem mnuClearIPRange;
         private ToolStripMenuItem mnuAddAnIPRange;
         private ToolStripMenuItem mnuAddIPRangesFromClipboard;
+        private ToolStripMenuItem configBuilderToolStripMenuItem;
+        private ToolStripMenuItem exportResultsExcel;
+        private ToolStripSeparator toolStripMenuItem4;
     }
 }

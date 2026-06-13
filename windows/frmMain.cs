@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -16,7 +16,9 @@ using WinCFScan.Classes.Config;
 using WinCFScan.Classes.HTTPRequest;
 using WinCFScan.Classes.IP;
 using WinCFScan.Forms;
+using ClosedXML.Excel;
 using static System.Net.Mime.MediaTypeNames;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace WinCFScan
 {
@@ -478,12 +480,26 @@ namespace WinCFScan
 
                 lblRunningWorkers.Text = $"Threads: {pInf.curentWorkingThreads}";
 
-                prgOveral.Maximum = pInf.totalIPRanges;
+                prgOveral.Maximum =
+                                  Math.Max(1, pInf.totalIPRanges);
 
-                prgOveral.Value = curRangeNumber;
+                prgOveral.Value =
+                    Math.Min(
+                        curRangeNumber,
+                        prgOveral.Maximum
+                    );
 
-                prgCurRange.Maximum = pInf.currentIPRangeTotalIPs;
-                prgCurRange.Value = Math.Min(pInf.totalCheckedIPInCurIPRange, prgCurRange.Maximum);
+                prgCurRange.Maximum =
+    Math.Max(
+        1,
+        pInf.currentIPRangeTotalIPs
+    );
+
+                prgCurRange.Value =
+                    Math.Min(
+                        pInf.totalCheckedIPInCurIPRange,
+                        prgCurRange.Maximum
+                    );
                 prgCurRange.ToolTipText = $"Current IP range progress: {pInf.getCurrentRangePercentIsDone():f1}%";
 
                 fetchWorkingIPResults();
@@ -790,6 +806,10 @@ namespace WinCFScan
             exportResults();
         }
 
+
+      
+
+
         private void importResultsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             importResults();
@@ -883,12 +903,12 @@ namespace WinCFScan
             {
                 addTextLog("Cloudflare IP range file is not valid!");
                 lblCFIPListStatus.Text = "Failed to load IP ranges.";
-                lblCFIPListStatus.ForeColor = Color.Red;
+                lblCFIPListStatus.ForeColor = System.Drawing.Color.Red;
                 return;
             }
             else
             {
-                lblCFIPListStatus.ForeColor = Color.Black;
+                lblCFIPListStatus.ForeColor = System.Drawing.Color.Black;
             }
 
             listCFIPList.Items.Clear();
@@ -1221,6 +1241,8 @@ namespace WinCFScan
                 }
             }
             ;
+
+
         }
 
         private bool isScanRunning()
@@ -1799,7 +1821,7 @@ namespace WinCFScan
         {
             if (e.Button == MouseButtons.Right)
             {
-                mnuIPRangeActions.Show((Control)sender, e.X, e.Y);
+                mnuIPRangeActions.Show((System.Windows.Forms.Control)sender, e.X, e.Y);
             }
         }
 
@@ -1833,7 +1855,17 @@ namespace WinCFScan
 
             }
         }
-
+        private void configBuilderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var frm = new WinCFScan.Forms.ConfigBuilderForm();
+            frm.FormClosed += (s, args) =>
+            {
+                configManager.customConfigs.loadCustomConfigs();
+                loadCustomConfigsComboList();
+                addTextLog("Config Builder closed. Custom configs list refreshed.");
+            };
+            frm.Show();
+        }
         // add ip ranges from clipboard, menu click
         private void mnuAddIPRangesFromClipboard_Click(object sender, EventArgs e)
         {
@@ -1876,6 +1908,110 @@ namespace WinCFScan
                 addTextLog("No valid IP ranges found in clipboard.", true);
             }
         }
+
+        private void configBuilderToolStripMenuItem_Click_1(object sender, EventArgs e)
+        {
+            var frm = new WinCFScan.Forms.ConfigBuilderForm();
+            frm.FormClosed += (s, args) =>
+            {
+                configManager.customConfigs.loadCustomConfigs();
+                loadCustomConfigsComboList();
+                addTextLog("Config Builder بسته شد. لیست کانفیگ‌ها بروز شد.");
+            };
+           frm.ShowDialog();
+        }
+
+        private void frmMain_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private async void exportResultsExcel_Click_1(object sender, EventArgs e)
+        {
+            var resultIPs = isScanRunningOrPaused() ? scanEngine.progressInfo.scanResults.workingIPs : currentScanResults;
+            bool success=false;
+            if (resultIPs.Count == 0)
+            {
+                addTextLog("Current results list is empty!");
+                return;
+            }
+
+            saveFileDialog1.Title = $"Saving {resultIPs.Count} IP addresses";
+            saveFileDialog1.FileName = $"scan-results-{DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss")}.xlsx";
+            saveFileDialog1.Filter = "Excel Files (*.xlsx)|*.xlsx";
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                var fileName = saveFileDialog1.FileName;
+
+                var headers = listResults.Columns
+                    .Cast<ColumnHeader>()
+                    .Select(c => c.Text)
+                    .ToList();
+
+                var data = listResults.Items
+                    .Cast<ListViewItem>()
+                    .Select(item => item.SubItems
+                        .Cast<ListViewItem.ListViewSubItem>()
+                        .Select(s => s.Text)
+                        .ToList()
+                    )
+                    .ToList();
+
+                 success = await Task.Run(() =>
+                    ExportListViewToExcel(data, headers, fileName)
+                );
+
+                addTextLog(success ? "Export Excel OK" : "Export Excel Failed");
+            }
+
+
+
+        }
+
+
+        //***********************void***************************************
+
+        private bool ExportListViewToExcel(List<List<string>> data, List<string> headers, string fileName)
+        {
+            using var wb = new XLWorkbook();
+            var ws = wb.Worksheets.Add("Results");
+
+            try
+            {
+                // Header
+                for (int col = 0; col < headers.Count; col++)
+                {
+                    ws.Cell(1, col + 1).Value = headers[col];
+                }
+
+                // Data
+                int row = 2;
+
+                foreach (var line in data)
+                {
+                    for (int col = 0; col < line.Count; col++)
+                    {
+                        ws.Cell(row, col + 1).Value = line[col];
+                    }
+                    row++;
+                }
+
+                ws.Columns().AdjustToContents();
+                wb.SaveAs(fileName);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                addTextLog("Export Excel Error " + ex);
+                return false;
+            }
+        }
+
+
+
+
+        //-----------------------------------------------------------
     }
 
 }
