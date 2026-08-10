@@ -3,9 +3,9 @@ import json
 import os
 
 from ..utils.exceptions import (
-    TemplateReadError,
-    BinaryNotFoundError,
     BinaryDownloadError,
+    BinaryNotFoundError,
+    TemplateReadError,
 )
 from ..utils.os import detect_system
 from ..utils.requests import download_file
@@ -35,7 +35,7 @@ class TestConfig:
                     save_path=os.path.join(SCRIPTDIR, ".tmp", "sudoer_config.json"),
                 )
                 args.config_path = os.path.join(SCRIPTDIR, ".tmp", "sudoer_config.json")
-            with open(args.config_path, "r") as infile:
+            with open(args.config_path) as infile:
                 file_content = json.load(infile)
                 test_config.user_id = file_content["id"]
                 test_config.ws_header_host = file_content["host"]
@@ -51,18 +51,18 @@ class TestConfig:
         else:
             test_config.custom_template = True  # user provided a custom template
             try:
-                with open(args.template_path, "r") as infile:
+                with open(args.template_path) as infile:
                     test_config.proxy_config_template = infile.read()
-            except FileNotFoundError:
-                raise TemplateReadError("template file not found")
-            except IsADirectoryError:
+            except FileNotFoundError as err:
+                raise TemplateReadError("template file not found") from err
+            except IsADirectoryError as err:
                 raise TemplateReadError(
                     "template file is a directory. please provide the path to the file"
-                )
-            except PermissionError:
-                raise TemplateReadError("permission denied while reading template file")
-            except Exception as e:
-                raise TemplateReadError(f"error while reading template file: {e}")
+                ) from err
+            except PermissionError as err:
+                raise TemplateReadError("permission denied while reading template file") from err
+            except Exception as err:
+                raise TemplateReadError(f"error while reading template file: {err}") from err
 
         # speed related config
         test_config.startprocess_timeout = args.startprocess_timeout
@@ -98,7 +98,7 @@ class TestConfig:
                 test_config.binpath = download_binary(
                     system_info=system_info, bin_dir=SCRIPTDIR
                 )
-            except Exception as e:
-                raise BinaryDownloadError(str(e))
+            except Exception as err:
+                raise BinaryDownloadError(str(err)) from err
 
         return test_config

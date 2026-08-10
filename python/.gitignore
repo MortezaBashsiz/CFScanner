@@ -10,4 +10,4 @@ log/
 result/
 venv/
 .python-version
-uv.lock
+xray-*

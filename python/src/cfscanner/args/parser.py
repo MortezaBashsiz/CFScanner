@@ -1,7 +1,7 @@
 import argparse
 
-from ..report.print import color_text
 from ..report.logging_setup import console
+from ..report.print import color_text
 
 
 def _title(text):

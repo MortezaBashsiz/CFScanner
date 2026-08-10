@@ -5,30 +5,28 @@ import multiprocessing
 import signal
 import statistics
 from functools import partial
-
-from importlib.metadata import version, PackageNotFoundError
+from importlib.metadata import PackageNotFoundError, version
 
 from .args.parser import parse_args
 from .args.testconfig import TestConfig
+from .report.logging_setup import (
+    CONFIGDIR,
+    INTERIM_RESULTS_PATH,
+    RESULTDIR,
+    START_DT_STR,
+    console,
+)
 from .report.print import TitledProgress
 from .speedtest.conduct import test_ip
 from .speedtest.tools import is_blocked, mean_jitter
 from .subnets.cidr import cidr_to_ip_gen, get_num_ips_in_cidr, read_cidrs
 from .utils.exceptions import (
     BinaryNotFoundError,
-    TemplateReadError,
     StartProxyServiceError,
     SubnetsReadError,
+    TemplateReadError,
 )
 from .utils.os import create_dir
-from .report.logging_setup import (
-    console,
-    CONFIGDIR,
-    RESULTDIR,
-    START_DT_STR,
-    INTERIM_RESULTS_PATH,
-)
-
 
 logger = logging.getLogger("cfscanner")
 
@@ -45,7 +43,7 @@ def _init_pool():
 
 
 def main():
-    logo = """                                                                                                                                        
+    logo = r"""
 ____ ____ ____ ____ ____ _  _ _  _ ____ ____ 
 |    |___ [__  |    |__| |\ | |\ | |___ |__/ 
 |___ |    ___] |___ |  | | \| | \| |___ |  \ 

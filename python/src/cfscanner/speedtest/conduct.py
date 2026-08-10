@@ -50,7 +50,7 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
   test_result = TestResult(ip=ip, cidr=cidr, n_tries=test_config.n_tries)
 
   if not test_config.no_fronting:
-    for try_idx in range(test_config.n_tries):
+    for _try_idx in range(test_config.n_tries):
       fronting_result_msg = fronting_test(ip, timeout=test_config.fronting_timeout)
       if "NO" in fronting_result_msg:
         test_result.message = fronting_result_msg
@@ -78,9 +78,9 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
         binary_path=test_config.binpath,
         timeout=test_config.startprocess_timeout,
       )
-    except Exception:
+    except Exception as err:
       test_result.is_ok = False
-      raise StartProxyServiceError(f"Could not start xray service - {ip}")
+      raise StartProxyServiceError(f"Could not start xray service - {ip}") from err
 
   else:
     process = _FakeProcess()

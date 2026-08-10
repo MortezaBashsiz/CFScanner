@@ -34,7 +34,7 @@ def download_speed_test(
   total_time = time.perf_counter() - start_time
 
   server_timing_header = r.headers.get("Server-Timing")
-  pattern = r"dur=(\d*\.\d+)"
+  pattern = r"dur=(\d+(?:\.\d+)?)"
   match = re.search(pattern, server_timing_header)
   if match:
     cf_time = float(match.group(1)) / 1000

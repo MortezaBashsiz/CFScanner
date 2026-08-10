@@ -20,7 +20,7 @@ def start_proxy_service(
     Returns:
         Tuple[subprocess.Popen, dict]: the v2ray process object and a dictionary containing the proxies to use with ``requests.get``
     """
-    with open(proxy_conf_path, "r") as infile:
+    with open(proxy_conf_path) as infile:
         proxy_conf = json.load(infile)
 
     proxy_listen = proxy_conf["inbounds"][0].get("listen", "127.0.0.1")
