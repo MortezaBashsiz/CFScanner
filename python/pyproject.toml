@@ -22,7 +22,7 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
 ]
-version = "1.6.0a2"
+version = "1.6.1"
 
 [project.scripts]
 cfscanner = "cfscanner:main"
