@@ -11,3 +11,4 @@ result/
 venv/
 .python-version
 xray-*
+test.json
