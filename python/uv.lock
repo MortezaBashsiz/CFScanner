@@ -19,7 +19,7 @@ wheels = [
 [[package]]
 name = "cfscanner"
 version = "1.6.0a2"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "fancylogging" },
     { name = "pysocks" },
