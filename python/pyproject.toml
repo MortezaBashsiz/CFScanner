@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "cfscanner"
 authors = [
@@ -6,6 +10,7 @@ authors = [
 ]
 description = "Cloudflare's edge IPs scanner to locate ones that are viable for use with v2ray/xray"
 readme = "README.md"
+license = "GPL-3.0-or-later"
 dependencies = [
   "requests>=2.28.2",
   "pysocks>=1.7.1",
@@ -15,10 +20,9 @@ dependencies = [
 requires-python = ">=3.8"
 classifiers = [
   "Programming Language :: Python :: 3",
-  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
   "Operating System :: OS Independent",
 ]
-version = "1.5.4"
+version = "1.6.1"
 
 [project.scripts]
 cfscanner = "cfscanner:main"
@@ -29,3 +33,22 @@ tag_format = "pyv$version"
 version_scheme = "pep440"
 version_provider = "pep621"
 update_changelog_on_bump = true
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "ruff>=0.16.2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# Long docstrings/help strings are common in this CLI tool; the formatter is
+# not run repo-wide as part of this pass, so don't flag line length.
+ignore = ["E501"]

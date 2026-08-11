@@ -1,3 +1,4 @@
+import logging
 from statistics import mean
 from subprocess import Popen
 from typing import Iterable, Optional, Union
@@ -7,6 +8,8 @@ from rich.progress import GetTimeCallable, Progress, ProgressColumn, Task
 from rich.table import Column, Table
 
 from ..speedtest.tools import mean_jitter
+
+log = logging.getLogger(__name__)
 
 
 class TitledProgress(Progress):
@@ -70,11 +73,7 @@ class TitledProgress(Progress):
             if task.visible:
                 table.add_row(
                     *(
-                        (
-                            column.format(task=task)
-                            if isinstance(column, str)
-                            else column(task)
-                        )
+                        (column.format(task=task) if isinstance(column, str) else column(task))
                         for column in self.columns
                     )
                 )
@@ -89,11 +88,12 @@ def no_and_kill(ip: str, message: str, process: Popen):
         message (str): the message related to the error
         process (Popen): the process (xray) to be killed
     """
+    log.debug("Result No", extra={"ip": ip, "err_message": message})
     process.kill()
     return f"[bold red1]NO[/bold red1] [orange3]{ip:15s}[/orange3] [yellow1]{message}[/yellow1]"
 
 
-def ok_message(scan_result: dict) -> None:
+def ok_message(scan_result: dict) -> str:
     """prints the result if test is ok
 
     Args:

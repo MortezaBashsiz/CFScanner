@@ -62,7 +62,7 @@ def detect_system() -> tuple:
             return ("macos", "64")
     # add other systems as needed
     else:
-        raise OSError("Unsupported system: {current_system}")
+        raise OSError(f"Unsupported system: {current_system}")
 
 
 def create_dir(dir_path):

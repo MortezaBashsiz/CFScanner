@@ -1,6 +1,7 @@
 import requests
-from ..utils.exceptions import FileDownloadError
+
 from ..report.logging_setup import console
+from ..utils.exceptions import FileDownloadError
 
 
 def download_file(
@@ -19,7 +20,7 @@ def download_file(
             for chunk in r.iter_content(chunk_size=chunk_size):
                 if chunk:
                     zip_out.write(chunk)
-    except Exception:
+    except Exception as err:
         console.print_exception()
-        raise (FileDownloadError(f"Error downloading file from {url} to {save_path}"))
+        raise FileDownloadError(f"Error downloading file from {url} to {save_path}") from err
     return True

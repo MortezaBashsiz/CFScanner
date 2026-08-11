@@ -35,8 +35,8 @@ def upload_speed_test(
     total_time = time.perf_counter() - start_time
 
     server_timing_header = r.headers.get("Server-Timing")
-    pattern = r"dur=(\d*\.\d+)"
-    match = re.search(pattern, server_timing_header)
+    pattern = r"dur=(\d+(?:\.\d+)?)"
+    match = re.search(pattern, server_timing_header) if server_timing_header else None
     if match:
         cf_time = float(match.group(1)) / 1000
     else:
@@ -48,8 +48,10 @@ def upload_speed_test(
         raise ValueError(msg)
 
     latency = total_time - cf_time
+    log.debug(f"Upload latency {latency}")
 
     mb = n_bytes * 8 / (10**6)
     upload_speed = mb / cf_time
+    log.debug(f"Upload speed {upload_speed}")
 
     return upload_speed, latency

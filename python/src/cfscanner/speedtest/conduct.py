@@ -29,12 +29,8 @@ class TestResult:
         self.result = dict(
             ip=ip,
             success=False,
-            download=dict(
-                speed=[-1] * self.n_tries, latency=[-1] * self.n_tries
-            ),
-            upload=dict(
-                speed=[-1] * self.n_tries, latency=[-1] * self.n_tries
-            ),
+            download=dict(speed=[-1] * self.n_tries, latency=[-1] * self.n_tries),
+            upload=dict(speed=[-1] * self.n_tries, latency=[-1] * self.n_tries),
         )
 
     def __bool__(self):
@@ -54,10 +50,8 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
     test_result = TestResult(ip=ip, cidr=cidr, n_tries=test_config.n_tries)
 
     if not test_config.no_fronting:
-        for try_idx in range(test_config.n_tries):
-            fronting_result_msg = fronting_test(
-                ip, timeout=test_config.fronting_timeout
-            )
+        for _try_idx in range(test_config.n_tries):
+            fronting_result_msg = fronting_test(ip, timeout=test_config.fronting_timeout)
             if "NO" in fronting_result_msg:
                 test_result.message = fronting_result_msg
                 test_result.is_ok = False
@@ -84,11 +78,9 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
                 binary_path=test_config.binpath,
                 timeout=test_config.startprocess_timeout,
             )
-        except Exception:
+        except Exception as err:
             test_result.is_ok = False
-            raise StartProxyServiceError(
-                f"Could not start xray service - {ip}"
-            )
+            raise StartProxyServiceError(f"Could not start xray service - {ip}") from err
 
     else:
         process = _FakeProcess()
@@ -108,8 +100,10 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
         try:
             dl_speed, dl_latency = timeout_download_fun()
         except TimeoutError:
-            fail_msg = no_and_kill(
-                ip=ip, message="download timeout exceeded", process=process
+            fail_msg = no_and_kill(ip=ip, message="download timeout exceeded", process=process)
+            log.debug(
+                "Timeout in dl test",
+                extra={"ip": ip, "cidr": cidr},
             )
             test_result.message = fail_msg
             test_result.is_ok = False
@@ -117,11 +111,10 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
         except (
             requests.exceptions.ReadTimeout,
             requests.exceptions.ConnectionError,
-            requests.ConnectTimeout,
-        ):
-            fail_msg = no_and_kill(
-                ip=ip, message="download error", process=process
-            )
+            requests.exceptions.ConnectTimeout,
+        ) as e:
+            log.debug("Requests error in dl test", extra={"ip": ip, "cidr": cidr, "error": str(e)})
+            fail_msg = no_and_kill(ip=ip, message="download error", process=process)
             test_result.message = fail_msg
             test_result.is_ok = False
             return test_result
@@ -131,30 +124,44 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
                 f"Download unknown error: {e}",
                 extra={
                     "ip": ip,
+                    "cidr": cidr,
                 },
             )
-            fail_msg = no_and_kill(
-                ip=ip, message="download unknown error", process=process
-            )
+            fail_msg = no_and_kill(ip=ip, message="download unknown error", process=process)
             test_result.message = fail_msg
             test_result.is_ok = False
             return test_result
 
         if dl_latency <= test_config.max_dl_latency:
+            log.debug(
+                "dl_latency acceptable",
+                extra={
+                    "ip": ip,
+                    "cidr": cidr,
+                    "dl_latency": dl_latency,
+                    "max_acceptable": test_config.max_dl_latency,
+                },
+            )
             dl_speed_kBps = dl_speed / 8 * 1000
             if dl_speed_kBps >= test_config.min_dl_speed:
                 test_result.result["download"]["speed"][try_idx] = dl_speed
-                test_result.result["download"]["latency"][try_idx] = round(
-                    dl_latency * 1000
-                )
+                test_result.result["download"]["latency"][try_idx] = round(dl_latency * 1000)
             else:
-                message = f"download too slow {dl_speed_kBps:.2f} < {test_config.min_dl_speed:.2f} kBps"
+                log.debug(
+                    "download speed too low",
+                    extra={"ip": ip, "cidr": cidr, "dl_speed_kBps": dl_speed_kBps},
+                )
+                message = (
+                    f"download too slow {dl_speed_kBps:.2f} < {test_config.min_dl_speed:.2f} kBps"
+                )
                 fail_msg = no_and_kill(ip=ip, message=message, process=process)
                 test_result.message = fail_msg
                 test_result.is_ok = False
                 return test_result
         else:
-            message = f"high download latency {dl_latency:.4f} s > {test_config.max_dl_latency:.4f} s"
+            message = (
+                f"high download latency {dl_latency:.4f} s > {test_config.max_dl_latency:.4f} s"
+            )
             fail_msg = no_and_kill(ip=ip, message=message, process=process)
             test_result.message = fail_msg
             test_result.is_ok = False
@@ -167,8 +174,16 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
                 up_speed, up_latency = upload_speed_test(
                     n_bytes=n_bytes,
                     proxies=proxies,
-                    timeout=test_config.max_ul_latency
-                    + test_config.max_ul_time,
+                    timeout=test_config.max_ul_latency + test_config.max_ul_time,
+                )
+                log.debug(
+                    "Upload test successful",
+                    extra={
+                        "ip": ip,
+                        "cidr": cidr,
+                        "up_speed": up_speed,
+                        "up_latency": up_latency,
+                    },
                 )
             except requests.exceptions.ReadTimeout:
                 fail_msg = no_and_kill(ip, "upload read timeout", process)
@@ -186,7 +201,10 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
                 test_result.is_ok = False
                 return test_result
             except Exception as e:
-                log.exception(e)
+                log.exception(
+                    e,
+                    extra={"ip": ip, "cidr": cidr},
+                )
                 log.error(
                     f"Upload unknown error: {e}",
                     extra={
@@ -206,9 +224,7 @@ def test_ip(ip_cidr: tuple, test_config: TestConfig, config_dir: str):
             up_speed_kBps = up_speed / 8 * 1000
             if up_speed_kBps >= test_config.min_ul_speed:
                 test_result.result["upload"]["speed"][try_idx] = up_speed
-                test_result.result["upload"]["latency"][try_idx] = round(
-                    up_latency * 1000
-                )
+                test_result.result["upload"]["latency"][try_idx] = round(up_latency * 1000)
             else:
                 message = f"upload too slow {up_speed_kBps:.2f} kBps < {test_config.min_ul_speed:.2f} kBps"
                 fail_msg = no_and_kill(ip, message, process)

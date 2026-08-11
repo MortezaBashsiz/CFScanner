@@ -95,8 +95,10 @@ def read_cidrs_from_url(url: str, timeout: float = 10) -> list:
         cidrs = re.findall(cidr_regex, r.text)
         if len(cidrs) == 0:
             raise SubnetsReadError(f"Could not find any cidr in url {url}")
-    except Exception:
-        raise SubnetsReadError(f'Could not read cidrs from url "{url}"')
+    except SubnetsReadError:
+        raise
+    except Exception as err:
+        raise SubnetsReadError(f'Could not read cidrs from url "{url}"') from err
 
     return cidrs
 
@@ -121,12 +123,12 @@ def read_cidrs_from_file(filepath: str, shuffle: bool = False, n_lines: int = No
                 if line.strip():
                     yield line.strip()
         else:
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 for line in f:
                     yield line.strip()
 
-    except Exception:
-        raise SubnetsReadError(f"Could not read cidrs from file {filepath}")
+    except Exception as err:
+        raise SubnetsReadError(f"Could not read cidrs from file {filepath}") from err
 
 
 def read_cidrs(

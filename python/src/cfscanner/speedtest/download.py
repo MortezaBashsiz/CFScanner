@@ -8,9 +8,7 @@ import requests
 log = logging.getLogger(__name__)
 
 
-def download_speed_test(
-    n_bytes: int, proxies: dict, timeout: int
-) -> Tuple[float, float]:
+def download_speed_test(n_bytes: int, proxies: dict, timeout: int) -> Tuple[float, float]:
     """tests the download speed using cloudflare servers
 
     Args:
@@ -22,6 +20,7 @@ def download_speed_test(
         download_speed (float): the download speed in megabit per second
         latency (float): the round trip time latency in seconds
     """
+    log.debug("Starting download test", extra={"n_bytes": n_bytes, "timeout": timeout})
     start_time = time.perf_counter()
     r = requests.get(
         url="https://speed.cloudflare.com/__down",
@@ -32,8 +31,8 @@ def download_speed_test(
     total_time = time.perf_counter() - start_time
 
     server_timing_header = r.headers.get("Server-Timing")
-    pattern = r"dur=(\d*\.\d+)"
-    match = re.search(pattern, server_timing_header)
+    pattern = r"dur=(\d+(?:\.\d+)?)"
+    match = re.search(pattern, server_timing_header) if server_timing_header else None
     if match:
         cf_time = float(match.group(1)) / 1000
     else:
@@ -49,5 +48,10 @@ def download_speed_test(
 
     mb = n_bytes * 8 / (10**6)
     download_speed = mb / download_time
+
+    log.debug(
+        "Download speed calculated",
+        extra={"download_speed": download_speed, "latency": latency},
+    )
 
     return download_speed, latency

@@ -1,9 +1,10 @@
-from rich.console import Console
 import logging
-import fancylogging
 import os
 import pathlib
 from datetime import datetime
+
+import fancylogging
+from rich.console import Console
 
 SCRIPTDIR = os.getcwd()
 CONFIGDIR = f"{SCRIPTDIR}/.xray-configs"

@@ -1,8 +1,8 @@
 import os
+import uuid
 
 from ..args.testconfig import TestConfig
 from ..utils.socket import get_free_port
-import uuid
 
 
 def create_proxy_config(

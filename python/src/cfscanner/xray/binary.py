@@ -64,18 +64,18 @@ def download_binary(
                     binoutfile.write(xray_file)
                 os.chmod(bin_path, 0o775)
                 return bin_path
-            except FileDownloadError:
+            except FileDownloadError as err:
                 raise BinaryDownloadError(
                     f"Failed to download the release zip file from xtls xray-core github repo {system_info}"
-                )
-            except KeyError:
+                ) from err
+            except KeyError as err:
                 raise BinaryDownloadError(
                     f"Failed to get binary from zip file {zip_url}"
-                )
-            except Exception:
+                ) from err
+            except Exception as err:
                 raise BinaryDownloadError(
                     f"Unknown error - detected system: {system_info}"
-                )
+                ) from err
     else:
         console.log(f"[bright_blue]Binary file already exists {bin_path}[/bright_blue]")
         return bin_path
