@@ -9,15 +9,14 @@ Docker repository page [HERE](https://hub.docker.com/r/bashsiz/cfscanner "HERE")
 ### 1. pull image
 
 ```shell
-[~]>$ sudo docker pull bashsiz/cfscanner:latest
+sudo docker pull bashsiz/cfscanner:latest
 ```
 
 ### 2. make directories
 
 ```shell
-[~]>$ mkdir -p /tmp/cfscanner/config /tmp/cfscanner/result
-[~]>$ cd /tmp/cfscanner/
-[/tmp/cfscanner]>$
+mkdir -p /tmp/cfscanner/config /tmp/cfscanner/result
+cd /tmp/cfscanner/
 ```
 
 ### 3. Run docker image
